@@ -182,6 +182,39 @@
                 </StackPanel>
             </Grid>
 
+            <!-- Forwarding. PuTTY only, so it follows the same visibility rule as the other built-in options. -->
+            <Grid Style="{StaticResource EditorRowGrid}" Visibility="{Binding New.SelectedRunnerIsInternalRunner, Converter={StaticResource ConverterBool2Visible}}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource ssh_port_forwarding}"></TextBlock>
+                        <Grid Style="{StaticResource EditorRowGridInput}">
+                            <TextBox Text="{Binding New.PortForwardings, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="60"
+                                     VerticalScrollBarVisibility="Auto"
+                                     ToolTip="{DynamicResource ssh_port_forwarding_hint}"
+                                     Tag="L 8080 intranet:80"></TextBox>
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource EditorRowGridTitle}" Text=""></TextBlock>
+                        <TextBlock Style="{StaticResource TextBlockBase}" MaxWidth="420" TextWrapping="Wrap" Opacity="0.7"
+                                   Text="{DynamicResource ssh_port_forwarding_hint}"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0 8 0 0">
+                        <TextBlock Style="{StaticResource EditorRowGridTitle}" Text=""></TextBlock>
+                        <Grid Style="{StaticResource EditorRowGridInput}">
+                            <StackPanel>
+                                <CheckBox Content="{DynamicResource ssh_agent_forwarding}"
+                                          ToolTip="{DynamicResource ssh_agent_forwarding_hint}"
+                                          IsChecked="{Binding New.EnableAgentForwarding}"></CheckBox>
+                                <CheckBox Margin="0 6 0 0" Content="{DynamicResource ssh_x11_forwarding}"
+                                          IsChecked="{Binding New.EnableX11Forwarding}"></CheckBox>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
             <Grid Style="{StaticResource EditorRowGrid}">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">

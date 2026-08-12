@@ -524,6 +524,12 @@ exec $SHELL # to keep putty alive
                 puttyOption.Set(EnumConfigKey.HostName, server.Address);
                 puttyOption.Set(EnumConfigKey.PortNumber, server.GetPort());
                 puttyOption.Set(EnumConfigKey.Protocol, "ssh");
+
+                var forwardings = SshPortForwardingRules.ToPuttyValue(server.PortForwardings);
+                if (!string.IsNullOrEmpty(forwardings))
+                    puttyOption.Set(EnumConfigKey.PortForwardings, forwardings);
+                puttyOption.Set(EnumConfigKey.AgentFwd, server.EnableAgentForwarding ? 1 : 0);
+                puttyOption.Set(EnumConfigKey.X11Forward, server.EnableX11Forwarding ? 1 : 0);
             }
             if (iPuttyConnectable is Serial serial)
             {

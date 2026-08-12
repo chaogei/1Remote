@@ -57,6 +57,36 @@ namespace _1RM.Model.Protocol
             set => SetAndNotifyIfChanged(ref _openSftpOnConnected, value);
         }
 
+        /// <summary>
+        /// Forwarding rules, one per line, in the readable form <see cref="SshPortForwardingRules"/> accepts.
+        /// PuTTY has always been able to do this - the key was written out as an empty string, so the
+        /// capability was there and simply not reachable.
+        /// </summary>
+        private string _portForwardings = "";
+        [OtherName(Name = "SSH_PORT_FORWARDINGS")]
+        public string PortForwardings
+        {
+            get => _portForwardings;
+            set => SetAndNotifyIfChanged(ref _portForwardings, value);
+        }
+
+        /// <summary>Lets the remote host use the keys held by the local agent (Pageant).</summary>
+        private bool _enableAgentForwarding = false;
+        [OtherName(Name = "SSH_AGENT_FORWARDING")]
+        public bool EnableAgentForwarding
+        {
+            get => _enableAgentForwarding;
+            set => SetAndNotifyIfChanged(ref _enableAgentForwarding, value);
+        }
+
+        private bool _enableX11Forwarding = false;
+        [OtherName(Name = "SSH_X11_FORWARDING")]
+        public bool EnableX11Forwarding
+        {
+            get => _enableX11Forwarding;
+            set => SetAndNotifyIfChanged(ref _enableX11Forwarding, value);
+        }
+
         public override bool IsOnlyOneInstance()
         {
             return false;

@@ -382,4 +382,9 @@
     <s:String x:Key="backup_not_a_backup">That file is not a 1Remote backup.</s:String>
     <s:String x:Key="backup_restore_confirm">Restoring replaces your current servers, credentials and settings with the ones in the backup. This cannot be undone. Continue?</s:String>
     <s:String x:Key="backup_restore_done">Restore finished. 1Remote will now close - start it again to use the restored data.</s:String>
+    <s:String x:Key="ssh_port_forwarding">Port forwarding</s:String>
+    <s:String x:Key="ssh_port_forwarding_hint">One rule per line. "L 8080 intranet:80" opens local port 8080 and sends it to intranet:80 through this server. "R 9000 localhost:9000" does the reverse. "D 1080" makes a SOCKS proxy on local port 1080. PuTTY's own syntax such as L8080=intranet:80 also works.</s:String>
+    <s:String x:Key="ssh_agent_forwarding">Allow the remote host to use my local key agent (Pageant)</s:String>
+    <s:String x:Key="ssh_agent_forwarding_hint">Handy for hopping onward from this server without copying a key to it. Only enable it on hosts you trust: anyone with root there can use your keys while the session is open.</s:String>
+    <s:String x:Key="ssh_x11_forwarding">Enable X11 forwarding</s:String>
 </ResourceDictionary>

@@ -382,4 +382,9 @@
     <s:String x:Key="backup_not_a_backup">这个文件不是 1Remote 的备份。</s:String>
     <s:String x:Key="backup_restore_confirm">还原会用备份里的内容覆盖当前的服务器、凭据和设置，且无法撤销。确定继续吗？</s:String>
     <s:String x:Key="backup_restore_done">还原完成。1Remote 现在会关闭，请重新启动以使用还原后的数据。</s:String>
+    <s:String x:Key="ssh_port_forwarding">端口转发</s:String>
+    <s:String x:Key="ssh_port_forwarding_hint">一行一条。「L 8080 intranet:80」把本地 8080 端口经这台服务器转到 intranet:80；「R 9000 localhost:9000」方向相反；「D 1080」在本地 1080 端口开一个 SOCKS 代理。PuTTY 自己的写法（如 L8080=intranet:80）也认。</s:String>
+    <s:String x:Key="ssh_agent_forwarding">允许远程主机使用本机的密钥代理（Pageant）</s:String>
+    <s:String x:Key="ssh_agent_forwarding_hint">方便从这台服务器再跳到下一台，不用把私钥拷过去。只对你信任的主机开启：会话期间，那台机器上的 root 可以借用你的密钥。</s:String>
+    <s:String x:Key="ssh_x11_forwarding">启用 X11 转发</s:String>
 </ResourceDictionary>
