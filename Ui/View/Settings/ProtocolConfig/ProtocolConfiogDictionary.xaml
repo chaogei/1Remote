@@ -23,7 +23,7 @@
     </Style>
 
     <Style x:Key="Block" TargetType="Grid">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"></Setter>
+        <Setter Property="Background" Value="{DynamicResource GlassContentBrush}"></Setter>
         <Setter Property="Width" Value="520"></Setter>
         <Setter Property="HorizontalAlignment" Value="Left"></Setter>
         <Setter Property="Margin" Value="15 10 20 10"></Setter>

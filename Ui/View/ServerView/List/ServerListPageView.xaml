@@ -289,7 +289,7 @@
                         <Grid.Margin>
                             <Thickness Right="{StaticResource ScrollBarWidthMouseOver}"></Thickness>
                         </Grid.Margin>
-                        <Border Background="{DynamicResource BackgroundBrush}">
+                        <Border Background="{DynamicResource GlassPanelBrush}">
                             <Border.Margin>
                                 <Thickness Right="{StaticResource ScrollBarWidthMouseOver}"></Thickness>
                             </Border.Margin>

@@ -107,7 +107,7 @@
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
                     <Border Name="Border1" Grid.Row="0" Grid.RowSpan="2" 
-                            Background="{DynamicResource BackgroundBrush}"
+                            Background="{DynamicResource GlassContentBrush}"
                             CornerRadius="10" BorderThickness="0">
                     </Border>
                     <Grid Grid.Row="0" Background="{DynamicResource GlassPanelBrush}">
@@ -158,8 +158,8 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Grid MinWidth="130" Background="{DynamicResource BackgroundBrush}">
-            <Border BorderThickness="0" Background="{DynamicResource BackgroundBrush}">
+        <Grid MinWidth="130" Background="Transparent">
+            <Border BorderThickness="0" Background="{DynamicResource GlassContentBrush}">
                 <Border.Effect>
                     <DropShadowEffect Direction="0" Opacity="0.5" ShadowDepth="3"></DropShadowEffect>
                 </Border.Effect>
@@ -193,7 +193,7 @@
                     </ListBox.Background>
                 </ListBox>
 
-                <Border Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Background="{DynamicResource BackgroundBrush}">
+                <Border Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Background="{DynamicResource GlassContentBrush}">
                     <Border.Effect>
                         <DropShadowEffect Direction="270" Opacity="0.5" ShadowDepth="3"></DropShadowEffect>
                     </Border.Effect>

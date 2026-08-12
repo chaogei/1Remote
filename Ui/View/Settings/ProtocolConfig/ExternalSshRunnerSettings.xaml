@@ -27,7 +27,7 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <Border Name="Border1" Grid.Row="0" Grid.RowSpan="2" 
-                        Background="{DynamicResource BackgroundBrush}"
+                        Background="{DynamicResource GlassContentBrush}"
                         CornerRadius="10" BorderThickness="0">
         </Border>
         <Grid Grid.Row="0" Background="{DynamicResource GlassPanelBrush}">
