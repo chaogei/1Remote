@@ -554,7 +554,13 @@
                     </Style>
                 </Grid.Style>
 
-                <ContentControl s:View.Model="{Binding ActiveServerViewModel}"/>
+                <!--
+                    The three pages share this one cell and used to hide each other simply by being opaque.
+                    Now that they are translucent, the server list has to actually be collapsed while the
+                    settings or editor page is up, otherwise both render on top of each other.
+                -->
+                <ContentControl s:View.Model="{Binding ActiveServerViewModel}"
+                                Visibility="{Binding IsShownList, Converter={StaticResource ConverterBool2Visible}}" />
 
 
                 <ContentControl s:View.Model="{Binding SettingViewModel}">

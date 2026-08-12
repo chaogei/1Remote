@@ -35,7 +35,7 @@
         </ResourceDictionary>
     </serverView:ServerViewBase.Resources>
 
-    <Grid Background="{DynamicResource PrimaryMidBrush}" PreviewMouseMove="MasterGrid_OnPreviewMouseMove"
+    <Grid Background="Transparent" PreviewMouseMove="MasterGrid_OnPreviewMouseMove"
           AllowDrop="True" DragOver="TreeViewItem_OnDragOver" Drop="TreeViewItem_OnDrop">
 
         <!-- Main tree view area -->

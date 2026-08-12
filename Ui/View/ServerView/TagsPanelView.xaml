@@ -17,7 +17,8 @@
         <local:ConverterTagNameCount x:Key="ConverterTagNameCount" />
     </UserControl.Resources>
 
-    <Grid Margin="0 21 0 0" Background="Transparent">
+    <!-- an overlay panel, so it keeps its own tint rather than being see-through onto the list beneath -->
+    <Grid Margin="0 21 0 0" Background="{DynamicResource GlassPanelBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="20"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>

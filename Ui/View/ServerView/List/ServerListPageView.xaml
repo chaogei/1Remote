@@ -38,9 +38,12 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
+                            <!-- Transparent, not BackgroundBrush: the rows cover most of the page, so an
+                                 opaque row background hides the backdrop everywhere it matters. Transparent
+                                 still takes part in hit testing. -->
                             <Grid Name="Grid" FocusVisualStyle="{x:Null}" 
                                   PreviewMouseDown="ServerList_OnPreviewMouseDown"
-                                  Background="{DynamicResource BackgroundBrush}"
+                                  Background="Transparent"
                                   Visibility="{Binding Server.Id, Converter={StaticResource ConverterEqual2Collapsed}, ConverterParameter='0'}">
 
                                 <Border x:Name="GridContainer"></Border>
@@ -149,7 +152,8 @@
 
 
 
-    <Grid Background="{DynamicResource PrimaryMidBrush}" Grid.IsSharedSizeScope="True">
+    <!-- transparent so the window's single tint shows through; see the note in MainWindowView -->
+    <Grid Background="Transparent" Grid.IsSharedSizeScope="True">
         <Grid Margin="0 21 0 0" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
