@@ -30,6 +30,13 @@ namespace _1RM.Service.Locality
         //TagDesc = 5,
         AddressAsc = 6,
         AddressDesc = 7,
+
+        /// <summary>
+        /// Most recently connected first. The timestamps were already being recorded and used by the tray
+        /// menu; the main list simply had no way to order by them.
+        /// </summary>
+        LastConnectTimeDesc = 8,
+
         Custom = 999,
     }
 

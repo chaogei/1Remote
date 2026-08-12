@@ -270,6 +270,7 @@
     <s:String x:Key="Show credentials info">显示账号信息</s:String>
     <s:String x:Key="Sorting">排序</s:String>
     <s:String x:Key="Sort by drag">自定义拖拽排序</s:String>
+    <s:String x:Key="Sort by last connect">最近连接过的排前面</s:String>
     <s:String x:Key="We can not connect database:">无法连接到数据库</s:String>
     <s:String x:Key="We can not create tables on database:">无法创建数据表：</s:String>
     <s:String x:Key="We can not insert into database:">无法插入数据：</s:String>
@@ -371,4 +372,14 @@
     <s:String x:Key="empty_no_search_result_title">没有匹配的服务器</s:String>
     <s:String x:Key="empty_no_search_result_hint">当前没有任何条目符合你输入的内容，检查一下拼写，或者换个更短的关键词。</s:String>
     <s:String x:Key="empty_no_search_result_clear">清除筛选</s:String>
+    <s:String x:Key="backup_title">备份</s:String>
+    <s:String x:Key="backup_page_hint">你的配置分散在好几个文件和文件夹里。这里把它们打包成一个文件，方便你另存一份；换机器或者误操作之后，也能一次性还原回来。</s:String>
+    <s:String x:Key="backup_scope_hint">包含：服务器、凭据库、全部设置、标签、连接记录、自定义协议启动器、服务器图标。不包含：存在远程数据库里的服务器 —— 那些数据留在数据库里，这里只保存连上它所需的信息。</s:String>
+    <s:String x:Key="backup_create">创建备份</s:String>
+    <s:String x:Key="backup_restore">从备份还原</s:String>
+    <s:String x:Key="backup_create_done">已备份 {0} 项到 {1}</s:String>
+    <s:String x:Key="backup_failed">失败：{0}</s:String>
+    <s:String x:Key="backup_not_a_backup">这个文件不是 1Remote 的备份。</s:String>
+    <s:String x:Key="backup_restore_confirm">还原会用备份里的内容覆盖当前的服务器、凭据和设置，且无法撤销。确定继续吗？</s:String>
+    <s:String x:Key="backup_restore_done">还原完成。1Remote 现在会关闭，请重新启动以使用还原后的数据。</s:String>
 </ResourceDictionary>

@@ -354,6 +354,10 @@ namespace _1RM.View.ServerView
                             propertyName = nameof(ProtocolBaseViewModel.SubTitle);
                             direction = ListSortDirection.Descending;
                             break;
+                        case EnumServerOrderBy.LastConnectTimeDesc:
+                            propertyName = nameof(ProtocolBaseViewModel.LastConnectTime);
+                            direction = ListSortDirection.Descending;
+                            break;
                         default:
                             SimpleLogHelper.Error($"ApplySort: type {orderBy} is not supported");
                             UnifyTracing.Error(new NotImplementedException($"ApplySort: type {orderBy} is not supported"));

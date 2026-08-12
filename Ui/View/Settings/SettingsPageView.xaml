@@ -97,6 +97,9 @@
                     <Button Style="{StaticResource SettingsRailButtonStyle}"
                             CommandParameter="{x:Static view:EnumMainWindowPage.SettingsRunners}"
                             Content="{DynamicResource Protocol}" />
+                    <Button Style="{StaticResource SettingsRailButtonStyle}"
+                            CommandParameter="{x:Static view:EnumMainWindowPage.SettingsBackup}"
+                            Content="{DynamicResource backup_title}" />
                 </StackPanel>
             </ScrollViewer>
 

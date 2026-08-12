@@ -47,12 +47,25 @@ namespace _1RM.Utils
             public List<string> KeyWords = new List<string>();
 
             /// <summary>
+            /// Protocol names typed as <c>proto:ssh</c>. Matched as a prefix, so <c>proto:s</c> keeps both
+            /// SSH and SFTP - narrowing by protocol is usually a first pass, not an exact recall.
+            /// </summary>
+            public List<string> ProtocolFilters = new List<string>();
+
+            /// <summary>Data source names typed as <c>src:team</c>, matched the same way.</summary>
+            public List<string> DataSourceFilters = new List<string>();
+
+            /// <summary>
             /// Determines whether all keyword-related lists are empty.
             /// </summary>
             /// <returns>True if all lists are empty; otherwise, false.</returns>
             public bool IsKeywordEmpty()
             {
-                return IncludeTagsStartWithKeyWord.Any() != true && TagFilterList.Any() != true && KeyWords.Any() != true;
+                return IncludeTagsStartWithKeyWord.Any() != true
+                       && TagFilterList.Any() != true
+                       && KeyWords.Any() != true
+                       && ProtocolFilters.Any() != true
+                       && DataSourceFilters.Any() != true;
             }
         }
 
@@ -61,6 +74,10 @@ namespace _1RM.Utils
         /// </summary>
         /// <param name="keyword">The keyword string to decode.</param>
         /// <returns>A <see cref="KeywordDecoded"/> object containing the parsed results.</returns>
+        /// <summary>Typed filter prefixes, e.g. <c>proto:rdp</c> or <c>src:team</c>.</summary>
+        private const string PROTOCOL_PREFIX = "proto:";
+        private const string SOURCE_PREFIX = "src:";
+
         public static KeywordDecoded DecodeKeyword(string keyword)
         {
             var words = keyword.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -86,6 +103,16 @@ namespace _1RM.Utils
                         var tmp = IoC.Get<GlobalData>().TagList.Where(x => x.Name.StartsWith(tagName, StringComparison.OrdinalIgnoreCase)).Select(x => x.Name);
                         ret.IncludeTagsStartWithKeyWord.AddRange(tmp);
                     }
+                }
+                else if (word.StartsWith(PROTOCOL_PREFIX, StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = word.Substring(PROTOCOL_PREFIX.Length);
+                    if (!string.IsNullOrWhiteSpace(value)) ret.ProtocolFilters.Add(value);
+                }
+                else if (word.StartsWith(SOURCE_PREFIX, StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = word.Substring(SOURCE_PREFIX.Length);
+                    if (!string.IsNullOrWhiteSpace(value)) ret.DataSourceFilters.Add(value);
                 }
                 else if (string.IsNullOrEmpty(word) == false)
                 {
@@ -162,20 +189,42 @@ namespace _1RM.Utils
                 }
             }
 
+            // Typed filters: proto: and src:
+            if (keywordDecoded.ProtocolFilters.Any()
+                && !keywordDecoded.ProtocolFilters.Any(x => server.Protocol.StartsWith(x, StringComparison.OrdinalIgnoreCase)
+                                                            || server.ProtocolDisplayName.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
+            {
+                return new Tuple<bool, MatchResults?>(false, null);
+            }
+
+            if (keywordDecoded.DataSourceFilters.Any())
+            {
+                var sourceName = server.DataSource?.DataSourceName ?? "";
+                if (!keywordDecoded.DataSourceFilters.Any(x => sourceName.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return new Tuple<bool, MatchResults?>(false, null);
+                }
+            }
+
             // If there are no keywords, return match.
             if (keywordDecoded.KeyWords.Any() != true)
             {
                 return new Tuple<bool, MatchResults?>(true, null);
             }
 
-            // Match keywords against server display name and subtitle.
-            var dispName = server.DisplayName;
-            var subTitle = server.SubTitle;
-            if (matchSubTitle == false)
+            // The first two positions are load bearing: the launcher reads HitFlags[0] and HitFlags[1] to
+            // highlight the title and the subtitle. Everything after them is searched but not highlighted,
+            // which is the right treatment for a note or a username - they are not on screen to light up.
+            var fields = new List<string>(6)
             {
-                subTitle = "";
-            }
-            var mrs = IoC.Get<KeywordMatchService>().Match(new List<string>() { dispName, subTitle }, keywordDecoded.KeyWords);
+                server.DisplayName,
+                matchSubTitle ? server.SubTitle : "",
+                server.ProtocolDisplayName,
+                server.Note,
+                server is ProtocolBaseWithAddressPortUserPwd withUser ? withUser.UserName : "",
+                server.TreeNodes.Count > 0 ? string.Join(" ", server.TreeNodes) : "",
+            };
+            var mrs = IoC.Get<KeywordMatchService>().Match(fields, keywordDecoded.KeyWords);
             if (mrs.IsMatchAllKeywords)
                 return new Tuple<bool, MatchResults?>(true, mrs);
             return new Tuple<bool, MatchResults?>(false, null);

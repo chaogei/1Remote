@@ -13,6 +13,7 @@ using _1RM.View;
 using _1RM.View.ErrorReport;
 using _1RM.View.Launcher;
 using _1RM.View.Settings;
+using _1RM.View.Settings.Backup;
 using _1RM.View.Settings.CredentialVault;
 using _1RM.View.Settings.DataSource;
 using _1RM.View.Settings.General;
@@ -76,6 +77,7 @@ namespace _1RM
             builder.Bind<ThemeSettingViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ProtocolRunnerSettingsPageViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ProxySettingViewModel>().ToSelf().InSingletonScope();
+            builder.Bind<BackupSettingViewModel>().ToSelf().InSingletonScope();
 
             builder.Bind<ServerListPageViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ServerTreeViewModel>().ToSelf().InSingletonScope();

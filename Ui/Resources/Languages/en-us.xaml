@@ -270,6 +270,7 @@
     <s:String x:Key="Show credentials info">Show credentials info</s:String>
     <s:String x:Key="Sorting">Sorting</s:String>
     <s:String x:Key="Sort by drag">Sort by drag</s:String>
+    <s:String x:Key="Sort by last connect">Recently connected</s:String>
     <s:String x:Key="We can not connect database:">We can not connect database:</s:String>
     <s:String x:Key="We can not create tables on database:">We can not create tables on database:</s:String>
     <s:String x:Key="We can not insert into database:">We can not insert into database:</s:String>
@@ -371,4 +372,14 @@
     <s:String x:Key="empty_no_search_result_title">No matching server</s:String>
     <s:String x:Key="empty_no_search_result_hint">Nothing here matches what you typed. Check the spelling, or try a shorter keyword.</s:String>
     <s:String x:Key="empty_no_search_result_clear">Clear the filter</s:String>
+    <s:String x:Key="backup_title">Backup</s:String>
+    <s:String x:Key="backup_page_hint">Your settings live in several files and folders. This packs all of them into a single archive so you can copy it somewhere safe, and puts them back on another machine or after a mistake.</s:String>
+    <s:String x:Key="backup_scope_hint">Included: servers, the credentials vault, all settings, tags, connection history, custom protocol runners and server icons. Not included: servers stored in a remote database - those stay in that database, only the details needed to reach it are saved.</s:String>
+    <s:String x:Key="backup_create">Create a backup</s:String>
+    <s:String x:Key="backup_restore">Restore from a backup</s:String>
+    <s:String x:Key="backup_create_done">Backed up {0} item(s) to {1}</s:String>
+    <s:String x:Key="backup_failed">Failed: {0}</s:String>
+    <s:String x:Key="backup_not_a_backup">That file is not a 1Remote backup.</s:String>
+    <s:String x:Key="backup_restore_confirm">Restoring replaces your current servers, credentials and settings with the ones in the backup. This cannot be undone. Continue?</s:String>
+    <s:String x:Key="backup_restore_done">Restore finished. 1Remote will now close - start it again to use the restored data.</s:String>
 </ResourceDictionary>

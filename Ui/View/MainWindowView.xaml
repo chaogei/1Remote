@@ -425,6 +425,29 @@
                                 </MenuItem>
 
 
+                                <MenuItem Command="{Binding CmdReOrder}" CommandParameter="{x:Static locality:EnumServerOrderBy.LastConnectTimeDesc}">
+                                    <MenuItem.Icon>
+                                        <Path UseLayoutRounding="True" Data="{StaticResource GeometryHook}" Fill="{DynamicResource PrimaryTextBrush}" Stretch="Uniform">
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding ServerOrderBy}" Value="{x:Static locality:EnumServerOrderBy.LastConnectTimeDesc}">
+                                                            <Setter Property="Visibility" Value="Visible"></Setter>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
+                                        </Path>
+                                    </MenuItem.Icon>
+                                    <MenuItem.Header>
+                                        <Grid>
+                                            <TextBlock Margin="5" HorizontalAlignment="Left" Text="{DynamicResource 'Sort by last connect'}"></TextBlock>
+                                        </Grid>
+                                    </MenuItem.Header>
+                                </MenuItem>
+
+
                                 <MenuItem Command="{Binding CmdReOrder}" CommandParameter="{x:Static locality:EnumServerOrderBy.Custom}">
                                     <MenuItem.Icon>
                                         <Path UseLayoutRounding="True" Data="{StaticResource GeometryHook}" Fill="{DynamicResource PrimaryTextBrush}" Stretch="Uniform">
