@@ -250,7 +250,9 @@ namespace _1RM.View.Host.ProtocolHosts
             // shows for an untrusted certificate was suppressed for every connection. Self-signed
             // certificates are normal on internal networks, so the escape hatch is per server rather than
             // global.
-            _rdpClient.AdvancedSettings9.AuthenticationLevel = _rdpSettings.TrustUnverifiedHost ? 0 : 2;
+            // uint literals: the property is uint, and a conditional over plain 0/2 has the natural type int,
+            // which has no implicit conversion to uint
+            _rdpClient.AdvancedSettings9.AuthenticationLevel = _rdpSettings.TrustUnverifiedHost ? 0u : 2u;
 
             // ref: https://docs.microsoft.com/en-us/windows/win32/termserv/imsrdpclientadvancedsettings6-connecttoadministerserver
             _rdpClient.AdvancedSettings7.ConnectToAdministerServer = _rdpSettings.IsAdministrativePurposes == true;
