@@ -818,13 +818,18 @@ namespace _1RM.View.ServerView.Tree
                     vs.PropertyChanged -= VmServerPropertyChanged;
                 }
                 
-                // Clear and repopulate the existing collection instead of replacing it
-                // This prevents race conditions with virtualization during layout operations
-                VmServerList.Clear();
-                foreach (var item in AppData.VmItemList)
+                // Refill the existing collection rather than replacing the instance, which would drop the
+                // CollectionChanged subscription and race virtualization mid-layout
+                VmServerList.ReplaceAll(AppData.VmItemList);
+
+                foreach (var vs in VmServerList)
                 {
-                    VmServerList.Add(item);
+                    vs.IsSelected = false;
+                    vs.PropertyChanged += VmServerPropertyChanged;
                 }
+                // before the early return below: an empty list still has to reset the running selection count,
+                // or IsAnySelected keeps answering for servers that are no longer here
+                OnServerListRebuilt();
 
                 // Check if there are any servers to display
                 if (VmServerList.Count == 0)
@@ -832,13 +837,6 @@ namespace _1RM.View.ServerView.Tree
                     RootNodes = TreeNode.VirtualRoot.Children;
                     return;
                 }
-
-                foreach (var vs in VmServerList)
-                {
-                    vs.IsSelected = false;
-                    vs.PropertyChanged += VmServerPropertyChanged;
-                }
-                OnServerListRebuilt();
 
                 // add data sources to TreeNodes
                 foreach (var ds in IoC.Get<DataSourceService>().AllSources)

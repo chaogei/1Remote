@@ -171,7 +171,11 @@ namespace _1RM.View.ServerView
         }
 
 
-        public ObservableCollection<ProtocolBaseViewModel> VmServerList { get; set; } = new ObservableCollection<ProtocolBaseViewModel>();
+        /// <summary>
+        /// Never reassigned - both pages subscribe to its CollectionChanged once in their constructor, and a
+        /// new instance would silently drop that subscription.
+        /// </summary>
+        public BulkObservableCollection<ProtocolBaseViewModel> VmServerList { get; } = new BulkObservableCollection<ProtocolBaseViewModel>();
 
         private RelayCommand? _cmdCancelSelected;
         public RelayCommand CmdCancelSelected

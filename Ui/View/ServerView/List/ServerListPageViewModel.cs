@@ -230,19 +230,11 @@ namespace _1RM.View.ServerView
                     // Prepare new list with proper ordering
                     var newList = list.OrderBy(x => x.CustomOrder).ThenBy(x => x.Id).ToList();
 
-                    // Clear and repopulate the existing collection instead of replacing it
-                    // This prevents race conditions with VirtualizingWrapPanel during layout operations.
-                    // Held inside DeferRefresh because a sorted, grouped CollectionView reacts to every single
-                    // Add by finding an insertion point and shifting its internal array, which turns filling
-                    // the list into quadratic work; deferring collapses all of it into one pass at the end.
-                    using (Defer(CollectionViewOf(this.View)))
-                    {
-                        VmServerList.Clear();
-                        foreach (var item in newList)
-                        {
-                            VmServerList.Add(item);
-                        }
-                    }
+                    // Refill the existing collection rather than replacing the instance, which would drop the
+                    // CollectionChanged subscription and race the VirtualizingWrapPanel mid-layout. One Reset
+                    // instead of one notification per item: a sorted, grouped CollectionView answers every
+                    // single Add by finding an insertion point and shifting its internal array.
+                    VmServerList.ReplaceAll(newList);
 
                     SelectedServerViewModel = null;
                     foreach (var vs in VmServerList)
@@ -264,27 +256,6 @@ namespace _1RM.View.ServerView
                     SimpleLogHelper.Debug($"[{this.GetHashCode()}] ListView rebuilt with {AppData.VmItemList.Count} servers");
                 });
             }
-        }
-
-        private static ICollectionView? CollectionViewOf(object? view)
-        {
-            return view is ServerListPageView { LvServerCards.ItemsSource: { } source }
-                ? CollectionViewSource.GetDefaultView(source)
-                : null;
-        }
-
-        /// <summary>
-        /// Suspends the view's reaction to collection changes, or does nothing when there is no view yet.
-        /// </summary>
-        private static IDisposable Defer(ICollectionView? view)
-        {
-            return view?.DeferRefresh() ?? EmptyScope.Instance;
-        }
-
-        private sealed class EmptyScope : IDisposable
-        {
-            public static readonly EmptyScope Instance = new EmptyScope();
-            public void Dispose() { }
         }
 
         public override void ClearSelection()
