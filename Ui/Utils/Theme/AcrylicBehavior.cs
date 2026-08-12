@@ -131,12 +131,34 @@ namespace _1RM.Utils.Theme
                 else
                     window.Resources.Remove(BACKDROP_RESOURCE_KEY);
 
-                SimpleLogHelper.Info($"AcrylicBehavior: backdrop {(applied ? "applied" : "not applied")} to {window.GetType().Name}, tint = {tint}");
+                SetCompositionTargetTransparent(window, applied);
+
+                SimpleLogHelper.Warning($"AcrylicBehavior: backdrop {(applied ? "applied" : "NOT applied")} to {window.GetType().Name}, tint = {tint}");
             }
             catch (Exception ex)
             {
                 SimpleLogHelper.Warning($"AcrylicBehavior: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// The step that actually makes the backdrop visible.
+        ///
+        /// This window is not <c>AllowsTransparency</c>, so WPF renders it onto an opaque surface and a
+        /// translucent brush composites against that surface rather than against what DWM painted behind the
+        /// window. The backdrop was therefore only visible in the thin glass-frame margin that WindowChrome
+        /// extends — the rest of the client area stayed solid no matter what opacity was chosen.
+        ///
+        /// Clearing the composition target's background colour gives the whole client area an alpha channel,
+        /// which is what lets the acrylic show through everywhere.
+        /// </summary>
+        private static void SetCompositionTargetTransparent(Window window, bool transparent)
+        {
+            var handle = new WindowInteropHelper(window).Handle;
+            if (handle == IntPtr.Zero) return;
+            var target = HwndSource.FromHwnd(handle)?.CompositionTarget;
+            if (target == null) return;
+            target.BackgroundColor = transparent ? Colors.Transparent : Colors.Black;
         }
 
         private static Color ResolveTint()
