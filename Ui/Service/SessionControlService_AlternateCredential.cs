@@ -339,12 +339,18 @@ namespace _1RM.Service
                     newCredential.Name = $"{protocol.DisplayName} ({assignCredentialName})";
             }
 
+            // A proxied target is reachable through the proxy only, so probing it from here always fails and
+            // would abort a connection that would otherwise work.
+            bool isProxied = !string.IsNullOrEmpty(protocol.ProxyName);
+
             // check if it needs to ping before connect
             bool isPingBeforeConnect = protocol.IsPingBeforeConnect == true
                                        // do not ping if rdp protocol and gateway is used
-                                       && protocol is not RDP { GatewayMode: EGatewayMode.UseTheseGatewayServerSettings };
+                                       && protocol is not RDP { GatewayMode: EGatewayMode.UseTheseGatewayServerSettings }
+                                       && isProxied == false;
             // check if it needs to auto switch address
             var isAutoAlternateAddressSwitching = protocol.IsAutoAlternateAddressSwitching == true
+                                                  && isProxied == false
                                                   // if any host or port in assignCredential，then disabled `AutoAlternateAddressSwitching`
                                                   && string.IsNullOrEmpty(assignCredential?.Address) && string.IsNullOrEmpty(assignCredential?.Port)
                                                   // if none of the alternate credential has host or port，then disabled `AutoAlternateAddressSwitching`

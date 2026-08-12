@@ -34,6 +34,32 @@
             </Grid>
 
 
+            <TextBlock Text="{DynamicResource theme_glass_title}" Style="{StaticResource BlockTitleColumn}" />
+
+            <Grid Style="{StaticResource GridOneRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
+                    <ColumnDefinition MinWidth="280" SharedSizeGroup="ThemeColumn2"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Column="1" VerticalAlignment="Center"
+                          IsChecked="{Binding EnableAcrylic}"
+                          Content="{DynamicResource theme_glass_enable}"></CheckBox>
+            </Grid>
+
+            <Grid Style="{StaticResource GridOneRow}" IsEnabled="{Binding EnableAcrylic}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
+                    <ColumnDefinition MinWidth="280" SharedSizeGroup="ThemeColumn2"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource theme_glass_opacity}"></TextBlock>
+                <Slider Grid.Column="1" VerticalAlignment="Center"
+                        Minimum="80" Maximum="255" TickFrequency="5" IsSnapToTickEnabled="True"
+                        Value="{Binding AcrylicOpacity}"></Slider>
+            </Grid>
+
+
             <TextBlock Text="{DynamicResource Custom}" Style="{StaticResource BlockTitleColumn}" />
 
             <Grid Width="450" HorizontalAlignment="Left">

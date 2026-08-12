@@ -18,6 +18,7 @@ using _1RM.View.Settings.DataSource;
 using _1RM.View.Settings.General;
 using _1RM.View.Settings.Launcher;
 using _1RM.View.Settings.ProtocolConfig;
+using _1RM.View.Settings.Proxy;
 using _1RM.View.Settings.Theme;
 using _1RM.View.Utils;
 using Shawn.Utils;
@@ -57,6 +58,7 @@ namespace _1RM
             builder.Bind<ProtocolConfigurationService>().ToSelf().InSingletonScope();
             builder.Bind<DataSourceService>().ToSelf().InSingletonScope();
             builder.Bind<LauncherService>().ToSelf().InSingletonScope();
+            builder.Bind<ProxyService>().ToSelf().InSingletonScope();
 
             builder.Bind<MainWindowView>().ToSelf().InSingletonScope();
             builder.Bind<MainWindowViewModel>().ToSelf().InSingletonScope();
@@ -72,6 +74,7 @@ namespace _1RM
             builder.Bind<LauncherSettingViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ThemeSettingViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ProtocolRunnerSettingsPageViewModel>().ToSelf().InSingletonScope();
+            builder.Bind<ProxySettingViewModel>().ToSelf().InSingletonScope();
 
             builder.Bind<ServerListPageViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ServerTreeViewModel>().ToSelf().InSingletonScope();
@@ -122,6 +125,7 @@ namespace _1RM
             });
             IoC.Get<TaskTrayService>().TaskTrayDispose();
             IoC.Get<SessionControlService>()?.Release();
+            IoC.Get<ProxyService>()?.Dispose();
             if (IoC.Get<LauncherWindowViewModel>()?.View != null)
                 IoC.Get<LauncherWindowViewModel>()?.RequestClose();
             if (IoC.Get<MainWindowViewModel>()?.View != null)

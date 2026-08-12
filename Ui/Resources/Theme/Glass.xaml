@@ -1,0 +1,97 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib"
+                    xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources">
+
+    <!--
+        Everything here overrides a key that Shawn.Utils.WpfResources already defines. It lives in this
+        project, and not in that one, because Shawn.Utils is a git submodule pointing at an upstream
+        repository we cannot push to: anything committed there would be missing from a fresh clone and from
+        CI, which checks the submodule out at its pinned commit.
+
+        Merge order matters — App.xaml merges this after DefaultTheme.xaml so these win. ThemeService is
+        merged later still and recomputes the Layer*/Glass*/AcrylicTintColor keys from the active theme
+        colours; the values below are the design-time and pre-ApplyTheme fallback, keep the two in step.
+    -->
+
+    <!-- ===== corner radii =====
+         Three steps rather than one: controls stay tight so a 30px row does not read as a pill, while cards
+         and windows get the softer radius the frosted panels are built around. -->
+    <system:Double x:Key="DefaultCornerRadiusValue">6</system:Double>
+    <CornerRadius x:Key="DefaultCornerRadius" TopLeft="{StaticResource DefaultCornerRadiusValue}" TopRight="{StaticResource DefaultCornerRadiusValue}" BottomLeft="{StaticResource DefaultCornerRadiusValue}" BottomRight="{StaticResource DefaultCornerRadiusValue}" />
+
+    <system:Double x:Key="CardCornerRadiusValue">10</system:Double>
+    <CornerRadius x:Key="CardCornerRadius" TopLeft="{StaticResource CardCornerRadiusValue}" TopRight="{StaticResource CardCornerRadiusValue}" BottomLeft="{StaticResource CardCornerRadiusValue}" BottomRight="{StaticResource CardCornerRadiusValue}" />
+
+    <system:Double x:Key="WindowCornerRadiusValue">10</system:Double>
+    <CornerRadius x:Key="WindowCornerRadius" TopLeft="{StaticResource WindowCornerRadiusValue}" TopRight="{StaticResource WindowCornerRadiusValue}" BottomLeft="{StaticResource WindowCornerRadiusValue}" BottomRight="{StaticResource WindowCornerRadiusValue}" />
+
+    <!-- ===== translucent elevation layers =====
+         Derived from the foreground colour at low alpha rather than hard-coded, so one set of keys reads
+         correctly on both light and dark themes: on dark it lightens the surface, on light it darkens it. -->
+    <SolidColorBrush x:Key="LayerFillBrush" Color="#CCCCCC" Opacity="0.06" />
+    <SolidColorBrush x:Key="LayerHoverBrush" Color="#CCCCCC" Opacity="0.10" />
+    <SolidColorBrush x:Key="LayerSelectedBrush" Color="#CCCCCC" Opacity="0.17" />
+    <SolidColorBrush x:Key="CardStrokeBrush" Color="#CCCCCC" Opacity="0.14" />
+
+    <!-- the same three, for content sitting on BackgroundBrush instead of PrimaryMidBrush -->
+    <SolidColorBrush x:Key="ContentLayerFillBrush" Color="#FFFFFF" Opacity="0.05" />
+    <SolidColorBrush x:Key="ContentLayerHoverBrush" Color="#FFFFFF" Opacity="0.09" />
+    <SolidColorBrush x:Key="ContentCardStrokeBrush" Color="#FFFFFF" Opacity="0.12" />
+
+    <!-- ===== backdrop set =====
+         WindowBackdropBrush stays opaque here and is replaced with a transparent brush per window, by
+         AcrylicBehavior, only once the OS has accepted the composition attribute — so a machine that cannot
+         do acrylic still gets a solid, readable window. -->
+    <Color x:Key="AcrylicTintColor">#40323233</Color>
+    <SolidColorBrush x:Key="WindowBackdropBrush" Color="#323233" />
+    <SolidColorBrush x:Key="GlassPanelBrush" Color="#B4323233" />
+    <SolidColorBrush x:Key="GlassContentBrush" Color="#B41E1E1E" />
+
+    <!-- ===== window chrome =====
+         Same template as WindowChromeBaseStyles.xaml, with the fill switched to WindowBackdropBrush so the
+         acrylic can show through, and the hard border replaced by the hairline card stroke.
+
+         The corners are deliberately left square: rounding this Border would not clip the opaque content
+         inside it, and Windows 11 already rounds top level windows itself. -->
+    <Style x:Key="WindowChromeBaseBaseStyle" TargetType="styles:WindowChromeBase">
+        <Setter Property="WindowChrome.WindowChrome">
+            <Setter.Value>
+                <WindowChrome CaptionHeight="0"
+                              GlassFrameThickness="1"
+                              ResizeBorderThickness="3"
+                              UseAeroCaptionButtons="False" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="styles:WindowChromeBase">
+                    <Border x:Name="WindowBorder" Padding="0" Background="{DynamicResource WindowBackdropBrush}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="BorderThickness" Value="1" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                            </Style>
+                        </Border.Style>
+                        <Grid x:Name="WindowContentGrid" Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="WindowContentGrid" Property="Margin" Value="8 6 8 8" />
+                            <Setter TargetName="WindowBorder" Property="BorderThickness" Value="0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=WindowStyle}" Value="None">
+                <Setter Property="AllowsTransparency" Value="True" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="styles:WindowChromeBase" BasedOn="{StaticResource WindowChromeBaseBaseStyle}" />
+</ResourceDictionary>

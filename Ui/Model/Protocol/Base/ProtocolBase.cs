@@ -10,6 +10,7 @@ using _1RM.Model.ProtocolRunner.Default;
 using _1RM.Service;
 using _1RM.Service.DataSource.Model;
 using _1RM.Utils;
+using _1RM.Utils.Proxy;
 using Newtonsoft.Json;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
@@ -228,6 +229,17 @@ namespace _1RM.Model.Protocol.Base
 
         [JsonIgnore] 
         public bool SelectedRunnerIsInternalRunner => RunnerHelper.GetRunner(IoC.Get<ProtocolConfigurationService>(), this, this.Protocol) is InternalDefaultRunner;
+
+        private string _proxyName = ProxyConfig.NO_PROXY;
+        /// <summary>
+        /// Name of an entry in the global proxy list, or empty for a direct connection. Stored by name and
+        /// not by value so that changing a proxy's address updates every server that goes through it.
+        /// </summary>
+        public string ProxyName
+        {
+            get => _proxyName;
+            set => SetAndNotifyIfChanged(ref _proxyName, value ?? ProxyConfig.NO_PROXY);
+        }
 
         /// <summary>
         /// copy all value type fields

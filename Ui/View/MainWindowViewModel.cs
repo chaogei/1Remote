@@ -41,6 +41,7 @@ namespace _1RM.View
         SettingsLauncher,
         SettingsTheme,
         SettingsRunners,
+        SettingsProxy,
     }
     public class MainWindowViewModel : MaskLayerContainerScreenBase
     {

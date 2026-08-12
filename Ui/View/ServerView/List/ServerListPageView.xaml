@@ -149,7 +149,7 @@
 
 
     <Grid Background="{DynamicResource PrimaryMidBrush}" Grid.IsSharedSizeScope="True">
-        <Grid Margin="0 21 0 0" Background="{DynamicResource BackgroundBrush}">
+        <Grid Margin="0 21 0 0" Background="{DynamicResource GlassContentBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*" MinHeight="300"></RowDefinition>

@@ -135,9 +135,20 @@
                             <StackPanel Orientation="Vertical">
                                 <TextBlock Style="{StaticResource EditorGroupTextBlockTitle}" Text="Author"></TextBlock>
                                 <StackPanel Orientation="Horizontal">
-                                    <Grid Width="32" Height="32">
-                                        <Image Source="pack://application:,,,/Resources/Image/Logo/author_avatar.jpg" Width="32"></Image>
-                                    </Grid>
+                                    <!--
+                                        The source is a 30x30 lossy JPG, so it is upscaled at any DPI. A circular
+                                        crop with a hairline ring hides the block artefacts far better than the
+                                        raw square did; replacing the asset itself needs the original artwork.
+                                    -->
+                                    <Border Width="36" Height="36" CornerRadius="18"
+                                            BorderThickness="1"
+                                            BorderBrush="{DynamicResource CardStrokeBrush}">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="pack://application:,,,/Resources/Image/Logo/author_avatar.jpg"
+                                                        Stretch="UniformToFill"
+                                                        RenderOptions.BitmapScalingMode="HighQuality" />
+                                        </Border.Background>
+                                    </Border>
                                     <StackPanel Orientation="Vertical" Margin="10 0 0 0" VerticalAlignment="Center">
                                         <TextBlock>
                                             <Hyperlink NavigateUri="https://github.com/VShawn" TextDecorations="{x:Null}" controls:HyperlinkHelper.IsOpenExternal="True">

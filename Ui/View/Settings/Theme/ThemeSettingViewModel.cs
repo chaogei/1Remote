@@ -202,6 +202,31 @@ namespace _1RM.View.Settings.Theme
 
 
 
+        public bool EnableAcrylic
+        {
+            get => _configurationService.Theme.EnableAcrylic;
+            set
+            {
+                if (!SetAndNotifyIfChanged(ref _configurationService.Theme.EnableAcrylic, value)) return;
+                _themeService.ApplyTheme(_configurationService.Theme);
+                _configurationService.Save();
+            }
+        }
+
+        public double AcrylicOpacity
+        {
+            get => _configurationService.Theme.AcrylicOpacity;
+            set
+            {
+                var v = (int)Math.Min(255, Math.Max(80, value));
+                if (v == _configurationService.Theme.AcrylicOpacity) return;
+                _configurationService.Theme.AcrylicOpacity = v;
+                RaisePropertyChanged();
+                _themeService.ApplyTheme(_configurationService.Theme);
+                _configurationService.Save();
+            }
+        }
+
         public class FontSizeOption
         {
             public string Name { get; set; }

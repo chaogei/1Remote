@@ -138,38 +138,51 @@ namespace _1RM.View.Host
 
         private const uint GaRoot = 2;
 
-        private static Point GetMousePosition()
-        {
-            var w32Mouse = new Win32Point();
-            GetCursorPos(ref w32Mouse);
-            return new Point(w32Mouse.X, w32Mouse.Y);
-        }
-
         [DllImport("user32.dll")]
         private static extern IntPtr GetDesktopWindow();
 
-        private static bool IsMouseInside(Window window)
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct Win32Rect
         {
-            var w32Mouse = new Win32Point();
-            GetCursorPos(ref w32Mouse);
-            Point mousePos = new Point(w32Mouse.X, w32Mouse.Y);
-            Point windowPos = new Point(-1, -1);
-            Point windowBottomRight = new Point(-1, -1);
-            IntPtr myHandle = IntPtr.Zero;
-            Execute.OnUIThreadSync(() =>
-            {
-                if (!window.IsLoaded || window.WindowState == WindowState.Minimized) return; // avoid PointToScreen throwing exception when window is not loaded or minimized
-                windowPos = window.PointToScreen(new Point(0, 0));
-                windowBottomRight = window.PointToScreen(new Point(window.Width, window.Height));
-                var helper = new System.Windows.Interop.WindowInteropHelper(window);
-                myHandle = helper.Handle;
-            });
+            public Int32 Left;
+            public Int32 Top;
+            public Int32 Right;
+            public Int32 Bottom;
+        };
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetWindowRect(IntPtr hWnd, out Win32Rect lpRect);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        /// <summary>
+        /// Runs on the 100ms timer thread. Deliberately pure Win32: the previous version read the bounds
+        /// through PointToScreen behind a blocking Execute.OnUIThreadSync, so every single tick waited on
+        /// the UI thread once the session was connected. GetWindowRect already reports physical screen
+        /// pixels, the same space GetCursorPos uses, so no dispatch and no DPI conversion is needed.
+        /// </summary>
+        private bool IsMouseInside()
+        {
+            var myHandle = _myHandle;
             if (myHandle == IntPtr.Zero)
                 return false;
+            if (!IsWindowVisible(myHandle) || IsIconic(myHandle))
+                return false;
 
-            bool inRect = mousePos.X >= windowPos.X && mousePos.X <= windowBottomRight.X && mousePos.Y >= windowPos.Y && mousePos.Y <= windowBottomRight.Y;
-            if (!inRect)
+            var w32Mouse = new Win32Point();
+            if (!GetCursorPos(ref w32Mouse))
+                return false;
+            if (!GetWindowRect(myHandle, out var rect))
+                return false;
+
+            if (w32Mouse.X < rect.Left || w32Mouse.X > rect.Right || w32Mouse.Y < rect.Top || w32Mouse.Y > rect.Bottom)
                 return false;
 
             var hitWindow = WindowFromPoint(w32Mouse);
@@ -177,76 +190,7 @@ namespace _1RM.View.Host
                 return false;
 
             var hitRoot = GetAncestor(hitWindow, GaRoot);
-            if (hitRoot != IntPtr.Zero && hitRoot != myHandle)
-                return false;
-
-#if DEBUG
-            var r = true;
-            //SimpleLogHelper.Debug($@"TabWindowView IsMouseInside = {r}: mousePos = ({mousePos.X}, {mousePos.Y}), windowPos = ({windowPos.X}, {windowPos.Y}), windowBottomRight = ({windowBottomRight.X}, {windowBottomRight.Y})");
-#endif
-            return true;
-        }
-
-
-        private int _rdpStage = 0; // flag: 0 - not connected, 1 - RDP got focus, 2 - RDP lost focus desk got focus(focus can rollback to RDP), 3 - RDP lost focus desk lost focus (focus can cannot rollback to RDP)
-
-        private void RunForRdp()
-        {
-            if (Vm?.SelectedItem?.Content?.ProtocolServer.Protocol != RDP.ProtocolName)
-                return;
-            if (Vm?.SelectedItem?.Content?.Status != ProtocolHosts.ProtocolHostStatus.Connected)
-                return;
-
-            // Fix the resizing bug introduced by #648, see https://github.com/1Remote/1Remote/issues/797 for more details
-            bool isMousePressed = System.Windows.Forms.Control.MouseButtons == MouseButtons.Left
-                                  || System.Windows.Forms.Control.MouseButtons == MouseButtons.Right
-                                  || System.Windows.Forms.Control.MouseButtons == MouseButtons.Middle;
-            if (isMousePressed)
-            {
-#if DEBUG
-                SimpleLogHelper.Debug("Tab focus: Mouse is pressed, do nothing");
-#endif
-                return;
-            }
-
-            var nowActivatedWindowHandle = GetForegroundWindow();
-            var desktopHandle = GetDesktopWindow();
-
-#if DEBUG
-            SimpleLogHelper.Debug($"Tab focus: tabHwnd = {_myHandle}, nowActivatedWindowHandle = {nowActivatedWindowHandle}, desktopHandle = {desktopHandle}");
-#endif
-
-            bool isMouseInside = IsMouseInside(this);
-
-            if (_rdpStage == 1 && !isMouseInside)
-            {
-                // 1 - RDP has focus AND mouse is not inside the tab window, then switch focus to desktop, user input will not be sent to RDP
-                _rdpStage = 2;
-                SetForegroundWindow(desktopHandle);
-            }
-            else if (_rdpStage == 2)
-            {
-                // if focus is on another window, then stage = 3
-                if (nowActivatedWindowHandle != desktopHandle)
-                {
-                    _rdpStage = 3;
-                }
-                // mouse back to tab window, then focus back to RDP
-                else if (isMouseInside)
-                {
-                    SetForegroundWindow(_myHandle);
-                    _rdpStage = 1;
-                }
-            }
-            else if (_rdpStage == 3)
-            {
-                // 3 - neither RDP nor local desktop has focus, cannot rollback to RDP, do nothing
-            }
-
-            if (_rdpStage != 1 && isMouseInside && _myHandle == nowActivatedWindowHandle)
-            {
-                _rdpStage = 1;
-            }
+            return hitRoot == IntPtr.Zero || hitRoot == myHandle;
         }
 
 
@@ -259,48 +203,45 @@ namespace _1RM.View.Host
             if (Vm?.SelectedItem?.Content?.Status != ProtocolHosts.ProtocolHostStatus.Connected)
                 return;
 
-            if (IoC.Get<ConfigurationService>().General.TabWindowSetFocusToLocalDesktopOnMouseLeaveRdpWindow)
+            if (!IoC.Get<ConfigurationService>().General.TabWindowSetFocusToLocalDesktopOnMouseLeaveRdpWindow)
+                return;
+
+            // An RDP session can also be hosted by an external runner, and then there is no ActiveX window
+            // to hand the focus to. This used to throw NotImplementedException, which the timer caught and
+            // logged 10 times a second — a disk write and a global log lock per tick.
+            if (Vm?.SelectedItem?.Content is not AxMsRdpClient09Host)
+                return;
+
+            var rdpHandle = _myHandle;
+            if (rdpHandle == IntPtr.Zero)
+                return;
+
+            var nowActivatedWindowHandle = GetForegroundWindow();
+            if (IsMouseInside())
             {
-
-
+                if (nowActivatedWindowHandle != rdpHandle)
+                {
+                    SimpleLogHelper.Debug("TabWindowView.RunForRdpV2: SetForegroundWindow(rdpHandle)");
+                    SetForegroundWindow(rdpHandle);
+                }
+            }
+            else if (nowActivatedWindowHandle == rdpHandle)
+            {
+                // !isMousePressed is to fix the resizing bug introduced by #648
+                // Stay focused while the mouse is pressed to avoid losing focus when resizing the RDP window,
+                // see https://github.com/1Remote/1Remote/issues/797 for more details
                 bool isMousePressed = System.Windows.Forms.Control.MouseButtons == MouseButtons.Left
                                       || System.Windows.Forms.Control.MouseButtons == MouseButtons.Right
                                       || System.Windows.Forms.Control.MouseButtons == MouseButtons.Middle;
-                var nowActivatedWindowHandle = GetForegroundWindow();
-                IntPtr rdpHandle = IntPtr.Zero;
-                if (Vm?.SelectedItem?.Content is AxMsRdpClient09Host rdpHost)
+                if (!isMousePressed)
                 {
-                    rdpHandle = _myHandle;
-                }
-                else
-                {
-                    //rdpHandle = ihfw.GetHostHwnd();
-                    throw new NotImplementedException();
-                }
-
-                if (IsMouseInside(this))
-                {
-                    if (nowActivatedWindowHandle != rdpHandle)
-                    {
-                        SimpleLogHelper.Debug("TabWindowView.RunForRdpV2: SetForegroundWindow(rdpHandle)");
-                        SetForegroundWindow(rdpHandle);
-                    }
-                }
-                else if (nowActivatedWindowHandle == rdpHandle)
-                {
-                    // !isMousePressed is to fix the resizing bug introduced by #648
-                    // Stay focused while the mouse is pressed to avoid losing focus when resizing the RDP window,
-                    // see https://github.com/1Remote/1Remote/issues/797 for more details
-                    if (!isMousePressed)
-                    {
-                        // RDP has focus AND mouse is not inside the tab window, then switch focus to desktop, user input will not be sent to RDP.
-                        SimpleLogHelper.Debug("TabWindowView.RunForRdpV2: SetForegroundWindow(desktop)");
-                        SetForegroundWindow(GetDesktopWindow());
-                    }
+                    // RDP has focus AND mouse is not inside the tab window, then switch focus to desktop, user input will not be sent to RDP.
+                    SimpleLogHelper.Debug("TabWindowView.RunForRdpV2: SetForegroundWindow(desktop)");
+                    SetForegroundWindow(GetDesktopWindow());
                 }
             }
-
-            #endregion
         }
+
+        #endregion
     }
 }

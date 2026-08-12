@@ -153,36 +153,41 @@ namespace _1RM.Service
 
         public string ConnectWithTab(in ProtocolBase protocolIn, in Runner runnerIn, string assignTabToken)
         {
-            TabWindowView? tab = null;
             ProtocolBase protocol = protocolIn;
             Runner runner = runnerIn;
+            if (protocol.AlwaysOpenInNewTabWindow == true && string.IsNullOrEmpty(assignTabToken))
+            {
+                assignTabToken = DateTime.Now.Ticks.ToString();
+            }
+
+            // Outside the lock on purpose: creating a window pumps the dispatcher.
+            var tab = this.GetOrCreateTabWindow(assignTabToken);
+            if (tab.IsClosing) return "";
+
             Execute.OnUIThreadSync(() =>
             {
+                tab.Show();
+                tab.ShowInTaskbar = true;
+
+                // get display area size for host
+                var host = runner.GetHost(protocol, tab);
+
+                // Publishing the tab item and the host must be atomic against the cleanup pass, or it sees
+                // a tab item whose host is not registered yet and retires the brand new window.
                 lock (_dictLock)
                 {
-                    if (protocol.AlwaysOpenInNewTabWindow == true && string.IsNullOrEmpty(assignTabToken))
-                    {
-                        assignTabToken = DateTime.Now.Ticks.ToString();
-                    }
-                    tab = this.GetOrCreateTabWindow(assignTabToken);
-                    if (tab == null) return;
-                    if (tab.IsClosing) return;
-                    tab.Show();
-                    tab.ShowInTaskbar = true;
-
-                    var host = runner.GetHost(protocol, tab);
-                    // get display area size for host
                     Debug.Assert(!_connectionId2Hosts.ContainsKey(host.ConnectionId));
                     host.OnClosed += OnRequestCloseConnection;
                     host.OnFullScreen2Window += this.MoveSessionToTabWindow;
                     tab.GetViewModel().AddItem(new TabItemViewModel(host, protocol.DisplayName));
                     _connectionId2Hosts.TryAdd(host.ConnectionId, host);
-                    host.Conn();
-                    tab.WindowState = tab.WindowState == WindowState.Minimized ? WindowState.Normal : tab.WindowState;
-                    tab.Activate();
                 }
+
+                host.Conn();
+                tab.WindowState = tab.WindowState == WindowState.Minimized ? WindowState.Normal : tab.WindowState;
+                tab.Activate();
             });
-            return tab?.Token ?? "";
+            return tab.Token;
         }
         #endregion
 
@@ -305,6 +310,11 @@ namespace _1RM.Service
                     return "";
                 }
             }
+
+            // Route through the selected proxy, if any. Deliberately after the instance check and the script
+            // above, so both still see the real address, and before every protocol dispatch below, so all of
+            // them connect to the loopback endpoint instead.
+            IoC.Get<ProxyService>().ApplyTo(protocolClone);
 
             // dispatch for specified protocol
             if (protocolClone is RdpApp rdpApp)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Shawn.Utils.Wpf;
+using _1RM.Utils.Theme;
 
 namespace _1RM.Service
 {
@@ -201,9 +202,7 @@ namespace _1RM.Service
             SetKey(rd, "GlobalFontSizeBody", globalFontSizeBody);
             SetKey(rd, "GlobalFontSizeSmall", globalFontSizeSmall);
 
-
-
-
+            ApplyGlassLayers(rd, theme, SetKey);
 
             // remove old theme resources
             var rs = _appResourceDictionary.MergedDictionaries.Where(o =>
@@ -216,6 +215,49 @@ namespace _1RM.Service
 
             // add new theme resources
             _appResourceDictionary.MergedDictionaries.Add(rd);
+
+            // windows that are already open keep their old tint until they are restained
+            AcrylicBehavior.RefreshAll();
+        }
+
+        /// <summary>
+        /// Derives the translucent elevation layers and the frosted backdrop from the theme's own colours,
+        /// so a user-picked palette stays coherent without asking them to choose ten more colours.
+        ///
+        /// The layers are the foreground colour at low alpha: on a dark theme that lightens the surface, on a
+        /// light theme it darkens it, which is the behaviour you want in both cases.
+        /// </summary>
+        private static void ApplyGlassLayers(ResourceDictionary rd, ThemeConfig theme, Action<IDictionary, string, object> setKey)
+        {
+            SolidColorBrush Overlay(Color color, byte alpha) =>
+                new SolidColorBrush(Color.FromArgb(alpha, color.R, color.G, color.B));
+
+            var onPrimary = theme.GetPrimaryTextColor;
+            setKey(rd, "LayerFillBrush", Overlay(onPrimary, 0x10));
+            setKey(rd, "LayerHoverBrush", Overlay(onPrimary, 0x1A));
+            setKey(rd, "LayerSelectedBrush", Overlay(onPrimary, 0x2B));
+            setKey(rd, "CardStrokeBrush", Overlay(onPrimary, 0x24));
+
+            var onBackground = theme.GetBackgroundTextColor;
+            setKey(rd, "ContentLayerFillBrush", Overlay(onBackground, 0x0D));
+            setKey(rd, "ContentLayerHoverBrush", Overlay(onBackground, 0x17));
+            setKey(rd, "ContentCardStrokeBrush", Overlay(onBackground, 0x20));
+
+            // With the backdrop off every surface stays fully opaque, which is also the fallback when the OS
+            // refuses the acrylic call — AcrylicBehavior only overrides WindowBackdropBrush per window once
+            // the composition attribute has actually been accepted, so a failure can never leave a window
+            // see-through and unreadable.
+            var alpha = theme.EnableAcrylic ? (byte)Math.Min(255, Math.Max(0, theme.AcrylicOpacity)) : (byte)0xFF;
+            var primaryMid = theme.GetPrimaryMidColor;
+            var background = theme.GetBackgroundColor;
+
+            // The DWM tint is only a light veil that deepens the blur. The visible colour comes from the
+            // Glass* brushes layered on top, which keeps the result matching the theme exactly instead of
+            // tinting twice and ending up muddy.
+            setKey(rd, "AcrylicTintColor", Color.FromArgb(theme.EnableAcrylic ? (byte)0x40 : (byte)0x00, primaryMid.R, primaryMid.G, primaryMid.B));
+            setKey(rd, "WindowBackdropBrush", new SolidColorBrush(primaryMid));
+            setKey(rd, "GlassPanelBrush", new SolidColorBrush(Color.FromArgb(alpha, primaryMid.R, primaryMid.G, primaryMid.B)));
+            setKey(rd, "GlassContentBrush", new SolidColorBrush(Color.FromArgb(alpha, background.R, background.G, background.B)));
         }
 
         private static FontFamily GetFontFamily(string name)

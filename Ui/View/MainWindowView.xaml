@@ -7,13 +7,15 @@
                          xmlns:s="https://github.com/canton7/Stylet"
                          xmlns:view="clr-namespace:_1RM.View"
                          xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
+                         xmlns:theme="clr-namespace:_1RM.Utils.Theme"
                          xmlns:service="clr-namespace:_1RM.Service"
                          xmlns:Rm="clr-namespace:_1RM"
                          xmlns:locality="clr-namespace:_1RM.Service.Locality"
                          mc:Ignorable="d"
                          BorderThickness="0"
                          BorderBrush="Transparent"
-                         Background="{DynamicResource BackgroundBrush}"
+                         Background="{DynamicResource WindowBackdropBrush}"
+                         theme:AcrylicBehavior.IsEnabled="True"
                          KeyDown="MainWindow_OnKeyDown"
                          d:DataContext="{d:DesignInstance view:MainWindowViewModel}"
                          Style="{StaticResource WindowChromeBaseBaseStyle}"
@@ -33,13 +35,13 @@
         <KeyBinding Gesture="Ctrl+F" Command="{StaticResource CommandFocusFilter}"></KeyBinding>
     </styles:WindowChromeBase.InputBindings>
 
-    <Grid Background="{DynamicResource PrimaryMidBrush}">
+    <Grid Background="{DynamicResource GlassPanelBrush}">
         <Grid>
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Effect">
                         <Setter.Value>
-                            <BlurEffect Radius="2" KernelType="Box"></BlurEffect>
+                            <BlurEffect Radius="8" KernelType="Gaussian"></BlurEffect>
                         </Setter.Value>
                     </Setter>
                     <Style.Triggers>

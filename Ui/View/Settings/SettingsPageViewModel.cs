@@ -10,6 +10,7 @@ using _1RM.View.Settings.DataSource;
 using _1RM.View.Settings.General;
 using _1RM.View.Settings.Launcher;
 using _1RM.View.Settings.ProtocolConfig;
+using _1RM.View.Settings.Proxy;
 using _1RM.View.Settings.Theme;
 using _1RM.Service.DataSource.DAO;
 using _1RM.View.Settings.CredentialVault;
@@ -69,6 +70,9 @@ namespace _1RM.View.Settings
                     break;
                 case EnumMainWindowPage.SettingsRunners:
                     SelectedViewModel = IoC.Get<ProtocolRunnerSettingsPageViewModel>();
+                    break;
+                case EnumMainWindowPage.SettingsProxy:
+                    SelectedViewModel = IoC.Get<ProxySettingViewModel>();
                     break;
                 default:
                     return;

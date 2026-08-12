@@ -2,6 +2,7 @@
 using _1RM.Service.DataSource;
 using _1RM.Service.DataSource.Model;
 using _1RM.Utils;
+using _1RM.Utils.Proxy;
 using _1RM.Utils.Tracing;
 using _1RM.View;
 using Newtonsoft.Json;
@@ -161,6 +162,22 @@ namespace _1RM.Service
         public string FontFamily = "Microsoft YaHei";
         public int FontSize = 12;
 
+        /// <summary>
+        /// Frosted window backdrop. Turning it off falls back to opaque panels, which is what users on
+        /// remote desktops or low-end GPUs generally want.
+        /// </summary>
+        [DefaultValue(true)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool EnableAcrylic = true;
+
+        /// <summary>
+        /// How opaque the frosted panels read, 0-255. Below ~120 text starts to lose contrast against a busy
+        /// desktop, above ~230 the blur is no longer visible.
+        /// </summary>
+        [DefaultValue(180)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int AcrylicOpacity = 180;
+
         #region GetColor
         public System.Windows.Media.Color GetPrimaryMidColor => ColorAndBrushHelper.HexColorToMediaColor(PrimaryMidColor);
         public System.Windows.Media.Color GetPrimaryLightColor => ColorAndBrushHelper.HexColorToMediaColor(PrimaryLightColor);
@@ -195,6 +212,10 @@ namespace _1RM.Service
         public ThemeConfig Theme { get; set; } = new ThemeConfig();
         public EngagementSettings Engagement { get; set; } = new EngagementSettings();
         public List<string> PinnedTags { get; set; } = new List<string>();
+        /// <summary>
+        /// The proxies a server can pick from by name. See <c>ProtocolBase.ProxyName</c>.
+        /// </summary>
+        public List<ProxyConfig> Proxies { get; set; } = new List<ProxyConfig>();
         public static Configuration? Load(string path)
         {
             var tmp = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText(path));
@@ -244,6 +265,7 @@ namespace _1RM.Service
 
         public ThemeConfig Theme => _cfg.Theme;
         public EngagementSettings Engagement => _cfg.Engagement;
+        public List<ProxyConfig> Proxies => _cfg.Proxies;
         /// <summary>
         /// Tags that show on the tab bar of the main window
         /// </summary>

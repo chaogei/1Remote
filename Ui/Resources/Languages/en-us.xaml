@@ -333,4 +333,22 @@
     <s:String x:Key="ListViewMode_Card">Card</s:String>
     <s:String x:Key="ListViewMode_Tree">Tree</s:String>
     <s:String x:Key="Do not check for new version">Do not check for new version</s:String>
+    <s:String x:Key="vnc_host_unreachable">Cannot reach {0}. The host did not answer within the connection timeout.</s:String>
+    <s:String x:Key="vnc_connection_lost">Connection lost...</s:String>
+    <s:String x:Key="theme_glass_title">Frosted glass</s:String>
+    <s:String x:Key="theme_glass_enable">Blur the desktop behind panels (Windows 10 1803 and later)</s:String>
+    <s:String x:Key="theme_glass_opacity">Panel opacity</s:String>
+    <s:String x:Key="proxy_title">Proxy</s:String>
+    <s:String x:Key="proxy_page_hint">Define proxies here, then pick one per server in the server editor. Every protocol is routed through a local relay, so RDP and VNC are supported as well.</s:String>
+    <s:String x:Key="proxy_type">Type</s:String>
+    <s:String x:Key="proxy_direct_connection">Direct connection</s:String>
+    <s:String x:Key="proxy_server_hint">Route this server through one of the proxies defined in Settings - Proxy.</s:String>
+    <s:String x:Key="proxy_bypass_local">Connect directly when the address is loopback or on a private network</s:String>
+    <s:String x:Key="proxy_new_name">New proxy</s:String>
+    <s:String x:Key="proxy_test">Test target</s:String>
+    <s:String x:Key="proxy_test_run">Test</s:String>
+    <s:String x:Key="proxy_testing">Testing...</s:String>
+    <s:String x:Key="proxy_test_ok">The proxy reached the target successfully</s:String>
+    <s:String x:Key="proxy_test_failed">Test failed</s:String>
+    <s:String x:Key="proxy_test_target_invalid">Enter the test target as host:port, for example example.com:443</s:String>
 </ResourceDictionary>

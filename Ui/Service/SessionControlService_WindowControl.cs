@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
+using System.Windows.Threading;
 using _1RM.View.Host;
 using _1RM.View.Host.ProtocolHosts;
 using Shawn.Utils;
@@ -30,13 +30,18 @@ namespace _1RM.Service
             // restore from tab to full
             var full = _connectionId2FullScreenWindows[host.ConnectionId];
             full.LastTabToken = "";
-            // full screen placement
+            // full screen placement. This can be reached from an RDP callback thread, and Top/Left/Height
+            // are dependency properties, so the placement has to be dispatched.
             if (fromTab != null)
             {
-                var screenEx = ScreenInfoEx.GetCurrentScreen(fromTab);
-                full.Top = screenEx.VirtualWorkingAreaCenter.Y - full.Height / 2;
-                full.Left = screenEx.VirtualWorkingAreaCenter.X - full.Width / 2;
-                full.LastTabToken = _lastTabToken;
+                var lastTabToken = _lastTabToken;
+                Execute.OnUIThreadSync(() =>
+                {
+                    var screenEx = ScreenInfoEx.GetCurrentScreen(fromTab);
+                    full.Top = screenEx.VirtualWorkingAreaCenter.Y - full.Height / 2;
+                    full.Left = screenEx.VirtualWorkingAreaCenter.X - full.Width / 2;
+                });
+                full.LastTabToken = lastTabToken;
             }
             full.ShowOrHide(host);
             return full;
@@ -84,50 +89,46 @@ namespace _1RM.Service
 
         public void MoveSessionToTabWindow(string connectionId)
         {
-            Debug.Assert(_connectionId2Hosts.ContainsKey(connectionId) == true);
-            var host = _connectionId2Hosts[connectionId];
+            if (!_connectionId2Hosts.TryGetValue(connectionId, out var host))
+            {
+                SimpleLogHelper.Warning($@"MoveSessionToTabWindow: no host for connectionId = {connectionId}");
+                return;
+            }
             SimpleLogHelper.Debug($@"MoveSessionToTabWindow: Moving host({host.GetHashCode()}) to any tab");
-            // get tab
-            TabWindowView? tab;
 
-            lock (_dictLock)
+            var fullToHide = host.ParentWindow as FullScreenWindowView;
+            if (fullToHide?.IsLoaded == false)
             {
-                // remove from old parent
-                if (host.ParentWindow is FullScreenWindowView full)
+                // if FullScreenWindowView is not loaded, do not allow move to tab, 防止 loaded 事件中的逻辑覆盖
+                return;
+            }
+
+            var tab = this.GetOrCreateTabWindow(fullToHide?.LastTabToken ?? "");
+            if (tab.IsClosed)
+            {
+                tab = this.GetOrCreateTabWindow();
+            }
+
+            // This runs on the RDP callback thread, so the window work has to be dispatched. It must not
+            // happen under _dictLock either — see the INVARIANT on _dictLock.
+            Execute.OnUIThreadSync(() =>
+            {
+                if (fullToHide != null)
                 {
-                    if (full.IsLoaded == false)
-                    {
-                        // if FullScreenWindowView is not loaded, do not allow move to tab, 防止 loaded 事件中的逻辑覆盖
-                        return;
-                    }
-
-                    tab = this.GetOrCreateTabWindow(full.LastTabToken ?? "");
-                    if (tab.IsClosed)
-                    {
-                        tab = this.GetOrCreateTabWindow();
-                    }
-
-                    SimpleLogHelper.Debug($@"Hide full({full.GetHashCode()})");
+                    SimpleLogHelper.Debug($@"Hide full({fullToHide.GetHashCode()})");
                     // !importance: do not close old FullScreenWindowView, or RDP will lose conn bar when restore from tab to fullscreen.
-                    full.ShowOrHide(null);
+                    fullToHide.ShowOrHide(null);
                 }
+
+                var vm = tab.GetViewModel();
+                var existed = vm.Items.FirstOrDefault(x => x.Content == host);
+                if (existed == null)
+                    vm.AddItem(new TabItemViewModel(host, host.ProtocolServer.DisplayName));
                 else
-                    tab = this.GetOrCreateTabWindow();
-            }
+                    vm.SelectedItem = existed;
+                tab.Activate();
+            });
 
-
-            // assign host to tab
-            if (tab.GetViewModel().Items.All(x => x.Content != host))
-            {
-                // move
-                tab.GetViewModel().AddItem(new TabItemViewModel(host, host.ProtocolServer.DisplayName));
-            }
-            else
-            {
-                // just show
-                tab.GetViewModel().SelectedItem = tab.GetViewModel().Items.First(x => x.Content == host);
-            }
-            tab.Activate();
             SimpleLogHelper.Debug($@"MoveSessionToTabWindow: Moved host({host.GetHashCode()}) to tab({tab.GetHashCode()})");
             PrintCacheCount();
         }
@@ -142,50 +143,54 @@ namespace _1RM.Service
         /// <returns></returns>
         private TabWindowView GetOrCreateTabWindow(string assignTabToken = "")
         {
-            TabWindowView? ret = null;
             lock (_dictLock)
             {
-                // find existed
-                if (_token2TabWindows.ContainsKey(assignTabToken))
-                {
-                    ret = _token2TabWindows[assignTabToken];
-                }
-                else if (string.IsNullOrEmpty(assignTabToken))
-                {
-                    if (_token2TabWindows.ContainsKey(_lastTabToken))
-                    {
-                        ret = _token2TabWindows[_lastTabToken];
-                    }
-                    else if (_token2TabWindows.IsEmpty == false)
-                    {
-                        ret = _token2TabWindows.Last().Value;
-                    }
-                }
-
-                // create new
-                if (ret == null)
-                {
-                    Execute.OnUIThreadSync(() =>
-                    {
-                        ret = new TabWindowView();
-                        AddTab(ret);
-                        ret.Show();
-                        ret.ShowInTaskbar = true;
-                        _lastTabToken = ret.Token;
-
-                        int loopCount = 0;
-                        while (ret.IsLoaded == false)
-                        {
-                            ++loopCount;
-                            Thread.Sleep(100);
-                            if (loopCount > 50)
-                                break;
-                        }
-                    });
-                }
-                Debug.Assert(ret != null);
-                return ret!;
+                var existed = FindTabWindow(assignTabToken);
+                if (existed != null)
+                    return existed;
             }
+
+            // Creating and showing a window needs the UI thread. It must not happen under _dictLock,
+            // see the INVARIANT on _dictLock.
+            TabWindowView? ret = null;
+            Execute.OnUIThreadSync(() =>
+            {
+                TabWindowView? fresh = null;
+                lock (_dictLock)
+                {
+                    // another thread may have created one while we were hopping threads
+                    ret = FindTabWindow(assignTabToken);
+                    if (ret == null)
+                    {
+                        fresh = new TabWindowView();
+                        AddTab(fresh);
+                        _lastTabToken = fresh.Token;
+                        ret = fresh;
+                    }
+                }
+
+                if (fresh == null) return;
+                fresh.Show();
+                fresh.ShowInTaskbar = true;
+                // Show() queues the load pass on the dispatcher; draining it at Loaded priority lets callers
+                // rely on IsLoaded. The Thread.Sleep spin this replaces blocked the very message pump that
+                // raises Loaded, so it always burned its full 5s budget and froze the UI with it.
+                fresh.Dispatcher.Invoke(() => { }, DispatcherPriority.Loaded);
+            });
+
+            return ret ?? throw new InvalidOperationException("failed to create a tab window");
+        }
+
+        /// <summary>
+        /// Caller must hold <see cref="_dictLock"/>.
+        /// </summary>
+        private TabWindowView? FindTabWindow(string assignTabToken)
+        {
+            if (!string.IsNullOrEmpty(assignTabToken))
+                return _token2TabWindows.TryGetValue(assignTabToken, out var assigned) ? assigned : null;
+            if (_token2TabWindows.TryGetValue(_lastTabToken, out var last))
+                return last;
+            return _token2TabWindows.IsEmpty ? null : _token2TabWindows.Last().Value;
         }
 
         public TabWindowView? GetTabByConnectionId(string connectionId)

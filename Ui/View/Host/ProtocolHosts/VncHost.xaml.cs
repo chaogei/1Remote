@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using _1RM.Model;
@@ -8,6 +10,7 @@ using _1RM.Model.Protocol.Base;
 using _1RM.Service;
 using _1RM.Service.DataSource;
 using _1RM.Utils;
+using Shawn.Utils;
 using Shawn.Utils.Wpf;
 using Stylet;
 using VncSharpCore;
@@ -87,51 +90,137 @@ namespace _1RM.View.Host.ProtocolHosts
 
         #region Base Interface
 
-        public override void Conn()
+        private const int DEFAULT_VNC_PORT = 5900;
+        private const int REACHABILITY_TIMEOUT_MS = 10 * 1000;
+
+        /// <summary>0 = idle, 1 = a connect attempt is in flight.</summary>
+        private int _connectGuard;
+        private bool _isClosed;
+
+        public override void Conn() => StartConnect();
+
+        public override void ReConn() => StartConnect();
+
+        private void StartConnect()
         {
-            Status = ProtocolHostStatus.Connecting;
-            if (Vnc.IsConnected)
-                Vnc.Disconnect();
-            Status = ProtocolHostStatus.Connecting;
-            GridLoading.Visibility = Visibility.Visible;
-            VncFormsHost.Visibility = Visibility.Collapsed;
-            Vnc.VncPort = _vncBase.GetPort();
-            Vnc.GetPassword = () => UnSafeStringEncipher.DecryptOrReturnOriginalString(_vncBase.Password);
-            if (Vnc.VncPort <= 0)
-                Vnc.VncPort = 5900;
+            if (_isClosed) return;
+            // Reconnect is reachable from the context menu, the error panel and the session activation path
+            // at the same time; without this the second caller would trip RemoteDesktop's "already
+            // connected" guard.
+            if (Interlocked.Exchange(ref _connectGuard, 1) != 0) return;
+
+            // ActivateOrReConnIfServerSessionIsOpened calls ReConn from a background thread, and everything
+            // below touches WPF elements and the hosted WinForms control.
+            Execute.OnUIThread(() =>
+            {
+                try
+                {
+                    // suppress OnClosed while we tear the previous session down, otherwise dropping the old
+                    // connection reads as "the user closed the tab" and the tab disappears mid-reconnect
+                    _invokeOnClosedWhenDisconnected = false;
+                    if (Vnc.IsConnected)
+                        Vnc.Disconnect();
+
+                    Status = ProtocolHostStatus.Connecting;
+                    VncFormsHost.Visibility = Visibility.Collapsed;
+                    GridLoading.Visibility = Visibility.Visible;
+                    GridMessageBox.Visibility = Visibility.Collapsed;
+
+                    var port = _vncBase.GetPort();
+                    Vnc.VncPort = port > 0 ? port : DEFAULT_VNC_PORT;
+                    Vnc.GetPassword = () => UnSafeStringEncipher.DecryptOrReturnOriginalString(_vncBase.Password);
+
+                    _ = ConnectAfterReachableAsync(_vncBase.Address,
+                                                   Vnc.VncPort,
+                                                   _vncBase.VncWindowResizeMode == VNC.EVncWindowResizeMode.Stretch);
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.Error(e);
+                    FinishConnect(e.Message);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Probes the host off the UI thread, then performs the real connect on it.
+        ///
+        /// RemoteDesktop.Connect does its TCP connect inline and then mutates the hosted WinForms control,
+        /// so it cannot be moved off the UI thread wholesale. Left as it was, an unreachable host froze the
+        /// whole window for the OS connect timeout — around 21 seconds. Proving reachability first bounds
+        /// that: once the port answers, the connect inside RemoteDesktop returns immediately and only the
+        /// RFB handshake runs on the UI thread.
+        /// </summary>
+        private async Task ConnectAfterReachableAsync(string address, int port, bool scaled)
+        {
+            bool isReachable;
             try
             {
-                Vnc.Connect(_vncBase.Address, false, _vncBase.VncWindowResizeMode == VNC.EVncWindowResizeMode.Stretch);
-                VncFormsHost.Visibility = Visibility.Visible;
-                GridLoading.Visibility = Visibility.Collapsed;
-                GridMessageBox.Visibility = Visibility.Collapsed;
-                Status = ProtocolHostStatus.Connected;
+                isReachable = await TcpHelper.TestConnectionAsync(address, port, null, REACHABILITY_TIMEOUT_MS) == true;
             }
             catch (Exception e)
             {
-                _invokeOnClosedWhenDisconnected = false;
-                VncFormsHost.Visibility = Visibility.Collapsed;
-                GridLoading.Visibility = Visibility.Visible;
-                GridMessageBox.Visibility = Visibility.Visible;
-
-                TbMessageTitle.Visibility = Visibility.Collapsed;
-                BtnReconn.Visibility = Visibility.Visible;
-                TbMessage.Text = e.Message;
+                SimpleLogHelper.Warning(e);
+                isReachable = false;
             }
+
+            Execute.OnUIThread(() =>
+            {
+                if (_isClosed)
+                {
+                    Interlocked.Exchange(ref _connectGuard, 0);
+                    return;
+                }
+
+                if (!isReachable)
+                {
+                    FinishConnect(IoC.Translate("vnc_host_unreachable", $"{address}:{port}"));
+                    return;
+                }
+
+                try
+                {
+                    Vnc.Connect(address, false, scaled);
+                    VncFormsHost.Visibility = Visibility.Visible;
+                    GridLoading.Visibility = Visibility.Collapsed;
+                    GridMessageBox.Visibility = Visibility.Collapsed;
+                    Status = ProtocolHostStatus.Connected;
+                    FinishConnect(null);
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.Error(e);
+                    FinishConnect(e.Message);
+                }
+            });
         }
 
-        public override void ReConn()
+        /// <summary>
+        /// Ends a connect attempt. Must run on the UI thread.
+        /// </summary>
+        private void FinishConnect(string? error)
         {
+            Interlocked.Exchange(ref _connectGuard, 0);
+            if (error == null)
+            {
+                _invokeOnClosedWhenDisconnected = true;
+                return;
+            }
+
+            // stay suppressed on failure: the error panel offers a Reconnect button, so the tab has to
+            // survive rather than be closed out from under it
+            Status = ProtocolHostStatus.Disconnected;
             VncFormsHost.Visibility = Visibility.Collapsed;
-            GridLoading.Visibility = Visibility.Visible;
-            GridMessageBox.Visibility = Visibility.Collapsed;
-            _invokeOnClosedWhenDisconnected = false;
-            Conn();
-            _invokeOnClosedWhenDisconnected = true;
+            GridLoading.Visibility = Visibility.Collapsed;
+            GridMessageBox.Visibility = Visibility.Visible;
+            TbMessageTitle.Visibility = Visibility.Collapsed;
+            BtnReconn.Visibility = Visibility.Visible;
+            TbMessage.Text = error;
         }
 
         public override void Close()
         {
+            _isClosed = true;
             Status = ProtocolHostStatus.Disconnected;
             if (Vnc.IsConnected)
                 Vnc.Disconnect();
@@ -159,27 +248,36 @@ namespace _1RM.View.Host.ProtocolHosts
 
         #region connection
 
+        // Both handlers originate in the VNC client, so they are dispatched rather than assumed to already
+        // be on the UI thread. Execute.OnUIThread runs inline when it already is.
+
         private void OnConnected(object sender, EventArgs e)
         {
-            Status = ProtocolHostStatus.Connected;
-            VncFormsHost.Visibility = Visibility.Visible;
-            GridLoading.Visibility = Visibility.Collapsed;
-            GridMessageBox.Visibility = Visibility.Collapsed;
+            Execute.OnUIThread(() =>
+            {
+                Status = ProtocolHostStatus.Connected;
+                VncFormsHost.Visibility = Visibility.Visible;
+                GridLoading.Visibility = Visibility.Collapsed;
+                GridMessageBox.Visibility = Visibility.Collapsed;
+            });
         }
 
         private bool _invokeOnClosedWhenDisconnected = true;
 
         private void OnConnectionLost(object? sender, EventArgs e)
         {
-            Status = ProtocolHostStatus.Disconnected;
-            VncFormsHost.Visibility = Visibility.Collapsed;
-            GridLoading.Visibility = Visibility.Collapsed;
-            GridMessageBox.Visibility = Visibility.Visible;
-            TbMessageTitle.Visibility = Visibility.Collapsed;
-            BtnReconn.Visibility = Visibility.Visible;
-            TbMessage.Text = "Connection lost...";
-            if (_invokeOnClosedWhenDisconnected)
-                base.OnClosed?.Invoke(base.ConnectionId);
+            Execute.OnUIThread(() =>
+            {
+                Status = ProtocolHostStatus.Disconnected;
+                VncFormsHost.Visibility = Visibility.Collapsed;
+                GridLoading.Visibility = Visibility.Collapsed;
+                GridMessageBox.Visibility = Visibility.Visible;
+                TbMessageTitle.Visibility = Visibility.Collapsed;
+                BtnReconn.Visibility = Visibility.Visible;
+                TbMessage.Text = IoC.Translate("vnc_connection_lost");
+                if (_invokeOnClosedWhenDisconnected)
+                    base.OnClosed?.Invoke(base.ConnectionId);
+            });
         }
 
         #endregion connection

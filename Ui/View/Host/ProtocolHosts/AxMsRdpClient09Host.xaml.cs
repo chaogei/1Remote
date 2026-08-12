@@ -943,7 +943,8 @@ namespace _1RM.View.Host.ProtocolHosts
 
 
 
-        private static bool _isReSizeRdpToControlSizeRunning = false;
+        private const int MOUSE_RELEASE_WAIT_TIMEOUT_MS = 30 * 1000;
+        private int _isReSizeRdpToControlSizeRunning = 0;
         /// <summary>
         /// set remote resolution to _rdpClient size if is AutoResize
         /// if focus == false, then set size only if new size != old size
@@ -954,45 +955,51 @@ namespace _1RM.View.Host.ProtocolHosts
                 || _rdpClient?.FullScreen != false
                 || _rdpSettings.RdpWindowResizeMode != ERdpWindowResizeMode.AutoResize) return;
 
-
-            lock (this)
+            // This used to be a static field guarded by lock(this): the guard was per instance while the
+            // flag was shared, so concurrent sessions clobbered each other, and any exception left it stuck
+            // at true forever, silently killing auto-resize for every session in the process.
+            if (Interlocked.CompareExchange(ref _isReSizeRdpToControlSizeRunning, 1, 0) != 0)
             {
-                if (_isReSizeRdpToControlSizeRunning == true)
-                {
-                    SimpleLogHelper.Debug($@"ReSizeRdpToControlSize return by isReSizeRdpToControlSizeRunning == true");
-                    return;
-                }
-                _isReSizeRdpToControlSizeRunning = true;
+                SimpleLogHelper.Debug($@"ReSizeRdpToControlSize return by isReSizeRdpToControlSizeRunning == true");
+                return;
             }
-
 
             Task.Factory.StartNew(() =>
             {
-                while (true)
+                try
                 {
                     // Window drag and drop resize only after mouse button release, 当拖动最大化的窗口时，需检测鼠标按键释放后再调整分辨率，详见：https://github.com/1Remote/1Remote/issues/553
-                    var isPressed = false;
-                    Execute.OnUIThreadSync(() => { isPressed = Mouse.LeftButton == MouseButtonState.Pressed; });
-                    if (!isPressed)
-                        break;
-#if DEBUG
-                    SimpleLogHelper.Debug($@"RDP ReSizeRdpToControlSize  delay since mouse is pressed");
-#endif
-                    Thread.Sleep(300);
-                }
+                    // Control.MouseButtons reads the input state straight from Win32. The Mouse.LeftButton
+                    // check it replaces needed a blocking hop to the UI thread on every iteration, and the
+                    // loop had no upper bound.
+                    var waitedMs = 0;
+                    while ((System.Windows.Forms.Control.MouseButtons & MouseButtons.Left) == MouseButtons.Left)
+                    {
+                        if (waitedMs >= MOUSE_RELEASE_WAIT_TIMEOUT_MS)
+                        {
+                            SimpleLogHelper.Warning(@"RDP ReSizeRdpToControlSize: gave up waiting for the mouse button to be released");
+                            break;
+                        }
+                        Thread.Sleep(100);
+                        waitedMs += 100;
+                    }
 
-                var nw = (uint)(_rdpClient?.Width ?? 0);
-                var nh = (uint)(_rdpClient?.Height ?? 0);
-                // tip: the control default width is 288
-                if (_rdpClient?.DesktopWidth != nw
-                    || _rdpClient?.DesktopHeight != nh)
-                {
-                    SetRdpResolution(nw, nh, false);
+                    var nw = (uint)(_rdpClient?.Width ?? 0);
+                    var nh = (uint)(_rdpClient?.Height ?? 0);
+                    // tip: the control default width is 288
+                    if (_rdpClient?.DesktopWidth != nw
+                        || _rdpClient?.DesktopHeight != nh)
+                    {
+                        SetRdpResolution(nw, nh, false);
+                    }
                 }
-
-                lock (this)
+                catch (Exception e)
                 {
-                    _isReSizeRdpToControlSizeRunning = false;
+                    SimpleLogHelper.Error(e);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _isReSizeRdpToControlSizeRunning, 0);
                 }
             });
         }

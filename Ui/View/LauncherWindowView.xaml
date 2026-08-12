@@ -36,9 +36,13 @@
 
         <Border Name="BorderMainContent" Padding="10 40">
             <StackPanel MinHeight="{x:Static view:LauncherWindowViewModel.LAUNCHER_GRID_KEYWORD_HEIGHT}">
-                <Border CornerRadius="{x:Static view:LauncherWindowViewModel.LauncherOutlineCornerRadiusObj}" Background="{DynamicResource PrimaryMidBrush}">
+                <Border CornerRadius="{x:Static view:LauncherWindowViewModel.LauncherOutlineCornerRadiusObj}"
+                        BorderThickness="1"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        Background="{DynamicResource PrimaryMidBrush}">
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="10" />
+                        <!-- soft and slightly dropped, rather than a hard halo on all four sides -->
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.45" />
                     </Border.Effect>
 
                     <Grid Clip="{Binding GridMainClip}" 

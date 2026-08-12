@@ -333,4 +333,22 @@
     <s:String x:Key="ListViewMode_Card">卡片</s:String>
     <s:String x:Key="ListViewMode_Tree">树形</s:String>
     <s:String x:Key="Do not check for new version">不检查新版本</s:String>
+    <s:String x:Key="vnc_host_unreachable">无法连接到 {0}，主机在连接超时时间内没有响应。</s:String>
+    <s:String x:Key="vnc_connection_lost">连接已断开…</s:String>
+    <s:String x:Key="theme_glass_title">毛玻璃</s:String>
+    <s:String x:Key="theme_glass_enable">面板背后模糊桌面（需 Windows 10 1803 及以上）</s:String>
+    <s:String x:Key="theme_glass_opacity">面板不透明度</s:String>
+    <s:String x:Key="proxy_title">代理</s:String>
+    <s:String x:Key="proxy_page_hint">在此定义代理，然后在服务器编辑页为每台服务器选择。所有协议均通过本地中转转发，因此 RDP 与 VNC 同样支持。</s:String>
+    <s:String x:Key="proxy_type">类型</s:String>
+    <s:String x:Key="proxy_direct_connection">直接连接</s:String>
+    <s:String x:Key="proxy_server_hint">让该服务器经由「设置 - 代理」中定义的某个代理连接。</s:String>
+    <s:String x:Key="proxy_bypass_local">地址为回环或内网时直接连接</s:String>
+    <s:String x:Key="proxy_new_name">新建代理</s:String>
+    <s:String x:Key="proxy_test">测试目标</s:String>
+    <s:String x:Key="proxy_test_run">测试</s:String>
+    <s:String x:Key="proxy_testing">测试中…</s:String>
+    <s:String x:Key="proxy_test_ok">代理已成功连通目标</s:String>
+    <s:String x:Key="proxy_test_failed">测试失败</s:String>
+    <s:String x:Key="proxy_test_target_invalid">测试目标请按 主机:端口 填写，例如 example.com:443</s:String>
 </ResourceDictionary>
