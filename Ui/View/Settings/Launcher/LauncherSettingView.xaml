@@ -12,7 +12,7 @@
         <local:Key2KeyStringConverter x:Key="Key2KeyStringConverter"></local:Key2KeyStringConverter>
         <local:ConverterHotkeyModifierKeys x:Key="ConverterHotkeyModifierKeys"></local:ConverterHotkeyModifierKeys>
     </UserControl.Resources>
-    <Grid Background="{DynamicResource GlassContentBrush}">
+    <Grid Background="Transparent">
         <ScrollViewer>
 
         <StackPanel>

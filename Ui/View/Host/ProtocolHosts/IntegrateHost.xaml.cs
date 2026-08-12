@@ -509,7 +509,11 @@ namespace _1RM.View.Host.ProtocolHosts
                 {
                     SimpleLogHelper.Warning($"Error in timer callback: {e.Message}");
                 }
-                if (DateTime.Now > endTime && _exeHandles.Count > 0)
+                // Stop on the deadline whatever happened. The old condition also required a handle to have
+                // been found, so an embedded program that never opens a main window left this polling at
+                // 10Hz forever — and Process.MainWindowHandle enumerates every top level window in the
+                // session on each call.
+                if (DateTime.Now > endTime)
                     return;
                 _timer?.Start();
             };

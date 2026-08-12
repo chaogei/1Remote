@@ -189,7 +189,10 @@ namespace _1RM.Model
                     // TODO: reload credentials
                 }
 
-                System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet = System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet;
+                // Assigning MinWorkingSet calls SetProcessWorkingSetSizeEx, which trims the working set: the
+                // reported memory drops, then every subsequent access has to fault the pages back in. Doing
+                // that on a timer is what made the app stutter after sitting idle. It also leaked two
+                // undisposed Process handles per tick.
                 CheckUpdateTime = DateTime.Now.AddSeconds(_configurationService.DatabaseCheckPeriod);
             }
             catch (Exception ex)

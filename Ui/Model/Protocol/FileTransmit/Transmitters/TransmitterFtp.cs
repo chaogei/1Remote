@@ -251,7 +251,10 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
             _ftp?.Dispose();
             _ftp = new AsyncFtpClient(Hostname, new System.Net.NetworkCredential(Username, Password), Port);
             _ftp.Config.EncryptionMode = FtpEncryptionMode.Explicit;
-            _ftp.Config.SslProtocols = SslProtocols.Tls12;
+            // None means "let the OS decide", which picks up TLS 1.3 where Schannel offers it and follows
+            // future system policy. Pinning Tls12 excluded TLS 1.3 outright, so a server that only speaks
+            // 1.3 could not be reached at all.
+            _ftp.Config.SslProtocols = SslProtocols.None;
             _ftp.ValidateCertificate += OnValidateCertificate;
             _ftp.Config.Noop = true;
             await _ftp.AutoConnect();

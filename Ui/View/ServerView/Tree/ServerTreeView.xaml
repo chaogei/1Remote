@@ -39,7 +39,7 @@
           AllowDrop="True" DragOver="TreeViewItem_OnDragOver" Drop="TreeViewItem_OnDrop">
 
         <!-- Main tree view area -->
-        <Grid Margin="0 21 0 0" Background="{DynamicResource GlassContentBrush}">
+        <Grid Margin="0 21 0 0" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*" MinHeight="300"></RowDefinition>

@@ -35,13 +35,25 @@
         <KeyBinding Gesture="Ctrl+F" Command="{StaticResource CommandFocusFilter}"></KeyBinding>
     </styles:WindowChromeBase.InputBindings>
 
-    <Grid Background="{DynamicResource GlassPanelBrush}">
+    <!--
+        Exactly one translucent brush may paint any given pixel. Two 62% layers stacked composite to 86%,
+        which is what made the backdrop invisible everywhere except the window's outer margin. So the root
+        stays transparent and the tint is applied once per region: GlassPanelBrush on the title bar strip,
+        GlassContentBrush on the paging area. Everything nested inside those is Transparent, and hierarchy
+        comes from the Layer* overlays, which are faint enough not to close the glass up again.
+    -->
+    <Grid Background="Transparent">
         <Grid>
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Effect">
                         <Setter.Value>
-                            <BlurEffect Radius="8" KernelType="Gaussian"></BlurEffect>
+                            <!--
+                                Box, not Gaussian: this blurs the entire window's visual tree every frame
+                                while a mask layer is up, and a separable Gaussian at radius 8 on a 1080p
+                                render target costs several ms per frame while the mask is also animating.
+                            -->
+                            <BlurEffect Radius="4" KernelType="Box" RenderingBias="Performance"></BlurEffect>
                         </Setter.Value>
                     </Setter>
                     <Style.Triggers>
@@ -55,6 +67,9 @@
                 <RowDefinition Height="40"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
+
+            <!-- the single tint for the title bar strip -->
+            <Border Grid.Row="0" Background="{DynamicResource GlassPanelBrush}" />
 
             <Grid Background="Transparent" Name="WinTitleBar">
                 <StackPanel Orientation="Horizontal">
@@ -522,8 +537,8 @@
             </StackPanel>
 
 
-            <!-- Paging Area -->
-            <Grid Grid.Row="1">
+            <!-- Paging Area — the single tint for everything the pages draw on -->
+            <Grid Grid.Row="1" Background="{DynamicResource GlassContentBrush}">
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Setter Property="Effect">

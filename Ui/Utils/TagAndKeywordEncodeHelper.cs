@@ -207,9 +207,14 @@ namespace _1RM.Utils
             {
                 return servers.Select(_ => new Tuple<bool, MatchResults?>(true, null)).ToList();
             }
-            var taskCount = Math.Max(servers.Count / 10, 2);
+            // Capped at the core count. servers.Count / 10 meant 200 tasks for 2000 servers, which just
+            // saturates the thread pool and pays its injection delay for no extra parallelism.
+            var taskCount = Math.Max(2, Math.Min(Environment.ProcessorCount, servers.Count));
             var results = new ConcurrentDictionary<int, Tuple<bool, MatchResults?>>();
-            var caches = new ConcurrentQueue<ProtocolBase>(servers);
+            // The index travels with the item: servers.IndexOf(cache) inside the loop made the whole pass
+            // O(N^2).
+            var caches = new ConcurrentQueue<KeyValuePair<int, ProtocolBase>>(
+                servers.Select((server, index) => new KeyValuePair<int, ProtocolBase>(index, server)));
             var tasks = new List<Task>();
             for (var i = 0; i < taskCount; i++)
             {
@@ -217,8 +222,8 @@ namespace _1RM.Utils
                 {
                     while (caches.TryDequeue(out var cache))
                     {
-                        var r = MatchKeywords(cache, keywordDecoded, matchSubTitle);
-                        results.TryAdd(servers.IndexOf(cache), r);
+                        var r = MatchKeywords(cache.Value, keywordDecoded, matchSubTitle);
+                        results.TryAdd(cache.Key, r);
                     }
                 }));
             }

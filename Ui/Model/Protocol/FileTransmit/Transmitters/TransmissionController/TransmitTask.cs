@@ -698,7 +698,9 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters.TransmissionController
                         _transmittedDataLength.Enqueue(new Tuple<DateTime, ulong>(DateTime.Now, add));
                         RaisePropertyChanged(nameof(TransmitSpeed));
                         RaisePropertyChanged(nameof(TimeRemaining));
-                        SimpleLogHelper.Debug($"{DateTime.Now}: {TransmittedByteLength}done, {TransmittedPercentage}%");
+                        // This ran once per transferred block — tens of thousands of times for a large file.
+                        // SimpleLogHelper builds a StackTrace and reads the PDB before it looks at the log
+                        // level, so the progress log alone was throttling the transfer.
                     }
                 }
                 catch (Exception e)

@@ -56,7 +56,8 @@ namespace _1RM.View.Host
                         IoC.Get<LocalityService>().TabWindowWidth = this.ActualWidth;
                         IoC.Get<LocalityService>().TabWindowHeight = this.ActualHeight;
                     }
-                    SimpleLogHelper.DebugInfo($"(Window size changed) Tab size change to:W = {this.ActualWidth}, H = {this.ActualHeight}");
+                    // no logging here: SizeChanged fires many times per second while dragging a window edge,
+                    // and every SimpleLogHelper call builds a StackTrace before it checks the log level
                 };
 
                 // remember window pos when size changed
@@ -112,7 +113,7 @@ namespace _1RM.View.Host
                     finally
                     {
                         DataContext = null;
-                        System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet = System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet;
+                        // working set trimming removed here for the same reason as in GlobalData_Timer
                     }
                 };
 

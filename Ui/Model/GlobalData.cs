@@ -65,8 +65,12 @@ namespace _1RM.Model
                 var needRead = false;
                 if (force == false)
                 {
-                    needRead |= _sourceService.LocalDataSource?.NeedRead(TableServer.TABLE_NAME) ?? false;
-                    needRead |= _sourceService.LocalDataSource?.NeedRead(TableCredential.TABLE_NAME) ?? false;
+                    // short-circuiting on purpose: |= would still issue the second round trip after the
+                    // first already answered "yes", which on a remote data source is a wasted query every
+                    // polling interval
+                    needRead = _sourceService.LocalDataSource?.NeedRead(TableServer.TABLE_NAME) ?? false;
+                    if (needRead == false)
+                        needRead = _sourceService.LocalDataSource?.NeedRead(TableCredential.TABLE_NAME) ?? false;
                     if (needRead == false)
                     {
                         foreach (var additionalSource in _sourceService.AdditionalSources)

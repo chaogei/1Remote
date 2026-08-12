@@ -102,22 +102,29 @@ namespace _1RM.Service
             _matchCaches.Clear();
         }
 
+        private DateTime _nextCleanUpTime = DateTime.MinValue;
+        private static readonly TimeSpan CleanUpInterval = TimeSpan.FromMinutes(5);
+
         private void CleanUp()
         {
             lock (this)
             {
-                if (_matchCaches.Any(x => x.Value.GetAccessTime() < DateTime.Now.AddHours(-24)))
+                // Match() is called once per server, so this used to run N times per keystroke, and each run
+                // evaluated DateTime.Now once per cache entry — N * 2N calls for a single filter pass. The
+                // cache only ages by the hour, so five minutes is plenty.
+                var now = DateTime.Now;
+                if (now < _nextCleanUpTime) return;
+                _nextCleanUpTime = now + CleanUpInterval;
+
+                var staleThreshold = now.AddHours(-24);
+                if (!_matchCaches.Any(x => x.Value.GetAccessTime() < staleThreshold)) return;
+
+                var evictThreshold = now.AddHours(-12);
+                var kvs = _matchCaches.Where(x => x.Value.GetAccessTime() < evictThreshold).ToArray();
+                foreach (var kv in kvs)
                 {
-                    var kvs = _matchCaches.Where(x => x.Value.GetAccessTime() < DateTime.Now.AddHours(-12))?
-                        .OrderBy(x => x.Value.GetAccessTime())?.ToArray();
-                    if (kvs!= null)
-                    {
-                        foreach (var kv in kvs)
-                        {
-                            _matchCaches.Remove(kv.Key);
-                        }
-                    }
-                } 
+                    _matchCaches.Remove(kv.Key);
+                }
             }
         }
 

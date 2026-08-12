@@ -118,7 +118,8 @@ namespace _1RM.Controls.NoteDisplay
             PopupNote.IsOpen = false;
             await Task.Yield();
             PopupNote.IsOpen = true;
-            SimpleLogHelper.Warning($"{PopupNote.Placement} {PopupNote.ActualWidth}");
+            // leftover debug line removed: at Warning level it reached WriteLog, so simply sweeping the
+            // mouse across the list fired a global lock plus a file open/append/close per note icon
             this.MouseMove -= OnMouseMove;
             this.MouseMove += OnMouseMove;
         }

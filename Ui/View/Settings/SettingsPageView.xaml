@@ -61,13 +61,14 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="{DynamicResource GlassContentBrush}" Grid.IsSharedSizeScope="True">
+    <Grid Background="Transparent" Grid.IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Background="{DynamicResource GlassPanelBrush}">
+        <!-- a faint overlay rather than a second tint, so the rail reads as raised without closing the glass -->
+        <Grid Grid.Column="0" Background="{DynamicResource LayerFillBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />

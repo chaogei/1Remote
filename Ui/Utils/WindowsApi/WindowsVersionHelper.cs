@@ -60,9 +60,11 @@ namespace _1RM.Utils.WindowsApi
 
     public static class Win32Api
     {
-        [DllImport("user32.dll")]
+        // CharSet.Unicode matters here: without it these bind to the ANSI entry points, and a session name
+        // with characters outside the active code page then never matches its own window title.
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindow(string? lpszClass, string lpszTitle);
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindowEx(IntPtr hWndParent, IntPtr hWndChildAfter, string? lpszClass, string lpszTitle);
         [DllImport("user32.dll")]
         public static extern bool IsWindowVisible(IntPtr hWnd);

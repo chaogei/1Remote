@@ -126,6 +126,7 @@
                             <Setter.Value>
                                 <ItemsPanelTemplate>
                                     <controls2:VirtualizingWrapPanel IsVirtualizing="True"
+                                                                     VirtualizationMode="Recycling"
                                                                      ScrollUnit="Item"
                                                                      SpacingMode="None"
                                                                      Margin="15 10 0 20"
@@ -149,7 +150,7 @@
 
 
     <Grid Background="{DynamicResource PrimaryMidBrush}" Grid.IsSharedSizeScope="True">
-        <Grid Margin="0 21 0 0" Background="{DynamicResource GlassContentBrush}">
+        <Grid Margin="0 21 0 0" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*" MinHeight="300"></RowDefinition>

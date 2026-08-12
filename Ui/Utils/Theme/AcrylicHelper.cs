@@ -71,17 +71,22 @@ namespace _1RM.Utils.Theme
         /// <c>Environment.OSVersion</c> is shimmed to 6.2 unless the manifest opts in, so a version check
         /// would silently disable the backdrop on the very machines that support it.
         /// </summary>
-        /// <param name="window">Target window. Must be <c>AllowsTransparency=True</c> to composite.</param>
+        /// <param name="window">Target window.</param>
         /// <param name="tint">Tint colour; its alpha channel controls how opaque the glass reads.</param>
+        /// <param name="preferAcrylic">
+        /// False selects the cheaper Aero-style blur instead of acrylic. Acrylic re-samples what is behind
+        /// the window every frame, and on Windows 10 that makes dragging the window visibly stutter, so the
+        /// caller downgrades to plain blur for the duration of a move or resize.
+        /// </param>
         /// <returns>True when the OS accepted the backdrop.</returns>
-        public static bool Apply(Window? window, Color tint)
+        public static bool Apply(Window? window, Color tint, bool preferAcrylic = true)
         {
             if (window == null) return false;
             var handle = new WindowInteropHelper(window).Handle;
             if (handle == IntPtr.Zero) return false;
 
             // acrylic from Windows 10 1803; older builds still take the cheaper blur-behind
-            return Apply(handle, tint, AccentState.EnableAcrylicBlurBehind)
+            return (preferAcrylic && Apply(handle, tint, AccentState.EnableAcrylicBlurBehind))
                    || Apply(handle, tint, AccentState.EnableBlurBehind);
         }
 

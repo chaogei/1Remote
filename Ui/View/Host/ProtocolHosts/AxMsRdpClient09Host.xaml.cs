@@ -637,7 +637,16 @@ namespace _1RM.View.Host.ProtocolHosts
                 // CONNECTION_TYPE_BROADBAND_LOW (2 (0x2)) Low-speed broadband (256 Kbps to 2 Mbps) CONNECTION_TYPE_SATELLITE (3 (0x3)) Satellite (2 Mbps to 16 Mbps, with high latency)
                 // CONNECTION_TYPE_BROADBAND_HIGH (4 (0x4)) High-speed broadband (2 Mbps to 10 Mbps) CONNECTION_TYPE_WAN (5 (0x5)) Wide area network (WAN) (10 Mbps or higher, with high latency)
                 // CONNECTION_TYPE_LAN (6 (0x6)) Local area network (LAN) (10 Mbps or higher)
-                _rdpClient.AdvancedSettings8.NetworkConnectionType = 1;
+                //
+                // This used to be hardcoded to 1 for every quality level, so picking "High" still told the
+                // server the link was a 56K modem and it compressed and throttled accordingly.
+                _rdpClient.AdvancedSettings8.NetworkConnectionType = _rdpSettings.DisplayPerformance switch
+                {
+                    EDisplayPerformance.Low => 1,     // MODEM
+                    EDisplayPerformance.Middle => 4,  // BROADBAND_HIGH
+                    EDisplayPerformance.High => 6,    // LAN
+                    _ => 6,
+                };
                 switch (_rdpSettings.DisplayPerformance)
                 {
                     case EDisplayPerformance.Auto:

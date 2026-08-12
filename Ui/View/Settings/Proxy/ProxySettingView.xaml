@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:ProxySettingViewModel}"
              d:DesignHeight="620" d:DesignWidth="900">
-    <Grid Background="{DynamicResource GlassContentBrush}">
+    <Grid Background="Transparent">
         <ScrollViewer>
             <StackPanel Margin="0 0 0 20">
 
