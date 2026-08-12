@@ -240,6 +240,10 @@ Generated_Code/
 # because we have git ;-)
 _UpgradeReport_Files/
 Backup*/
+# ...but that pattern also matches source folders that happen to be called Backup, and git skips an
+# excluded directory without ever looking inside it - these were being dropped from commits silently.
+!Ui/Service/Backup/
+!Ui/View/Settings/Backup/
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/
