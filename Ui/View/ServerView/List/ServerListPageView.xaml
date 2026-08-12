@@ -83,7 +83,10 @@
 
 
             <DataTemplate x:Key="DataTemplateForServerList" DataType="view:ProtocolBaseViewModel">
-                <Grid Name="Grid" FocusVisualStyle="{x:Null}" Background="{DynamicResource BackgroundBrush}">
+                <!-- Transparent, not BackgroundBrush: one of these covers every row, so an opaque fill here
+                     blanks out the backdrop across the whole populated part of the list while the empty area
+                     below the last row still shows it. Transparent still takes part in hit testing. -->
+                <Grid Name="Grid" FocusVisualStyle="{x:Null}" Background="Transparent">
                     <Grid.InputBindings>
                         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding CmdConnServer}"></MouseBinding>
                         <MouseBinding MouseAction="RightClick" Command="{Binding CmdEditServer}"></MouseBinding>
