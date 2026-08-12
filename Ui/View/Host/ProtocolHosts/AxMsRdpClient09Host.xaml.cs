@@ -246,7 +246,11 @@ namespace _1RM.View.Host.ProtocolHosts
             //- 1: If server authentication fails, don't establish a connection (Don't connect)
             //- 2: If server authentication fails, show a warning and allow me to connect or refuse the connection (Warn me)
             //- 3: No authentication requirement specified.
-            _rdpClient.AdvancedSettings9.AuthenticationLevel = 0;
+            // This was hardcoded to 0, which silently accepted any server identity — the exact warning mstsc
+            // shows for an untrusted certificate was suppressed for every connection. Self-signed
+            // certificates are normal on internal networks, so the escape hatch is per server rather than
+            // global.
+            _rdpClient.AdvancedSettings9.AuthenticationLevel = _rdpSettings.TrustUnverifiedHost ? 0 : 2;
 
             // ref: https://docs.microsoft.com/en-us/windows/win32/termserv/imsrdpclientadvancedsettings6-connecttoadministerserver
             _rdpClient.AdvancedSettings7.ConnectToAdministerServer = _rdpSettings.IsAdministrativePurposes == true;

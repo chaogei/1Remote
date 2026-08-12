@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
+using _1RM.Service;
 using FluentFTP.Client.BaseClient;
 
 namespace _1RM.Model.Protocol.FileTransmit.Transmitters
@@ -16,16 +18,19 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
         public readonly int Port;
         public readonly string Username;
         public readonly string Password;
+        /// <summary>When true any TLS certificate is accepted. See ProtocolBase.TrustUnverifiedHost.</summary>
+        public readonly bool TrustUnverifiedHost;
         private Task FtpConnection;
         private SemaphoreSlim FtpSemaphoe;
         private AsyncFtpClient? _ftp = null;
 
-        public TransmitterFtp(string host, int port, string username, string password)
+        public TransmitterFtp(string host, int port, string username, string password, bool trustUnverifiedHost = false)
         {
             Hostname = host;
             Port = port;
             Username = username;
             Password = password;
+            TrustUnverifiedHost = trustUnverifiedHost;
             FtpSemaphoe = new SemaphoreSlim(1, 1);
             FtpConnection = InitClient();
         }
@@ -240,10 +245,25 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
             _ftp = null;
         }
 
+        /// <summary>
+        /// This used to be the unmodified FluentFTP sample — an unconditional <c>e.Accept = true</c> with a
+        /// "add logic here" comment. TLS was negotiated but its identity half was doing nothing, so a
+        /// self-signed certificate presented by anyone in the path was accepted and the credentials went
+        /// straight to them.
+        /// </summary>
         private void OnValidateCertificate(BaseFtpClient control, FtpSslValidationEventArgs e)
         {
-            // add logic to test if certificate is valid here
-            e.Accept = true;
+            if (TrustUnverifiedHost || e.PolicyErrors == SslPolicyErrors.None)
+            {
+                e.Accept = true;
+                return;
+            }
+
+            var fingerprint = e.Certificate != null
+                ? HostTrustService.Fingerprint(e.Certificate.GetRawCertData())
+                : "";
+            e.Accept = IoC.Get<HostTrustService>()
+                .VerifyOrAsk("tls", Hostname, Port, fingerprint, e.PolicyErrors.ToString());
         }
 
         private async Task InitClient()

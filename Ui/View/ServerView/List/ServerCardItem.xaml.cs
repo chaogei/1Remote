@@ -19,9 +19,9 @@ namespace _1RM.Controls
         {
             var value = (ProtocolBaseViewModel)e.NewValue;
             ((ServerCardItem)d).DataContext = value;
-            if (value?.HoverNoteDisplayControl != null)
+            if (value?.CreatedNoteDisplayControl != null)
             {
-                value.HoverNoteDisplayControl.IsBriefNoteShown = false;
+                value.CreatedNoteDisplayControl.IsBriefNoteShown = false;
             }
         }
 

@@ -59,6 +59,7 @@ namespace _1RM
             builder.Bind<DataSourceService>().ToSelf().InSingletonScope();
             builder.Bind<LauncherService>().ToSelf().InSingletonScope();
             builder.Bind<ProxyService>().ToSelf().InSingletonScope();
+            builder.Bind<HostTrustService>().ToSelf().InSingletonScope();
 
             builder.Bind<MainWindowView>().ToSelf().InSingletonScope();
             builder.Bind<MainWindowViewModel>().ToSelf().InSingletonScope();

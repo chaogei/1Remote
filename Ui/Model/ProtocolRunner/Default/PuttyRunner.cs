@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using _1RM.Utils.PuTTY.Model;
 using _1RM.Model.Protocol;
 using _1RM.Model.Protocol.Base;
 using _1RM.Service;
+using _1RM.Utils;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
 using Shawn.Utils.Wpf.FileSystem;
@@ -300,19 +302,34 @@ namespace _1RM.Model.ProtocolRunner.Default
                 //var arg = OtherNameAttributeExtensions.Replace(ssh, template);
 
                 var ipv6 = ValidateIPv6(ssh.Address) ? " -6 " : "";
-                //var arg = $@" -load ""{sessionId}"" {ssh.Address} -P {ssh.Port} -l {ssh.UserName} -pw {ssh.Password} -{(int)(ssh.SshVersion ?? 2)} -cmd ""{ssh.StartupAutoCommand}"" {ipv6}";
                 string m = GetAutoCommandFilePath(protocol);
                 if (!string.IsNullOrEmpty(m))
                 {
-                    m = $" -m \"{m}\" -t";
+                    m = $" -m {ProcessArgumentEscaper.Escape(m)} -t";
                 }
-                var arg = $@" -load ""{protocol.SessionId}"" {ssh.Address} -P {ssh.Port} -l {ssh.UserName} -pw {ssh.Password} -{(int)(ssh.SshVersion ?? 2)} {ipv6} {m}";
+
+                // -pwfile rather than -pw: the command line of a running process is readable by anything
+                // else running as this user, and it lands in crash dumps and EDR logs. The bundled PuTTY is
+                // 0.83, which supports it.
+                var passwordArgument = "";
+                var passwordFile = SavePasswordFile(protocol, ssh.Password);
+                if (!string.IsNullOrEmpty(passwordFile))
+                    passwordArgument = $" -pwfile {ProcessArgumentEscaper.Escape(passwordFile)}";
+
+                var arg = $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                          + $" {ProcessArgumentEscaper.Escape(ssh.Address)}"
+                          + $" -P {ProcessArgumentEscaper.Escape(ssh.Port)}"
+                          + $" -l {ProcessArgumentEscaper.Escape(ssh.UserName)}"
+                          + passwordArgument
+                          + $" -{(int)(ssh.SshVersion ?? 2)} {ipv6} {m}";
                 return " " + arg;
             }
 
             if (p is Telnet tel)
             {
-                return $@" -load ""{protocol.SessionId}"" -telnet {tel.Address} -P {tel.Port}";
+                return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                       + $" -telnet {ProcessArgumentEscaper.Escape(tel.Address)}"
+                       + $" -P {ProcessArgumentEscaper.Escape(tel.Port)}";
             }
 
             if (p is Serial serial)
@@ -326,7 +343,9 @@ namespace _1RM.Model.ProtocolRunner.Default
                 // A single upper-case letter specifies the flow control: ‘N’ for none, ‘X’ for XON/XOFF, ‘R’ for RTS/CTS and ‘D’ for DSR/DTR.
                 // For example, ‘-sercfg 19200,8,n,1,N’ denotes a baud rate of 19200, 8 data bits, no parity, 1 stop bit and no flow control.
                 serial.DecryptToConnectLevel();
-                return $@" -load ""{protocol.SessionId}"" -serial {serial.SerialPort} -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}";
+                return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                       + $" -serial {ProcessArgumentEscaper.Escape(serial.SerialPort)}"
+                       + $" -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}";
             }
             throw new NotSupportedException($"The protocol type {p.GetType()} is not supported for PuttyRunner.");
         }
@@ -349,6 +368,56 @@ namespace _1RM.Model.ProtocolRunner.Default
                 Directory.CreateDirectory(AppPathHelper.Instance.PuttyDirPath);
             var exeFullName = Path.Combine(AppPathHelper.Instance.PuttyDirPath, exeName);
             return exeFullName;
+        }
+
+        private static string GetPasswordFilePath(ProtocolBase protocol)
+            => Path.Combine(Path.GetTempPath(), $"{protocol.SessionId}_putty_pw.txt");
+
+        /// <summary>
+        /// Writes the password where only this user can read it and hands PuTTY the path instead of the
+        /// value. Returns "" when there is no password, so the caller omits the argument entirely.
+        ///
+        /// The file is deleted as soon as PuTTY has read it — see <see cref="DeletePasswordFile"/>, which the
+        /// host calls once the process is up.
+        /// </summary>
+        private static string SavePasswordFile(ProtocolBase protocol, string password)
+        {
+            if (string.IsNullOrEmpty(password)) return "";
+            var path = GetPasswordFilePath(protocol);
+            try
+            {
+                // No extra ACL work: the per-user temp directory is already restricted to this account, and
+                // it is where the private key and the auto-command file are staged too.
+                File.WriteAllText(path, password, new UTF8Encoding(false));
+                return path;
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Error($"PuttyRunner: cannot write the password file, {e.Message}");
+                try
+                {
+                    if (File.Exists(path)) File.Delete(path);
+                }
+                catch
+                {
+                    // ignored
+                }
+                return "";
+            }
+        }
+
+        public static void DeletePasswordFile(ProtocolBase protocol)
+        {
+            try
+            {
+                var path = GetPasswordFilePath(protocol);
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Warning($"PuttyRunner: cannot delete the password file, {e.Message}");
+            }
         }
 
         public static string GetAutoCommandFilePath(ProtocolBase protocol)

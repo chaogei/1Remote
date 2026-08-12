@@ -65,6 +65,18 @@
                 </Grid>
             </StackPanel>
         </Grid>
+
+        <Grid Style="{StaticResource EditorRowGrid}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource host_trust_field}"></TextBlock>
+                <Grid Style="{StaticResource EditorRowGridInput}">
+                    <CheckBox Content="{DynamicResource host_trust_skip}"
+                              IsChecked="{Binding New.TrustUnverifiedHost}"
+                              ToolTip="{DynamicResource host_trust_skip_hint}"
+                              Margin="0 5 0 0"></CheckBox>
+                </Grid>
+            </StackPanel>
+        </Grid>
         
     </StackPanel>
 </UserControl>

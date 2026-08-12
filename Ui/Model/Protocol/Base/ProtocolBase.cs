@@ -230,6 +230,20 @@ namespace _1RM.Model.Protocol.Base
         [JsonIgnore] 
         public bool SelectedRunnerIsInternalRunner => RunnerHelper.GetRunner(IoC.Get<ProtocolConfigurationService>(), this, this.Protocol) is InternalDefaultRunner;
 
+        private bool _trustUnverifiedHost = false;
+        /// <summary>
+        /// Skip host identity verification for this server: no RDP certificate warning, no SSH host key
+        /// check on SFTP, any TLS certificate accepted on FTPS.
+        ///
+        /// Off by default. It exists because self-signed certificates are the norm on internal networks, and
+        /// the alternative — what this app used to do — was to disable verification globally and silently.
+        /// </summary>
+        public bool TrustUnverifiedHost
+        {
+            get => _trustUnverifiedHost;
+            set => SetAndNotifyIfChanged(ref _trustUnverifiedHost, value);
+        }
+
         private string _proxyName = ProxyConfig.NO_PROXY;
         /// <summary>
         /// Name of an entry in the global proxy list, or empty for a direct connection. Stored by name and

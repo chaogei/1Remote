@@ -215,7 +215,7 @@ namespace _1RM.View.ServerView
                     // drag ListBoxItem
                     if (sender is ListBoxItem { DataContext: ProtocolBaseViewModel protocol } listBoxItem
                         && LocalityListViewService.Settings.ServerOrderBy == EnumServerOrderBy.Custom
-                        && protocol.HoverNoteDisplayControl?.PopupNoteContent.Content == null)
+                        && protocol.CreatedNoteDisplayControl?.PopupNoteContent.Content == null)
                     {
                         var dataObj = new DataObject();
                         dataObj.SetData("DragSource", listBoxItem);

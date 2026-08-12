@@ -726,7 +726,8 @@ namespace _1RM.Model.Protocol
             {
                 Domain = this.Domain,
                 LoadBalanceInfo = this.LoadBalanceInfo,
-                AuthenticationLevel = 0,
+                // 2 = warn me, matching the ActiveX host. See TrustUnverifiedHost.
+                AuthenticationLevel = this.TrustUnverifiedHost ? 0 : 2,
                 DisplayConnectionBar = this.IsFullScreenWithConnectionBar == true ? 1 : 0
             };
 

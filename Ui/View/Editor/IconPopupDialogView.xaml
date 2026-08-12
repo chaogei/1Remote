@@ -6,6 +6,7 @@
                          xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
                          xmlns:editor="clr-namespace:_1RM.View.Editor"
                          xmlns:icons="clr-namespace:_1RM.Resources.Icons"
+                         xmlns:controls2="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
                          xmlns:s="https://github.com/canton7/Stylet"
                          mc:Ignorable="d" 
                          ShowInTaskbar="False"
@@ -71,7 +72,11 @@
                           Background="Transparent">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Width="500"></WrapPanel>
+                            <!-- a plain WrapPanel realises all ~140 items at once when the picker opens -->
+                            <controls2:VirtualizingWrapPanel IsVirtualizing="True"
+                                                             VirtualizationMode="Recycling"
+                                                             SpacingMode="None"
+                                                             Width="500"></controls2:VirtualizingWrapPanel>
                         </ItemsPanelTemplate>
                     </ListView.ItemsPanel>
                     <ItemsControl.ItemTemplate>

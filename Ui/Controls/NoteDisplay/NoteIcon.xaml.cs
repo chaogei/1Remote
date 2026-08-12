@@ -51,16 +51,22 @@ namespace _1RM.Controls.NoteDisplay
             Server = server;
             InitializeComponent();
             IsBriefNoteShown = false;
-            Execute.OnUIThreadSync(() =>
+        }
+
+        /// <summary>
+        /// Built the first time the popup is about to show. Assigning Server to it parses the Markdown into a
+        /// FlowDocument, so doing it in the constructor meant paying for a 400x300 editor on every note icon
+        /// that merely existed.
+        /// </summary>
+        private NoteDisplayAndEditor EnsureNoteEditor()
+        {
+            return _noteDisplayAndEditor ??= new NoteDisplayAndEditor()
             {
-                _noteDisplayAndEditor = new NoteDisplayAndEditor()
-                {
-                    Server = Server,
-                    Width = 400,
-                    Height = 300,
-                    CloseButtonVisibility = Visibility.Collapsed,
-                };
-            });
+                Server = Server,
+                Width = 400,
+                Height = 300,
+                CloseButtonVisibility = Visibility.Collapsed,
+            };
         }
 
         private void NoteTest(FrameworkElement button, MouseEventArgs args)
@@ -109,10 +115,9 @@ namespace _1RM.Controls.NoteDisplay
 
         private async void ButtonShowNote_OnMouseEnter(object sender, MouseEventArgs e)
         {
-            if (PopupNoteContent.Content is not NoteDisplayAndEditor
-                && _noteDisplayAndEditor != null)
+            if (PopupNoteContent.Content is not NoteDisplayAndEditor)
             {
-                PopupNoteContent.Content = _noteDisplayAndEditor;
+                PopupNoteContent.Content = EnsureNoteEditor();
             }
             await Task.Yield();
             PopupNote.IsOpen = false;

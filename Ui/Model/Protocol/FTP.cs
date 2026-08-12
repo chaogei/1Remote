@@ -51,7 +51,7 @@ namespace _1RM.Model.Protocol
         {
             var ftp = (this.Clone() as FTP)!;
             ftp.DecryptToConnectLevel();
-            return new TransmitterFtp(ftp.Address, ftp.GetPort(), ftp.UserName, ftp.Password);
+            return new TransmitterFtp(ftp.Address, ftp.GetPort(), ftp.UserName, ftp.Password, ftp.TrustUnverifiedHost);
         }
 
         public string GetStartupPath()

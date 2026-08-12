@@ -88,7 +88,7 @@ namespace _1RM.Model.Protocol
                 this.UserName, UnSafeStringEncipher.DecryptOrReturnOriginalString(Password),
                 a);
 
-            rdpConfig.AuthenticationLevel = 0;
+            rdpConfig.AuthenticationLevel = this.TrustUnverifiedHost ? 0 : 2;
             rdpConfig.KeyboardHook = 0;
             //rdpConfig.AudioMode = 2;
             rdpConfig.AudioCaptureMode = 0;

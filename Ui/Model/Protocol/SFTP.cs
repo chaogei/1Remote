@@ -58,9 +58,9 @@ namespace _1RM.Model.Protocol
             var password = UnSafeStringEncipher.DecryptOrReturnOriginalString(this.Password) ?? this.Password;
             var sshKeyPath = this.PrivateKey;
             if (sshKeyPath == "")
-                return new TransmitterSFtp(hostname, port, username, password, true);
+                return new TransmitterSFtp(hostname, port, username, password, true, this.TrustUnverifiedHost);
             else
-                return new TransmitterSFtp(hostname, port, username, sshKeyPath, false);
+                return new TransmitterSFtp(hostname, port, username, sshKeyPath, false, this.TrustUnverifiedHost);
         }
 
         public string GetStartupPath()

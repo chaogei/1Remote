@@ -104,13 +104,9 @@ namespace _1RM.View
                     _server = value;
                     _server.Tags = _server.Tags.Select(x => x.ToLower()).ToList();
 
-                    if (ConverterNoteToVisibility.IsVisible(_server.Note))
-                    {
-                        Execute.OnUIThreadSync(() =>
-                        {
-                            HoverNoteDisplayControl = new NoteIcon(_server);
-                        });
-                    }
+                    // rebuilt on demand, see HoverNoteDisplayControl
+                    _hoverNoteDisplayControl = null;
+                    RaisePropertyChanged(nameof(HoverNoteDisplayControl));
                     LastConnectTime = LocalityConnectRecorder.ConnectTimeGet(_server);
                     TagString = string.Join(" ", _server.Tags.Select(x => "#" + x));
                     RaisePropertyChanged(nameof(TagString));
@@ -137,14 +133,6 @@ namespace _1RM.View
             
             // 初始化 CustomOrder
             CustomOrder = LocalityListViewService.Settings.ServerCustomOrder.GetValueOrDefault(psb.Id, 0);
-
-            if (ConverterNoteToVisibility.IsVisible(Server.Note))
-            {
-                Execute.OnUIThreadSync(() =>
-                {
-                    HoverNoteDisplayControl = new NoteIcon(this.Server);
-                });
-            }
         }
 
         private ServerTitleViewModel? _launcherMainTitleViewModel;
@@ -162,11 +150,31 @@ namespace _1RM.View
             private set => SetAndNotifyIfChanged(ref _launcherSubTitleViewModel, value);
         }
 
+        /// <summary>Whether a note exists, without building the control to find out.</summary>
+        public bool HasNote => ConverterNoteToVisibility.IsVisible(Server.Note);
+
+        /// <summary>
+        /// The note control if one has already been built. Use this for bookkeeping over the whole list, so
+        /// that touching every row does not instantiate a control for every row.
+        /// </summary>
+        internal NoteIcon? CreatedNoteDisplayControl => _hoverNoteDisplayControl;
+
         private NoteIcon? _hoverNoteDisplayControl = null;
+        /// <summary>
+        /// Built on first read rather than when the view model is constructed. It carries a 400x300 Markdown
+        /// editor, and creating one per server during data load meant building — on the UI thread — a full
+        /// control tree and parsing the Markdown for every server that had a note, whether or not it was ever
+        /// shown. The list is virtualised, so reading this from a binding only builds the visible rows.
+        /// </summary>
         public NoteIcon? HoverNoteDisplayControl
         {
-            get => _hoverNoteDisplayControl;
-            set => SetAndNotifyIfChanged(ref _hoverNoteDisplayControl, value);
+            get
+            {
+                if (_hoverNoteDisplayControl != null) return _hoverNoteDisplayControl;
+                if (!HasNote) return null;
+                _hoverNoteDisplayControl = new NoteIcon(Server);
+                return _hoverNoteDisplayControl;
+            }
         }
 
         private bool _isSelected = false;

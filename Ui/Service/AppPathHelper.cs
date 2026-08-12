@@ -67,6 +67,8 @@ namespace _1RM.Service
         #region Locality
         public string LogFilePath => Path.Combine(BaseDirPathForLocality, ".logs", $"{Assert.APP_NAME}.log.md");
         public string LocalityDirPath => Path.Combine(BaseDirPathForLocality, ".locality");
+        /// <summary>Fingerprints of hosts the user has explicitly accepted. See <see cref="HostTrustService"/>.</summary>
+        public string HostTrustJsonPath => Path.Combine(BaseDirPathForLocality, ".locality", "known_hosts.json");
         public string LocalityIconDirPath => Path.Combine(BaseDirPathForLocality, ".icons");
         public string KittyDirPath => Path.Combine(BaseDirPathForLocality, "KiTTY");
         public string PuttyDirPath => Path.Combine(BaseDirPathForLocality, "PuTTY");

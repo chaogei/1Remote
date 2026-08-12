@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using _1RM.Utils;
 using _1RM.Utils.PuTTY;
 using _1RM.Utils.PuTTY.Model;
 using Shawn.Utils.Wpf;
@@ -188,13 +189,24 @@ namespace _1RM.Model.ProtocolRunner.Default
                 //var template = $@" -load ""{this.GetSessionId()}"" %1RM_HOSTNAME% -P %1RM_PORT% -l %1RM_USERNAME% -pw %1RM_PASSWORD% -%SSH_VERSION% -cmd ""%STARTUP_AUTO_COMMAND%""";
                 //var arg = OtherNameAttributeExtensions.Replace(ssh, template);
                 var ipv6 = ValidateIPv6(ssh.Address) ? " -6 " : "";
-                var arg = $""" -load "{protocol.SessionId}" {ssh.Address} -P {ssh.Port} -l {ssh.UserName} -pw {ssh.Password} -{(int)(ssh.SshVersion ?? 2)} -cmd "{ssh.StartupAutoCommand}" {ipv6}""";
+                // Still -pw here: the bundled KiTTY is 0.76 and predates PuTTY's -pwfile. Every value is at
+                // least escaped now, so a password with a space no longer breaks the argument split and a
+                // user name can no longer smuggle in an extra switch.
+                var arg = $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                          + $" {ProcessArgumentEscaper.Escape(ssh.Address)}"
+                          + $" -P {ProcessArgumentEscaper.Escape(ssh.Port)}"
+                          + $" -l {ProcessArgumentEscaper.Escape(ssh.UserName)}"
+                          + $" -pw {ProcessArgumentEscaper.Escape(ssh.Password)}"
+                          + $" -{(int)(ssh.SshVersion ?? 2)}"
+                          + $" -cmd {ProcessArgumentEscaper.Escape(ssh.StartupAutoCommand)} {ipv6}";
                 return " " + arg;
             }
 
             if (p is Telnet tel)
             {
-                return $""" -load "{protocol.SessionId}" -telnet {tel.Address} -P {tel.Port}""";
+                return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                       + $" -telnet {ProcessArgumentEscaper.Escape(tel.Address)}"
+                       + $" -P {ProcessArgumentEscaper.Escape(tel.Port)}";
             }
 
             if (p is Serial serial)
@@ -208,7 +220,9 @@ namespace _1RM.Model.ProtocolRunner.Default
                 // A single upper-case letter specifies the flow control: ‘N’ for none, ‘X’ for XON/XOFF, ‘R’ for RTS/CTS and ‘D’ for DSR/DTR.
                 // For example, ‘-sercfg 19200,8,n,1,N’ denotes a baud rate of 19200, 8 data bits, no parity, 1 stop bit and no flow control.
                 serial.DecryptToConnectLevel();
-                return $""" -load "{protocol.SessionId}" -serial {serial.SerialPort} -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}""";
+                return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
+                       + $" -serial {ProcessArgumentEscaper.Escape(serial.SerialPort)}"
+                       + $" -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}";
             }
             throw new NotSupportedException($"The protocol type {p.GetType()} is not supported for PuttyRunner.");
         }

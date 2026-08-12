@@ -56,12 +56,13 @@ namespace _1RM.View.ServerView
         {
             Execute.OnUIThread(() =>
             {
-                foreach (var item in VmServerList.Where(x => x.HoverNoteDisplayControl != null))
+                // CreatedNoteDisplayControl on purpose: reading HoverNoteDisplayControl would build a note
+                // control for every server in the list, which is exactly what the lazy getter avoids
+                foreach (var item in VmServerList)
                 {
-                    if (item.HoverNoteDisplayControl != null)
-                    {
-                        item.HoverNoteDisplayControl.IsBriefNoteShown = BriefNoteVisibility == Visibility.Visible;
-                    }
+                    var note = item.CreatedNoteDisplayControl;
+                    if (note != null)
+                        note.IsBriefNoteShown = BriefNoteVisibility == Visibility.Visible;
                 }
             });
         }

@@ -225,6 +225,7 @@ namespace _1RM.View.Host.ProtocolHosts
                     try
                     {
                         PuttyConfig.CleanUpOldConfig();
+                        PuttyRunner.DeletePasswordFile(ProtocolServer);
                         var path = PuttyRunner.GetAutoCommandFilePath(ProtocolServer);
                         if (!string.IsNullOrEmpty(path) && File.Exists(path))
                             File.Delete(path);

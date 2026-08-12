@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using _1RM.Service;
 using _1RM.Utils;
 using _1RM.Utils.Tracing;
 using Renci.SshNet;
@@ -15,19 +16,26 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
 {
     public class TransmitterSFtp : ITransmitter
     {
+        private const int CONNECT_TIMEOUT_SECONDS = 15;
+        private const int OPERATION_TIMEOUT_MINUTES = 10;
+        private const int KEEP_ALIVE_SECONDS = 30;
+
         public readonly string Hostname;
         public readonly int Port;
         public readonly string Username;
         public readonly string Password;
         public readonly string SshKeyPath;
+        /// <summary>When true the host key is not checked. See ProtocolBase.TrustUnverifiedHost.</summary>
+        public readonly bool TrustUnverifiedHost;
         private Task SFtpConnection;
         private SftpClient? _sftp = null;
 
-        public TransmitterSFtp(string host, int port, string username, string key, bool keyIsPassword)
+        public TransmitterSFtp(string host, int port, string username, string key, bool keyIsPassword, bool trustUnverifiedHost = false)
         {
             Hostname = host;
             Port = port;
             Username = username;
+            TrustUnverifiedHost = trustUnverifiedHost;
             if (keyIsPassword)
             {
                 Password = key;
@@ -275,6 +283,23 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
             ReleaseSftp();
         }
 
+        /// <summary>
+        /// SSH.NET trusts every host key unless a handler says otherwise, so leaving this unsubscribed — as
+        /// this class did — meant SFTP had no protection against interception at all, while the very same
+        /// server reached over SSH was properly verified by PuTTY.
+        /// </summary>
+        private void OnHostKeyReceived(object? sender, Renci.SshNet.Common.HostKeyEventArgs e)
+        {
+            if (TrustUnverifiedHost)
+            {
+                e.CanTrust = true;
+                return;
+            }
+
+            var fingerprint = HostTrustService.Fingerprint(e.HostKey);
+            e.CanTrust = IoC.Get<HostTrustService>().VerifyOrAsk("ssh", Hostname, Port, fingerprint, e.HostKeyName);
+        }
+
         private void ReleaseSftp()
         {
             lock (this)
@@ -294,22 +319,30 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
                     RetryHelper.Try(() =>
                     {
                         ReleaseSftp();
+                        ConnectionInfo connectionInfo;
                         if (string.IsNullOrEmpty(Password)
                             && string.IsNullOrEmpty(SshKeyPath) == false
                             && File.Exists(SshKeyPath))
                         {
-                            try
-                            {
-                                var connectionInfo = new ConnectionInfo(Hostname, Port, Username, new PrivateKeyAuthenticationMethod(Username, new PrivateKeyFile(SshKeyPath)));
-                                _sftp = new SftpClient(connectionInfo);
-                            }
-                            catch (Exception e)
-                            {
-                                UnifyTracing.Error(e);
-                            }
+                            // Deliberately not caught: the old code logged the failure and fell through to
+                            // the line below, which then attempted an *empty password* login. The real
+                            // reason — usually a key that needs a passphrase — never reached the user.
+                            connectionInfo = new ConnectionInfo(Hostname, Port, Username,
+                                new PrivateKeyAuthenticationMethod(Username, new PrivateKeyFile(SshKeyPath)));
                         }
-                        _sftp ??= new SftpClient(new ConnectionInfo(Hostname, Port, Username, new PasswordAuthenticationMethod(Username, Password)));
-                        //_sftp.KeepAliveInterval = new TimeSpan(0, 0, 10);
+                        else
+                        {
+                            connectionInfo = new ConnectionInfo(Hostname, Port, Username,
+                                new PasswordAuthenticationMethod(Username, Password));
+                        }
+                        connectionInfo.Timeout = TimeSpan.FromSeconds(CONNECT_TIMEOUT_SECONDS);
+
+                        _sftp = new SftpClient(connectionInfo);
+                        _sftp.OperationTimeout = TimeSpan.FromMinutes(OPERATION_TIMEOUT_MINUTES);
+                        // without this an idle session is dropped by NAT or the firewall and the failure only
+                        // surfaces on the user's next action
+                        _sftp.KeepAliveInterval = TimeSpan.FromSeconds(KEEP_ALIVE_SECONDS);
+                        _sftp.HostKeyReceived += OnHostKeyReceived;
                         _sftp.Connect();
                     });
                 }
