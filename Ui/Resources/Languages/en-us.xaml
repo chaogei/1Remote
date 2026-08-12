@@ -364,4 +364,11 @@
     <s:String x:Key="proxy_fall_back_to_direct_question">Connect directly instead? The connection will NOT go through a proxy.</s:String>
     <s:String x:Key="proxy_delete_in_use_hint">{0} server(s) currently connect through this proxy and will fall back to a direct connection.</s:String>
     <s:String x:Key="quick_connect_hint">quick connect e.g. 192.168.0.100:3389</s:String>
+    <s:String x:Key="empty_add_new_session">Add new session</s:String>
+    <s:String x:Key="empty_open_launcher_hint"> to open the launcher</s:String>
+    <s:String x:Key="empty_pin_tag_title">Right-click on a tag</s:String>
+    <s:String x:Key="empty_pin_tag_hint">and pin it here to enable grouping function.</s:String>
+    <s:String x:Key="empty_no_search_result_title">No matching server</s:String>
+    <s:String x:Key="empty_no_search_result_hint">Nothing here matches what you typed. Check the spelling, or try a shorter keyword.</s:String>
+    <s:String x:Key="empty_no_search_result_clear">Clear the filter</s:String>
 </ResourceDictionary>

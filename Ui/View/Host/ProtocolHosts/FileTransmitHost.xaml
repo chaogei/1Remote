@@ -545,7 +545,7 @@
                                     </Grid>
 
                                     <Grid Grid.Row="0" Grid.Column="1" Margin="2 0">
-                                        <ProgressBar Height="20" Value="{Binding TransmittedPercentage, Mode=OneWay}" Minimum="0" Maximum="100" Background="Transparent" Foreground="#1789C6" BorderBrush="Gray"
+                                        <ProgressBar Height="20" Value="{Binding TransmittedPercentage, Mode=OneWay}" Minimum="0" Maximum="100" Background="Transparent" Foreground="{DynamicResource AccentMidBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}"
                                                      ToolTipService.InitialShowDelay="0">
                                             <ProgressBar.ToolTip>
                                                 <ToolTip HorizontalOffset="10" VerticalOffset="-50" Background="{DynamicResource SolidSurfaceBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}">
@@ -553,8 +553,8 @@
                                                 </ToolTip>
                                             </ProgressBar.ToolTip>
                                         </ProgressBar>
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding TransmittedPercentage, Mode=OneWay,StringFormat='\{0\}%'}" Foreground="White"></TextBlock>
-                                        <TextBlock HorizontalAlignment="Right" Margin="8 0" FontSize="{DynamicResource GlobalFontSizeSmall}" VerticalAlignment="Center" Text="{Binding TransmitSpeed, Mode=OneWay}" Foreground="White"></TextBlock>
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding TransmittedPercentage, Mode=OneWay,StringFormat='\{0\}%'}" Foreground="{DynamicResource AccentTextBrush}"></TextBlock>
+                                        <TextBlock HorizontalAlignment="Right" Margin="8 0" FontSize="{DynamicResource GlobalFontSizeSmall}" VerticalAlignment="Center" Text="{Binding TransmitSpeed, Mode=OneWay}" Foreground="{DynamicResource AccentTextBrush}"></TextBlock>
                                     </Grid>
                                     <Grid Grid.Row="0" Grid.Column="2" Margin="2 0">
                                         <StackPanel Orientation="Horizontal">

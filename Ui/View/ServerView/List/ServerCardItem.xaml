@@ -185,7 +185,7 @@
     </UserControl.Resources>
     <Grid Width="{StaticResource CardWidth}" Height="{StaticResource CardWidth}" Clip="{StaticResource CardClip}">
         <!-- Card Content Middle Layer - with icon -->
-        <Grid Name="CardContent" Background="{DynamicResource PrimaryMidBrush}" >
+        <Grid Name="CardContent" Background="{DynamicResource GlassPanelBrush}" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="20"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
@@ -278,7 +278,7 @@
                                AllowsTransparency="True"
                                PlacementTarget="{Binding ElementName=BtnSettingMenu}" StaysOpen="False">
                             <Border Padding="0 0 4 4">
-                                <Grid MinWidth="80" Background="{DynamicResource PrimaryDarkBrush}">
+                                <Grid MinWidth="80" Background="{DynamicResource SolidPanelBrush}">
                                     <ListBox ItemsSource="{Binding Actions}" 
                                              Style="{StaticResource ListBoxSettingStyle}"
                                              BorderThickness="0">

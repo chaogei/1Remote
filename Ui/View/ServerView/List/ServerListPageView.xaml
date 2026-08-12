@@ -335,7 +335,7 @@
                             <Button HorizontalContentAlignment="Left" Style="{StaticResource ButtonBarPrimaryStyle}"
                                 Margin="0 0 10 0"
                                 attachProperty:VisionElement.BorderCornerRadius="{StaticResource DefaultCornerRadius}"
-                                Background="{DynamicResource BackgroundBrush}"
+                                Background="Transparent"
                                 Foreground="{DynamicResource BackgroundTextBrush}"
                                 Command="{Binding CmdReOrder}" CommandParameter="{x:Static locality:EnumServerOrderBy.ProtocolAsc}">
                                 <Grid>
@@ -360,7 +360,7 @@
                         <Grid Grid.Column="3" SizeChanged="ServerName_SizeChanged">
                             <Button Grid.Column="3" HorizontalContentAlignment="Left" Margin="0 0 10 0" Style="{StaticResource ButtonBarPrimaryStyle}"
                                 attachProperty:VisionElement.BorderCornerRadius="{StaticResource DefaultCornerRadius}"
-                                Background="{DynamicResource BackgroundBrush}"
+                                Background="Transparent"
                                 Foreground="{DynamicResource BackgroundTextBrush}"
                                 Command="{Binding CmdReOrder}" CommandParameter="{x:Static locality:EnumServerOrderBy.NameAsc}">
                                 <Grid>
@@ -381,7 +381,7 @@
                                 </Grid>
                             </Button>
                         </Grid>
-                        <GridSplitter Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="Gray"/>
+                        <GridSplitter Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource CardStrokeBrush}"/>
 
                         <!--brief note -->
                         <Grid Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Stretch" SizeChanged="ServerNote_SizeChanged">
@@ -438,14 +438,14 @@
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <GridSplitter Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="Gray"/>
+                        <GridSplitter Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource CardStrokeBrush}"/>
 
                         <!--address-->
                         <Grid Grid.Column="5">
                             <Button HorizontalContentAlignment="Left" Style="{StaticResource ButtonBarPrimaryStyle}"
                                     Margin="0 0 10 0"
                                     attachProperty:VisionElement.BorderCornerRadius="{StaticResource DefaultCornerRadius}"
-                                    Background="{DynamicResource BackgroundBrush}"
+                                    Background="Transparent"
                                     Foreground="{DynamicResource BackgroundTextBrush}"
                                     Command="{Binding CmdReOrder}" CommandParameter="{x:Static locality:EnumServerOrderBy.AddressAsc}">
                                 <Grid>
@@ -715,7 +715,7 @@
                     <Path Fill="{DynamicResource BackgroundTextBrush}" 
                           Margin="25 10 30 5" Width="50" HorizontalAlignment="Right"
                           Stretch="UniformToFill" Data="M 70.3711 1.2207 L 63.1409 2.666 L 68.054 2.78 C 61.006 12.645 49.14 12.505 47 24 C 46.938 24.449 47.885 24.549 48 24 C 50.066 12.953 62.38 12.673 68.819 3.201 L 69 8 Z" />
-                    <TextBlock Margin="0 0 10 0" Foreground="{DynamicResource BackgroundTextBrush}" FontSize="22" FontWeight="Bold" HorizontalAlignment="Right">Add new session</TextBlock>
+                    <TextBlock Margin="0 0 10 0" Foreground="{DynamicResource BackgroundTextBrush}" FontSize="{DynamicResource GlobalFontSizeLarge}" FontWeight="Bold" HorizontalAlignment="Right" Text="{DynamicResource empty_add_new_session}" />
                     <StackPanel Orientation="Horizontal" Margin="0 0 10 0" 
                                 Visibility="{Binding LauncherSettingViewModel.LauncherEnabled, Converter={StaticResource ConverterBool2Visible}}"
                                 HorizontalAlignment="Right">
@@ -723,11 +723,11 @@
                             <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBase}">
                                 <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                 <Setter Property="Margin" Value="5 0 0 0"></Setter>
-                                <Setter Property="FontSize" Value="16"></Setter>
+                                <Setter Property="FontSize" Value="{DynamicResource GlobalFontSizeTitle}"></Setter>
                             </Style>
                         </StackPanel.Resources>
                         <TextBlock Text="{Binding LauncherSettingViewModel.LauncherHotKeyStr}"></TextBlock>
-                        <TextBlock Text=" to open the launcher"></TextBlock>
+                        <TextBlock Text="{DynamicResource empty_open_launcher_hint}"></TextBlock>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -743,13 +743,36 @@
                     <TextBlock Margin="0 0 10 0" 
                                Style="{StaticResource TextBlockBase}"
                                Foreground="{DynamicResource BackgroundTextBrush}" 
-                               FontSize="24" FontWeight="Bold">Right-click on a tag</TextBlock>
+                               FontSize="{DynamicResource GlobalFontSizeLarge}" FontWeight="Bold"
+                               Text="{DynamicResource empty_pin_tag_title}" />
                     <TextBlock Margin="5 0 0 0"
                                Style="{StaticResource TextBlockBase}"
-                               FontSize="22" Foreground="{DynamicResource BackgroundTextBrush}"  
-                    >and pin it here to enable grouping function.</TextBlock>
+                               TextWrapping="Wrap" MaxWidth="360"
+                               FontSize="{DynamicResource GlobalFontSizeTitle}" Foreground="{DynamicResource BackgroundTextBrush}"
+                               Text="{DynamicResource empty_pin_tag_hint}" />
                 </StackPanel>
             </Border>
+
+
+            <!-- the filter matched nothing: without this the page just goes blank -->
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding IsNoSearchResultShow, Converter={StaticResource ConverterBool2Visible}}">
+                <TextBlock Style="{StaticResource TextBlockBase}"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource BackgroundTextBrush}"
+                           FontSize="{DynamicResource GlobalFontSizeLarge}" FontWeight="Bold"
+                           Text="{DynamicResource empty_no_search_result_title}" />
+                <TextBlock Style="{StaticResource TextBlockBase}"
+                           HorizontalAlignment="Center" Margin="0 6 0 0" Opacity="0.7"
+                           Foreground="{DynamicResource BackgroundTextBrush}"
+                           FontSize="{DynamicResource GlobalFontSizeTitle}"
+                           Text="{DynamicResource empty_no_search_result_hint}" />
+                <Button Style="{StaticResource ButtonBarAccentStyle}"
+                        HorizontalAlignment="Center" Margin="0 16 0 0" Padding="16 6"
+                        attachProperty:VisionElement.BorderCornerRadius="{StaticResource DefaultCornerRadius}"
+                        Command="{Binding CmdClearFilter}"
+                        Content="{DynamicResource empty_no_search_result_clear}" />
+            </StackPanel>
 
 
 
@@ -822,15 +845,10 @@
 
 
 
-        <!-- tags list -->
+        <!-- tags list. The shadow hangs off this bar itself; it used to come from a second Border filled
+             with PrimaryTextBrush, which is the *text* colour - a black stripe under a light theme. -->
         <Grid VerticalAlignment="Top">
-            <Border BorderThickness="0 0 0 1" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource PrimaryTextBrush}" Height="20">
-                <Border.Effect>
-                    <DropShadowEffect ShadowDepth="3" Direction="270"  Opacity="0.6" Color="Black"></DropShadowEffect>
-                </Border.Effect>
-            </Border>
-
-            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource PrimaryMidBrush}">
+            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}" Effect="{DynamicResource EffectShadow2}">
                 <Grid MinHeight="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -1083,7 +1101,7 @@
                            StaysOpen="False"
                            AllowsTransparency="True"
                            PlacementTarget="{Binding ElementName=CbPopForInExport}">
-                        <Border CornerRadius="5" Background="{DynamicResource PrimaryDarkBrush}">
+                        <Border CornerRadius="{DynamicResource DefaultCornerRadius}" Background="{DynamicResource SolidPanelBrush}">
                             <StackPanel Orientation="Vertical">
                                 <MenuItem Header="{DynamicResource Add}" Command="{Binding CmdAdd}">
                                     <MenuItem.Icon>

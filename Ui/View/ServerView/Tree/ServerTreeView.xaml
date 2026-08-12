@@ -534,15 +534,10 @@
         >
         </ContentControl>
 
-        <!-- tags list -->
+        <!-- tags list. The shadow hangs off this bar itself; it used to come from a second Border filled
+             with PrimaryTextBrush, which is the *text* colour - a black stripe under a light theme. -->
         <Grid VerticalAlignment="Top">
-            <Border BorderThickness="0 0 0 1" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource PrimaryTextBrush}" Height="20">
-                <Border.Effect>
-                    <DropShadowEffect ShadowDepth="3" Direction="270"  Opacity="0.6" Color="Black"></DropShadowEffect>
-                </Border.Effect>
-            </Border>
-
-            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}">
+            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}" Effect="{DynamicResource EffectShadow2}">
                 <Grid MinHeight="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -787,7 +782,7 @@
                            StaysOpen="False"
                            AllowsTransparency="True"
                            PlacementTarget="{Binding ElementName=CbPopForInExport}">
-                        <Border CornerRadius="5" Background="{DynamicResource PrimaryDarkBrush}">
+                        <Border CornerRadius="{DynamicResource DefaultCornerRadius}" Background="{DynamicResource SolidPanelBrush}">
                             <StackPanel Orientation="Vertical">
                                 <MenuItem Header="{DynamicResource Add}" Command="{Binding CmdAdd}">
                                     <MenuItem.Icon>

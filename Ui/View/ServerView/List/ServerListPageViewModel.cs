@@ -37,6 +37,23 @@ namespace _1RM.View.ServerView
             set => SetAndNotifyIfChanged(ref _isAddToolTipShow, value);
         }
 
+        /// <summary>
+        /// The list has servers but the current filter hides all of them. Without this the page just goes
+        /// blank and there is nothing to tell apart "nothing matched" from "the app stopped responding".
+        /// </summary>
+        private bool _isNoSearchResultShow = false;
+        public bool IsNoSearchResultShow
+        {
+            get => _isNoSearchResultShow;
+            private set => SetAndNotifyIfChanged(ref _isNoSearchResultShow, value);
+        }
+
+        private RelayCommand? _cmdClearFilter;
+        public RelayCommand CmdClearFilter => _cmdClearFilter ??= new RelayCommand(_ =>
+        {
+            IoC.Get<MainWindowViewModel>().MainFilterString = "";
+        });
+
 
 
         private Visibility _briefNoteVisibility;
@@ -173,8 +190,9 @@ namespace _1RM.View.ServerView
                 }
             }
 
-            shouldShowTooltip = !VmServerList.Any(x => x is not ProtocolBaseViewModelDummy) 
-                               && !IoC.Get<ConfigurationService>().AdditionalDataSource.Any();
+            // An empty list is an empty list. This also required "and no extra data source is configured",
+            // which left anyone who had added one staring at a blank page with no hint of what to do.
+            shouldShowTooltip = !VmServerList.Any(x => x is not ProtocolBaseViewModelDummy);
 
             // Apply all changes in a single UI thread operation
             if (dummiesNeedToAdd.Any() || dummiesNeedToRemove.Any() || IsAddToolTipShow != shouldShowTooltip)
@@ -404,6 +422,11 @@ namespace _1RM.View.ServerView
                         // thrown away by its own debounce.
                         if (SourceService.AdditionalSources.Any())
                             view.RefreshHeaderCheckBox();
+
+                        // IsVisible is assigned by the filter callback during Refresh, so this has to read it
+                        // afterwards
+                        IsNoSearchResultShow = !string.IsNullOrEmpty(IoC.Get<MainWindowViewModel>().MainFilterString.Trim())
+                                               && !VmServerList.Any(x => x is not ProtocolBaseViewModelDummy && x.IsVisible);
                     }
                 }
                 finally

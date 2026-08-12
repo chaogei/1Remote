@@ -19,9 +19,10 @@
 
             <VisualBrush x:Key="HintText" TileMode="None" Stretch="None" AlignmentX="Left">
                 <VisualBrush.Visual>
+                    <!-- One label in the theme's own foreground. It used to be a black copy and a white copy
+                         stacked at 50% each, which reads as a grey smear with visible doubling on any theme. -->
                     <Grid VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="{DynamicResource filter_mainwindow}" Foreground="Black" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
-                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="{DynamicResource filter_mainwindow}" Foreground="White" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
+                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="{DynamicResource filter_mainwindow}" Foreground="{DynamicResource PrimaryTextBrush}" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
                     </Grid>
                 </VisualBrush.Visual>
             </VisualBrush>

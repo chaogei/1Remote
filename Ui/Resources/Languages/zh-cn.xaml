@@ -364,4 +364,11 @@
     <s:String x:Key="proxy_fall_back_to_direct_question">改为直接连接吗？本次连接将不经过任何代理。</s:String>
     <s:String x:Key="proxy_delete_in_use_hint">当前有 {0} 台服务器经由该代理连接，删除后它们会退回直连。</s:String>
     <s:String x:Key="quick_connect_hint">快速连接，例如 192.168.0.100:3389</s:String>
+    <s:String x:Key="empty_add_new_session">新建会话</s:String>
+    <s:String x:Key="empty_open_launcher_hint"> 呼出启动器</s:String>
+    <s:String x:Key="empty_pin_tag_title">右键点击标签</s:String>
+    <s:String x:Key="empty_pin_tag_hint">把它固定到这里，就能按标签分组了。</s:String>
+    <s:String x:Key="empty_no_search_result_title">没有匹配的服务器</s:String>
+    <s:String x:Key="empty_no_search_result_hint">当前没有任何条目符合你输入的内容，检查一下拼写，或者换个更短的关键词。</s:String>
+    <s:String x:Key="empty_no_search_result_clear">清除筛选</s:String>
 </ResourceDictionary>

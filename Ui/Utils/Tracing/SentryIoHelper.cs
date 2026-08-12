@@ -95,13 +95,19 @@ namespace _1RM.Utils.Tracing
             });
         }
 
-        private static void Trace(EventName eventName, IDictionary<string, string>? properties = null)
+        /// <summary>
+        /// The names Sentry groups messages by. Previously an enum shared with the AppCenter helper, which no
+        /// longer exists; the one remaining caller is below.
+        /// </summary>
+        private const string EVENT_SPECIAL = "Special";
+
+        private static void Trace(string eventName, IDictionary<string, string>? properties = null)
         {
             if (_hasInit == false) { return; }
 #if DEBUG
             string en = $"{eventName}_Debug";
 #else
-                        string en = eventName.ToString();
+            string en = eventName;
 #endif
             SentrySdk.CaptureMessage(en, scope =>
             {
@@ -113,22 +119,10 @@ namespace _1RM.Utils.Tracing
             }, SentryLevel.Info);
         }
 
-        //public static void TraceSessionOpen(string protocol, string via)
-        //{
-        //    if (string.IsNullOrEmpty(via)) { return; }
-        //    var properties = new Dictionary<string, string>
-        //    {
-        //        { "Action", "Start" },
-        //        { "Protocol", protocol },
-        //        { "Via", via },
-        //    };
-        //    Trace(EventName.SessionConnect, properties);
-        //}
-
         public static void TraceSpecial(Dictionary<string, string> kys)
         {
             if (_hasInit == false) { return; }
-            Trace(EventName.Special, kys);
+            Trace(EVENT_SPECIAL, kys);
         }
     }
 }

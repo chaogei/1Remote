@@ -198,6 +198,10 @@ namespace _1RM.Service
             double globalFontSizeBody = Math.Min(20.0, theme.FontSize);
             double globalFontSizeSubtitle = Math.Min(20.0, theme.FontSize + 2.0);
             double globalFontSizeTitle = Math.Min(20.0, theme.FontSize + 6.0);
+            // One step above Title, for the empty-state headings that used to hard-code 22 and 24 and so
+            // ignored the user's font size entirely. Capped higher than the others because it is display text.
+            double globalFontSizeLarge = Math.Min(28.0, theme.FontSize + 10.0);
+            SetKey(rd, "GlobalFontSizeLarge", globalFontSizeLarge);
             SetKey(rd, "GlobalFontSizeTitle", globalFontSizeTitle);
             SetKey(rd, "GlobalFontSizeSubtitle", globalFontSizeSubtitle);
             SetKey(rd, "GlobalFontSizeBody", globalFontSizeBody);

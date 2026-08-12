@@ -51,7 +51,7 @@
         <Grid Grid.Row="1" VerticalAlignment="Bottom" Height="30" Width="400">
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Border CornerRadius="5" BorderBrush="Gray" BorderThickness="1"  Width="10" Height="10" Margin="5">
+                <Border CornerRadius="5" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"  Width="10" Height="10" Margin="5">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"></Setter>
@@ -63,7 +63,7 @@
                         </Style>
                     </Border.Style>
                 </Border>
-                <Border CornerRadius="5" BorderBrush="Gray" BorderThickness="1"  Width="10" Height="10" Margin="5">
+                <Border CornerRadius="5" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"  Width="10" Height="10" Margin="5">
                     <Border.Style>
                         <Style TargetType="Border">
                             <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"></Setter>

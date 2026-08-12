@@ -258,7 +258,7 @@
                 <Border.Effect>
                     <DropShadowEffect Opacity="0.5" ShadowDepth="3"></DropShadowEffect>
                 </Border.Effect>
-                <Grid MinWidth="80" Background="{DynamicResource PrimaryDarkBrush}">
+                <Grid MinWidth="80" Background="{DynamicResource SolidPanelBrush}">
                     <ListBox ItemsSource="{Binding Actions}" 
                              Style="{StaticResource LineItemSettingMenuListBoxStyle}"
                              BorderThickness="0"></ListBox>
