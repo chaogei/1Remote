@@ -141,7 +141,8 @@
                     <CheckBox Name="CbPopForMenu" Width="45" Height="35" VerticalAlignment="Top" Margin="0">
                         <CheckBox.Template>
                             <ControlTemplate>
-                                <Border Name="BG" Background="{DynamicResource PrimaryMidBrush}">
+                                <!-- sits on the title bar strip, so it takes that tint rather than adding one -->
+                                <Border Name="BG" Background="Transparent">
                                     <Grid VerticalAlignment="Center">
                                         <Path Data="F1 M 88.000000 -60.500000 L 0.000000 -60.500000 L 0.000000 -66.000000 L 88.000000 -66.000000 L 88.000000 -60.500000 Z M 88.000000 -16.500000 L 0.000000 -16.500000 L 0.000000                                         -22.000000 L 88.000000 -22.000000 L 88.000000 -16.500000 Z M 88.000000 -38.500000 L 0.000000 -38.500000 L 0.000000 -44.000000 L 88.000000 -44.000000 L 88.000000 -38.500000 Z "
                                               Width="10" Height="10"

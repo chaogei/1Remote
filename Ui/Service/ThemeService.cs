@@ -258,6 +258,18 @@ namespace _1RM.Service
             setKey(rd, "WindowBackdropBrush", new SolidColorBrush(primaryMid));
             setKey(rd, "GlassPanelBrush", new SolidColorBrush(Color.FromArgb(alpha, primaryMid.R, primaryMid.G, primaryMid.B)));
             setKey(rd, "GlassContentBrush", new SolidColorBrush(Color.FromArgb(alpha, background.R, background.G, background.B)));
+
+            // BaseStyle's ControlBase gives every control Background = BackgroundBrush, so this one key is
+            // what decides whether text boxes, combo boxes, buttons, checkboxes and grids read as solid
+            // blocks sitting on the glass or as part of it. Making it translucent here reaches all of them
+            // at once, and because it lands on top of the page tint a control still ends up more opaque
+            // than the surface behind it — which is the layering you want.
+            setKey(rd, "BackgroundBrush", new SolidColorBrush(Color.FromArgb(alpha, background.R, background.G, background.B)));
+
+            // For the few places that float in their own window and therefore have nothing opaque behind
+            // them: a tooltip or a completion popup must not turn see-through onto the desktop.
+            setKey(rd, "SolidSurfaceBrush", new SolidColorBrush(background));
+            setKey(rd, "SolidPanelBrush", new SolidColorBrush(primaryMid));
         }
 
         private static FontFamily GetFontFamily(string name)

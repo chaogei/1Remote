@@ -76,7 +76,8 @@
                         <Setter Property="WindowStyle" Value="None"></Setter>
                         <Setter Property="ResizeMode" Value="NoResize"></Setter>
                         <Setter Property="BorderThickness" Value="0"></Setter>
-                        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"></Setter>
+                        <!-- its own top level window, so it needs an opaque fill of its own -->
+                        <Setter Property="Background" Value="{DynamicResource SolidSurfaceBrush}"></Setter>
                         <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                     </Style>
 

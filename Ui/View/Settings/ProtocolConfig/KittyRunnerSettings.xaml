@@ -28,7 +28,7 @@
                 Background="{DynamicResource BackgroundBrush}"
                 CornerRadius="10" BorderThickness="0">
         </Border>
-        <Grid Grid.Row="0" Background="{DynamicResource PrimaryMidBrush}">
+        <Grid Grid.Row="0" Background="{DynamicResource GlassPanelBrush}">
             <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="{DynamicResource HeadFontSize}" 
                        Text="{Binding Name}" Margin="5"></TextBlock>
         </Grid>

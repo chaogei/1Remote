@@ -679,7 +679,7 @@
 
 
                 <!-- footer: show detail of a server -->
-                <Grid Name="GridBottom" VerticalAlignment="Bottom" Height="30" Background="{DynamicResource PrimaryMidBrush}" IsHitTestVisible="False">
+                <Grid Name="GridBottom" VerticalAlignment="Bottom" Height="30" Background="{DynamicResource GlassPanelBrush}" IsHitTestVisible="False">
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Setter Property="Opacity" Value="0.9"></Setter>
@@ -752,7 +752,7 @@
 
 
             <!-- popup when any item is selected-->
-            <Grid Grid.Row="2" Background="{DynamicResource PrimaryMidBrush}" Height="40">
+            <Grid Grid.Row="2" Background="{DynamicResource GlassPanelBrush}" Height="40">
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Visible"></Setter>

@@ -48,6 +48,15 @@
     <SolidColorBrush x:Key="GlassPanelBrush" Color="#B4323233" />
     <SolidColorBrush x:Key="GlassContentBrush" Color="#B41E1E1E" />
 
+    <!--
+        Always opaque, for surfaces that float in their own window and so have nothing behind them to
+        composite against — a tooltip or a completion popup would otherwise turn see-through onto the
+        desktop. Everything that sits inside the main window should use BackgroundBrush instead, which
+        ThemeService makes translucent while the backdrop is on.
+    -->
+    <SolidColorBrush x:Key="SolidSurfaceBrush" Color="#1E1E1E" />
+    <SolidColorBrush x:Key="SolidPanelBrush" Color="#323233" />
+
     <!-- ===== window chrome =====
          Same template as WindowChromeBaseStyles.xaml, with the fill switched to WindowBackdropBrush so the
          acrylic can show through, and the hard border replaced by the hairline card stroke.

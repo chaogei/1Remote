@@ -548,7 +548,7 @@
                                         <ProgressBar Height="20" Value="{Binding TransmittedPercentage, Mode=OneWay}" Minimum="0" Maximum="100" Background="Transparent" Foreground="#1789C6" BorderBrush="Gray"
                                                      ToolTipService.InitialShowDelay="0">
                                             <ProgressBar.ToolTip>
-                                                <ToolTip HorizontalOffset="10" VerticalOffset="-50" Background="{DynamicResource BackgroundBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}">
+                                                <ToolTip HorizontalOffset="10" VerticalOffset="-50" Background="{DynamicResource SolidSurfaceBrush}" Foreground="{DynamicResource PrimaryTextBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}">
                                                     <TextBlock Text="{Binding TimeRemaining, Mode=OneWay}"></TextBlock>
                                                 </ToolTip>
                                             </ProgressBar.ToolTip>
