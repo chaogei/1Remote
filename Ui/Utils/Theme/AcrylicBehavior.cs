@@ -24,6 +24,9 @@ namespace _1RM.Utils.Theme
 
         private static readonly HashSet<Window> Registered = new HashSet<Window>();
 
+        /// <summary>Last outcome per window, so the log records transitions rather than every attempt.</summary>
+        private static readonly Dictionary<Window, bool> LastApplied = new Dictionary<Window, bool>();
+
         public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
             "IsEnabled", typeof(bool), typeof(AcrylicBehavior),
             new PropertyMetadata(false, OnIsEnabledChanged));
@@ -74,6 +77,7 @@ namespace _1RM.Utils.Theme
             window.IsVisibleChanged -= OnIsVisibleChanged;
             window.StateChanged -= OnStateChanged;
             Registered.Remove(window);
+            LastApplied.Remove(window);
         }
 
         private static void OnSourceInitialized(object? sender, EventArgs e) => Apply(sender as Window);
@@ -138,7 +142,12 @@ namespace _1RM.Utils.Theme
 
                 SetCompositionTargetTransparent(window, applied);
 
-                SimpleLogHelper.Warning($"AcrylicBehavior: backdrop {(applied ? "applied" : "NOT applied")} to {window.GetType().Name}, tint = {tint}");
+                // Only when the answer changes. Apply runs on every show, every theme switch and every tick of
+                // a colour slider, and logging each one at Warning buried the rest of the log - the crash
+                // report's "recent log" section was nothing but these lines.
+                if (LastApplied.TryGetValue(window, out var previous) && previous == applied) return;
+                LastApplied[window] = applied;
+                SimpleLogHelper.Info($"AcrylicBehavior: backdrop {(applied ? "applied" : "NOT applied")} to {window.GetType().Name}, tint = {tint}");
             }
             catch (Exception ex)
             {
