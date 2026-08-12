@@ -16,7 +16,7 @@
              xmlns:controls2="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance editor:ServerEditorPageViewModel}"
-             Background="White"
+             d:Background="White"
              d:DesignHeight="1000" d:DesignWidth="800">
 
     <Grid Background="Transparent" ClipToBounds="True">

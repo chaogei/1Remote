@@ -9,7 +9,7 @@
              xmlns:view="clr-namespace:_1RM.View"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance settings:SettingsPageViewModel}"
-             Background="White"
+             d:Background="White"
              d:DesignHeight="2450" d:DesignWidth="1000">
 
     <UserControl.Resources>
