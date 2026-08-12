@@ -12,7 +12,9 @@
              d:DataContext="{d:DesignInstance local:DataSourceViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="10">
-        <DataGrid AutoGenerateColumns="False"
+        <!-- see CredentialVaultView: the shared DataGrid style fills opaquely -->
+        <DataGrid Background="Transparent"
+                  AutoGenerateColumns="False"
                   HorizontalAlignment="Stretch" 
                   HorizontalContentAlignment="Stretch" 
                   CanUserSortColumns="False"
