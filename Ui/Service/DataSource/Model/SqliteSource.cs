@@ -32,10 +32,8 @@ namespace _1RM.Service.DataSource.Model
             SimpleLogHelper.Debug(nameof(SqliteSource) + " Construct: " + this.GetHashCode());
         }
 
-        ~SqliteSource()
-        {
-            SimpleLogHelper.Debug(nameof(SqliteSource) + " Release: " + this.GetHashCode());
-        }
+        // No finalizer. It only wrote a debug line, and the cost of that was making every instance survive an
+        // extra GC generation and putting a log call on the finalizer thread.
 
         public override string GetConnectionString(int connectTimeOutSeconds = 5)
         {

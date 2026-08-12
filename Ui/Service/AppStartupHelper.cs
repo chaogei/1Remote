@@ -226,7 +226,8 @@ namespace _1RM.Service
 
             if (bitmaps.Count == 3)
             {
-                var first = MargeBitmap(new List<Bitmap?>() { bitmaps[0], bitmaps[1] });
+                // the pair is a scratch bitmap this call made, so this call has to release it
+                using var first = MargeBitmap(new List<Bitmap?>() { bitmaps[0], bitmaps[1] });
                 var second = bitmaps.Last();
                 // 竖直拼接
                 int width = Math.Max(first!.Width, second!.Width);
@@ -240,8 +241,8 @@ namespace _1RM.Service
             }
             else
             {
-                var first = MargeBitmap(new List<Bitmap?>() { bitmaps[0], bitmaps[1] })!;
-                var second = MargeBitmap(new List<Bitmap?>() { bitmaps[2], bitmaps[3] })!;
+                using var first = MargeBitmap(new List<Bitmap?>() { bitmaps[0], bitmaps[1] })!;
+                using var second = MargeBitmap(new List<Bitmap?>() { bitmaps[2], bitmaps[3] })!;
                 // 竖直拼接
                 int width = Math.Max(first.Width, second.Width);
                 int height = first.Height + second.Height;
@@ -256,14 +257,27 @@ namespace _1RM.Service
 
         public static string? MakeIcon(string name, List<BitmapSource?> bitmapSources)
         {
-            var list = bitmapSources.Select(x => x?.ToBitmap()).Where(x => x != null).ToList();
-            var bitmap = MargeBitmap(list);
-            return MakeIcon(name, bitmap);
+            var sources = bitmapSources.Select(x => x?.ToBitmap()).Where(x => x != null).ToList();
+            var merged = MargeBitmap(sources);
+            try
+            {
+                return MakeIcon(name, merged);
+            }
+            finally
+            {
+                // each of these holds unmanaged pixels and a GDI handle until released. With a single source
+                // MargeBitmap hands that very bitmap back, so merged can be one of them — Bitmap.Dispose is
+                // fine being called twice.
+                merged?.Dispose();
+                foreach (var source in sources)
+                    source?.Dispose();
+            }
         }
 
         public static string? MakeIcon(string name, BitmapSource? bitmapSource)
         {
-            return MakeIcon(name, bitmapSource?.ToBitmap());
+            using var bitmap = bitmapSource?.ToBitmap();
+            return MakeIcon(name, bitmap);
         }
 
         public static string? MakeIcon(string name, Bitmap? bitmap)

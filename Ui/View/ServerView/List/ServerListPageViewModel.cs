@@ -211,13 +211,19 @@ namespace _1RM.View.ServerView
 
                     // Prepare new list with proper ordering
                     var newList = list.OrderBy(x => x.CustomOrder).ThenBy(x => x.Id).ToList();
-                    
+
                     // Clear and repopulate the existing collection instead of replacing it
-                    // This prevents race conditions with VirtualizingWrapPanel during layout operations
-                    VmServerList.Clear();
-                    foreach (var item in newList)
+                    // This prevents race conditions with VirtualizingWrapPanel during layout operations.
+                    // Held inside DeferRefresh because a sorted, grouped CollectionView reacts to every single
+                    // Add by finding an insertion point and shifting its internal array, which turns filling
+                    // the list into quadratic work; deferring collapses all of it into one pass at the end.
+                    using (Defer(CollectionViewOf(this.View)))
                     {
-                        VmServerList.Add(item);
+                        VmServerList.Clear();
+                        foreach (var item in newList)
+                        {
+                            VmServerList.Add(item);
+                        }
                     }
 
                     SelectedServerViewModel = null;
@@ -226,6 +232,7 @@ namespace _1RM.View.ServerView
                         vs.IsSelected = false;
                         vs.PropertyChanged += VmServerPropertyChanged;
                     }
+                    OnServerListRebuilt();
 
                     RaisePropertyChanged(nameof(IsAnySelected));
                     RaisePropertyChanged(nameof(IsSelectedAll));
@@ -239,6 +246,27 @@ namespace _1RM.View.ServerView
                     SimpleLogHelper.Debug($"[{this.GetHashCode()}] ListView rebuilt with {AppData.VmItemList.Count} servers");
                 });
             }
+        }
+
+        private static ICollectionView? CollectionViewOf(object? view)
+        {
+            return view is ServerListPageView { LvServerCards.ItemsSource: { } source }
+                ? CollectionViewSource.GetDefaultView(source)
+                : null;
+        }
+
+        /// <summary>
+        /// Suspends the view's reaction to collection changes, or does nothing when there is no view yet.
+        /// </summary>
+        private static IDisposable Defer(ICollectionView? view)
+        {
+            return view?.DeferRefresh() ?? EmptyScope.Instance;
+        }
+
+        private sealed class EmptyScope : IDisposable
+        {
+            public static readonly EmptyScope Instance = new EmptyScope();
+            public void Dispose() { }
         }
 
         public override void ClearSelection()
@@ -369,7 +397,14 @@ namespace _1RM.View.ServerView
                 try
                 {
                     if (this.View is ServerListPageView view && view.LvServerCards.ItemsSource != null)
+                    {
                         CollectionViewSource.GetDefaultView(view.LvServerCards.ItemsSource).Refresh();
+                        // Once per refresh. It used to live inside the per-item filter callback, where it ran
+                        // once for every server in the list and every one of those calls but the last was
+                        // thrown away by its own debounce.
+                        if (SourceService.AdditionalSources.Any())
+                            view.RefreshHeaderCheckBox();
+                    }
                 }
                 finally
                 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Media.Imaging;
@@ -165,7 +166,7 @@ namespace _1RM.Model.Protocol.Base
                     return _iconCache;
                 try
                 {
-                    _iconCache = Convert.FromBase64String(_iconBase64).BitmapFromBytes().ToBitmapSource();
+                    _iconCache = DecodeIcon(_iconBase64);
                 }
                 catch (Exception)
                 {
@@ -173,6 +174,36 @@ namespace _1RM.Model.Protocol.Base
                 }
                 return _iconCache;
             }
+        }
+
+        /// <summary>Biggest place an icon is shown is a desktop shortcut; beyond this the pixels are wasted.</summary>
+        private const int ICON_MAX_DECODE_WIDTH = 128;
+
+        /// <summary>
+        /// Decodes with WPF end to end rather than going through a GDI+ <c>Bitmap</c>. The GDI+ detour leaked
+        /// one unmanaged bitmap and one GDI handle per icon, decoded at full source resolution, and returned
+        /// an unfrozen interop bitmap that could only ever be touched from the thread that made it.
+        /// </summary>
+        private static BitmapSource? DecodeIcon(string base64)
+        {
+            if (string.IsNullOrEmpty(base64)) return null;
+            using var stream = new MemoryStream(Convert.FromBase64String(base64));
+
+            // DecodePixelWidth scales up as readily as it scales down, so a 32px icon asked to decode at 128
+            // would be blown up instead of left alone. Read the header first and only ask for a resize when
+            // the stored image really is bigger.
+            var header = BitmapFrame.Create(stream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+            var decodeWidth = header.PixelWidth > ICON_MAX_DECODE_WIDTH ? ICON_MAX_DECODE_WIDTH : 0;
+
+            stream.Position = 0;
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = stream;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad; // decode now, so the stream can be closed here
+            bitmap.DecodePixelWidth = decodeWidth;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
         }
 
 

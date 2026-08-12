@@ -32,7 +32,9 @@ namespace _1RM.Utils.Tracing
 #else
                         options.Debug = false;  // When configuring for the first time, to see what the SDK is doing:
 #endif
-                        options.TracesSampleRate = 1.0; // Set TracesSampleRate to 1.0 to capture 100% of transactions for tracing.
+                        // 1.0 means every transaction is traced and uploaded. That is a debugging setting;
+                        // on a desktop client it costs the user bandwidth and buys duplicate data.
+                        options.TracesSampleRate = 0.05;
                         options.IsGlobalModeEnabled = true; // Enabling this option is recommended for client applications only. It ensures all threads use the same global scope.
                         options.AutoSessionTracking = true; // This option is recommended. It enables Sentry's "Release Health" feature.
                     });

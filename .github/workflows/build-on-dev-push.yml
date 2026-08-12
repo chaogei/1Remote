@@ -82,7 +82,6 @@ jobs:
           # publicly known constant, so a build produced this way must not be pointed at a password store
           # created by an official release.
           $replacements = @(
-            @{ Pattern = "===REPLACE_ME_WITH_APP_CENTER_SECRET==="; Value = "${{ secrets.APP_CENTER_SECRET_1REMOTE }}" },
             @{ Pattern = "===REPLACE_ME_WITH_SENTRY_IO_DEN==="    ; Value = "${{ secrets.SENTRY_IO_DEN }}" },
             @{ Pattern = "===REPLACE_ME_WITH_SALT==="             ; Value = "${{ secrets.GLOBAL_STRING_ENCRYPTION_SLAT }}" }
           )

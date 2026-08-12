@@ -2,12 +2,12 @@
 # usage:
 
 # given a secret
-# .\Set-Secret.ps1 -filePath .\Ui\Utils\MsAppCenterHelper.cs -Pattern "===REPLACE_ME_WITH_APP_CENTER_SECRET===" -Secret "secret_value"
-# .\Set-Secret.ps1 -filePath .\Ui\Utils\MsAppCenterHelper.cs -Pattern "===REPLACE_ME_WITH_APP_CENTER_SECRET===" -Secret "secret_value" -isRevert
+# .\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SENTRY_IO_DEN===" -Secret "secret_value"
+# .\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SENTRY_IO_DEN===" -Secret "secret_value" -isRevert
 
 # read secret from file
-# .\Set-Secret.ps1 -filePath .\Ui\Utils\MsAppCenterHelper.cs -Pattern "===REPLACE_ME_WITH_APP_CENTER_SECRET===" -localSecretFilePath "C:\1Remote_Secret\AppCenterSecret.txt"
-# .\Set-Secret.ps1 -filePath .\Ui\Utils\MsAppCenterHelper.cs -Pattern "===REPLACE_ME_WITH_APP_CENTER_SECRET===" -localSecretFilePath "C:\1Remote_Secret\AppCenterSecret.txt" -isRevert
+# .\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SENTRY_IO_DEN===" -localSecretFilePath "C:\1Remote_Secret\SENTRY_IO_DEN.txt"
+# .\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SENTRY_IO_DEN===" -localSecretFilePath "C:\1Remote_Secret\SENTRY_IO_DEN.txt" -isRevert
 
 
 param (

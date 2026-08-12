@@ -134,22 +134,32 @@ namespace _1RM.Service.DataSource.Model
                 if (result.IsSuccess)
                 {
                     SetReadTimestamp(TableServer.TABLE_NAME);
-                    CachedProtocols = new List<ProtocolBaseViewModel>(result.Items.Count);
-                    foreach (var protocol in result.Items)
+                    // One hop to the UI thread for the whole batch. Marshalling per server queued a separate
+                    // dispatcher operation each time, chopping the UI thread into as many slices as there
+                    // are servers right while the main window is trying to draw its first frame.
+                    var loaded = new List<ProtocolBaseViewModel>(result.Items.Count);
+                    try
                     {
-                        try
+                        Execute.OnUIThreadSync(() =>
                         {
-                            Execute.OnUIThreadSync(() =>
+                            foreach (var protocol in result.Items)
                             {
-                                var vm = new ProtocolBaseViewModel(protocol);
-                                CachedProtocols.Add(vm);
-                            });
-                        }
-                        catch (Exception e)
-                        {
-                            SimpleLogHelper.DebugInfo(e);
-                        }
+                                try
+                                {
+                                    loaded.Add(new ProtocolBaseViewModel(protocol));
+                                }
+                                catch (Exception e)
+                                {
+                                    SimpleLogHelper.DebugInfo(e);
+                                }
+                            }
+                        });
                     }
+                    catch (Exception e)
+                    {
+                        SimpleLogHelper.DebugInfo(e);
+                    }
+                    CachedProtocols = loaded;
                     SetStatus(true);
                 }
                 return CachedProtocols;

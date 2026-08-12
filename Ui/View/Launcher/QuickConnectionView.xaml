@@ -19,8 +19,7 @@
             <VisualBrush x:Key="HintText" TileMode="None" Stretch="None" AlignmentX="Left">
                 <VisualBrush.Visual>
                     <Grid VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="quick connect e.g. 192.168.0.100:3389" Foreground="Black" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
-                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="quick connect e.g. 192.168.0.100:3389" Foreground="White" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
+                        <TextBlock Style="{StaticResource TextBlockBase}" FontStyle="Italic" Text="{DynamicResource quick_connect_hint}" Foreground="{DynamicResource PrimaryTextBrush}" Opacity="0.5" FontSize="{DynamicResource GlobalFontSizeTitle}" />
                     </Grid>
                 </VisualBrush.Visual>
             </VisualBrush>
@@ -154,6 +153,7 @@
         <Grid Name="GridKeyword" Height="{x:Static view:LauncherWindowViewModel.LAUNCHER_GRID_KEYWORD_HEIGHT}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
@@ -166,13 +166,39 @@
                       ItemsSource="{Binding Protocols}">
             </ComboBox>
 
+            <ComboBox TabIndex="2"
+                      Margin="0 8 3 8"
+                      IsTabStop="False"
+                      Grid.Column="1"
+                      Visibility="{Binding ProxyPickerVisibility}"
+                      ToolTip="{DynamicResource proxy_server_hint}"
+                      SelectedItem="{Binding SelectedProxyName}"
+                      ItemsSource="{Binding ProxyNames}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="{Binding}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding}" Value="">
+                                            <Setter Property="Text" Value="{DynamicResource proxy_direct_connection}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
             <TextBox Name="TbKeyWord"
                      Foreground="{DynamicResource PrimaryTextBrush}"
                      PreviewKeyDown="TbKeyWord_OnPreviewKeyDown"
                      Margin="0 0 0 0"
                      Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"
                      Style="{StaticResource SearchBoxTbKeyWordStyle}"
-                     Grid.Column="1" 
+                     Grid.Column="2" 
                      ></TextBox>
         </Grid>
 

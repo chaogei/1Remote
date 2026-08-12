@@ -17,19 +17,45 @@ namespace _1RM.View.Host
     public partial class TabWindowView
     {
         private readonly Timer _timer4CheckForegroundWindow = new Timer();
+        private bool _isForegroundWatchHooked;
+        /// <summary>Mirrors window visibility for the timer thread, which cannot read a dependency property.</summary>
+        private volatile bool _isForegroundWatchWanted = true;
 
         private void TimerInitOnLoaded()
         {
             _timer4CheckForegroundWindow.Interval = 100;
             _timer4CheckForegroundWindow.AutoReset = false;
-            _timer4CheckForegroundWindow.Elapsed += Timer4CheckForegroundWindowOnElapsed;
+            if (!_isForegroundWatchHooked)
+            {
+                // Loaded can fire again when the view is re-attached or a tab is dragged out and back;
+                // subscribing each time would stack handlers and do the work twice per tick.
+                _timer4CheckForegroundWindow.Elapsed += Timer4CheckForegroundWindowOnElapsed;
+                IsVisibleChanged += OnVisibleChangedForForegroundWatch;
+                _isForegroundWatchHooked = true;
+            }
             _timer4CheckForegroundWindow.Start();
+        }
+
+        /// <summary>
+        /// A tab window with no sessions left is hidden, not closed, so it can be reused. Without this it
+        /// went on polling the foreground window ten times a second forever.
+        /// </summary>
+        private void OnVisibleChangedForForegroundWatch(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (IsClosing) return;
+            _isForegroundWatchWanted = e.NewValue is true;
+            if (_isForegroundWatchWanted)
+                _timer4CheckForegroundWindow.Start();
+            else
+                _timer4CheckForegroundWindow.Stop();
         }
 
         private void TimerDispose()
         {
             try
             {
+                IsVisibleChanged -= OnVisibleChangedForForegroundWatch;
+                _timer4CheckForegroundWindow.Elapsed -= Timer4CheckForegroundWindowOnElapsed;
                 _timer4CheckForegroundWindow?.Dispose();
             }
             finally
@@ -53,7 +79,8 @@ namespace _1RM.View.Host
             }
             finally
             {
-                _timer4CheckForegroundWindow.Start();
+                if (_isForegroundWatchWanted)
+                    _timer4CheckForegroundWindow.Start();
             }
         }
 

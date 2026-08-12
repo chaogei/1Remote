@@ -349,7 +349,7 @@
     <s:String x:Key="proxy_type">Type</s:String>
     <s:String x:Key="proxy_direct_connection">Direct connection</s:String>
     <s:String x:Key="proxy_server_hint">Route this server through one of the proxies defined in Settings - Proxy.</s:String>
-    <s:String x:Key="proxy_bypass_local">Connect directly when the address is loopback or on a private network</s:String>
+    <s:String x:Key="proxy_bypass_local">Connect directly when the address is this machine</s:String>
     <s:String x:Key="proxy_new_name">New proxy</s:String>
     <s:String x:Key="proxy_test">Test target</s:String>
     <s:String x:Key="proxy_test_run">Test</s:String>
@@ -357,4 +357,11 @@
     <s:String x:Key="proxy_test_ok">The proxy reached the target successfully</s:String>
     <s:String x:Key="proxy_test_failed">Test failed</s:String>
     <s:String x:Key="proxy_test_target_invalid">Enter the test target as host:port, for example example.com:443</s:String>
+    <s:String x:Key="proxy_unavailable_title">Proxy unavailable</s:String>
+    <s:String x:Key="proxy_gone_hint">This server is set to connect through the proxy "{0}", but no proxy by that name exists any more.</s:String>
+    <s:String x:Key="proxy_incomplete_hint">The proxy "{0}" is missing an address or a port, so it cannot be used.</s:String>
+    <s:String x:Key="proxy_tunnel_failed_hint">The local relay for the proxy "{0}" could not be started: {1}</s:String>
+    <s:String x:Key="proxy_fall_back_to_direct_question">Connect directly instead? The connection will NOT go through a proxy.</s:String>
+    <s:String x:Key="proxy_delete_in_use_hint">{0} server(s) currently connect through this proxy and will fall back to a direct connection.</s:String>
+    <s:String x:Key="quick_connect_hint">quick connect e.g. 192.168.0.100:3389</s:String>
 </ResourceDictionary>

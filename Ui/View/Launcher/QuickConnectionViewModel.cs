@@ -9,6 +9,7 @@ using _1RM.Model.Protocol.Base;
 using _1RM.Service;
 using _1RM.Service.Locality;
 using _1RM.Utils;
+using _1RM.Utils.Proxy;
 using _1RM.Utils.Tracing;
 using _1RM.View.Editor;
 using _1RM.View.Utils;
@@ -85,6 +86,9 @@ namespace _1RM.View.Launcher
                 }
             }
 
+            // the host being edited came from a server that routes through a proxy, so start from that one
+            RebuildProxyNames(_serverSelectionsViewSelected?.ProxyName ?? ProxyConfig.NO_PROXY);
+
 
             Execute.OnUIThread(() =>
             {
@@ -119,6 +123,36 @@ namespace _1RM.View.Launcher
         {
             get => _selectedProtocol;
             set => SetAndNotifyIfChanged(ref _selectedProtocol, value);
+        }
+
+
+        /// <summary>
+        /// Direct connection first, then every configured proxy. Rebuilt on each show so a proxy added in
+        /// settings while the launcher was hidden still appears.
+        /// </summary>
+        public List<string> ProxyNames { get; private set; } = new List<string> { ProxyConfig.NO_PROXY };
+
+        /// <summary>
+        /// Collapsed for anyone who has not configured a proxy, which keeps the launcher bar as narrow as
+        /// it has always been for them.
+        /// </summary>
+        public Visibility ProxyPickerVisibility => ProxyNames.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+        private string _selectedProxyName = ProxyConfig.NO_PROXY;
+        public string SelectedProxyName
+        {
+            get => _selectedProxyName;
+            set => SetAndNotifyIfChanged(ref _selectedProxyName, value ?? ProxyConfig.NO_PROXY);
+        }
+
+        private void RebuildProxyNames(string preferred)
+        {
+            var names = new List<string> { ProxyConfig.NO_PROXY };
+            names.AddRange(IoC.Get<ProxyService>().Proxies.Select(x => x.Name).Where(x => !string.IsNullOrEmpty(x)));
+            ProxyNames = names;
+            SelectedProxyName = names.Contains(preferred) ? preferred : ProxyConfig.NO_PROXY;
+            RaisePropertyChanged(nameof(ProxyNames));
+            RaisePropertyChanged(nameof(ProxyPickerVisibility));
         }
 
 
@@ -248,6 +282,7 @@ namespace _1RM.View.Launcher
                     // create protocol
                     var server = (Protocols.FirstOrDefault(x => x.Protocol == protocol) ?? SelectedProtocol).Clone();
                     server.DisplayName = host;
+                    server.ProxyName = SelectedProxyName;
                     if (server is ProtocolBaseWithAddressPort protocolBaseWithAddressPort)
                     {
                         protocolBaseWithAddressPort.Address = address;

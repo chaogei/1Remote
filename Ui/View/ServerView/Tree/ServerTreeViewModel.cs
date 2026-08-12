@@ -838,6 +838,7 @@ namespace _1RM.View.ServerView.Tree
                     vs.IsSelected = false;
                     vs.PropertyChanged += VmServerPropertyChanged;
                 }
+                OnServerListRebuilt();
 
                 // add data sources to TreeNodes
                 foreach (var ds in IoC.Get<DataSourceService>().AllSources)

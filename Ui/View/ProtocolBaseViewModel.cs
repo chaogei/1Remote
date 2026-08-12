@@ -40,13 +40,26 @@ namespace _1RM.View
         public double KeywordMark = double.MinValue;
 
         #region Grouped
+        private string? _groupedOrderCache;
+        private int _groupedOrderGeneration = -1;
+
+        /// <summary>
+        /// Primary sort key while grouping is on, which means the sorter reads it twice per comparison —
+        /// tens of thousands of times for a large list. Building it involves an IoC resolve and a string
+        /// build, so it is computed once and reused until the group order itself changes.
+        /// </summary>
         public string GroupedOrder
         {
             get
             {
+                var generation = LocalityListViewService.GroupedOrderGeneration;
+                if (_groupedOrderCache != null && _groupedOrderGeneration == generation)
+                    return _groupedOrderCache;
+
                 var i = LocalityListViewService.GroupedOrderGet(dataSourceName: DataSourceName);
                 var mark = IoC.Get<DataSourceService>().LocalDataSource == DataSource ? '!' : '#'; // ! for local, # for remote to make local first when i is same.
-                return $"{i}_{mark}_{DataSource}";
+                _groupedOrderGeneration = generation;
+                return _groupedOrderCache = $"{i}_{mark}_{DataSource}";
             }
         }
 
@@ -65,7 +78,7 @@ namespace _1RM.View
             get
             {
                 var ret = LocalityListViewService.GroupedIsExpandedGet(DataSourceName);
-                _groupedIsExpanded = LocalityListViewService.GroupedIsExpandedGet(DataSourceName);
+                _groupedIsExpanded = ret;
                 return ret;
             }
         }
@@ -107,6 +120,7 @@ namespace _1RM.View
                     // rebuilt on demand, see HoverNoteDisplayControl
                     _hoverNoteDisplayControl = null;
                     RaisePropertyChanged(nameof(HoverNoteDisplayControl));
+                    _groupedOrderCache = null; // the key is built from DataSource, which just changed
                     LastConnectTime = LocalityConnectRecorder.ConnectTimeGet(_server);
                     TagString = string.Join(" ", _server.Tags.Select(x => "#" + x));
                     RaisePropertyChanged(nameof(TagString));

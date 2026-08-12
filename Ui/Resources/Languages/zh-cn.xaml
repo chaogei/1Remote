@@ -349,7 +349,7 @@
     <s:String x:Key="proxy_type">类型</s:String>
     <s:String x:Key="proxy_direct_connection">直接连接</s:String>
     <s:String x:Key="proxy_server_hint">让该服务器经由「设置 - 代理」中定义的某个代理连接。</s:String>
-    <s:String x:Key="proxy_bypass_local">地址为回环或内网时直接连接</s:String>
+    <s:String x:Key="proxy_bypass_local">地址就是本机时直接连接</s:String>
     <s:String x:Key="proxy_new_name">新建代理</s:String>
     <s:String x:Key="proxy_test">测试目标</s:String>
     <s:String x:Key="proxy_test_run">测试</s:String>
@@ -357,4 +357,11 @@
     <s:String x:Key="proxy_test_ok">代理已成功连通目标</s:String>
     <s:String x:Key="proxy_test_failed">测试失败</s:String>
     <s:String x:Key="proxy_test_target_invalid">测试目标请按 主机:端口 填写，例如 example.com:443</s:String>
+    <s:String x:Key="proxy_unavailable_title">代理不可用</s:String>
+    <s:String x:Key="proxy_gone_hint">该服务器设定经代理「{0}」连接，但这个代理已经不存在了。</s:String>
+    <s:String x:Key="proxy_incomplete_hint">代理「{0}」缺少地址或端口，无法使用。</s:String>
+    <s:String x:Key="proxy_tunnel_failed_hint">代理「{0}」的本地中转启动失败：{1}</s:String>
+    <s:String x:Key="proxy_fall_back_to_direct_question">改为直接连接吗？本次连接将不经过任何代理。</s:String>
+    <s:String x:Key="proxy_delete_in_use_hint">当前有 {0} 台服务器经由该代理连接，删除后它们会退回直连。</s:String>
+    <s:String x:Key="quick_connect_hint">快速连接，例如 192.168.0.100:3389</s:String>
 </ResourceDictionary>

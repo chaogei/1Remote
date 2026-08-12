@@ -233,11 +233,7 @@ namespace _1RM.Service
             if (Theme.FontSize > 20)
                 Theme.FontSize = 20;
 
-            var ff = Theme.FontFamily;
-            var f = Fonts.SystemFontFamilies.FirstOrDefault(x => string.Equals(x.Source, ff, StringComparison.CurrentCultureIgnoreCase)) ??
-                    Fonts.SystemFontFamilies.FirstOrDefault(x => x.Source.EndsWith("YaHei", StringComparison.OrdinalIgnoreCase)) ??
-                    Fonts.SystemFontFamilies.First();
-            Theme.FontFamily = f.Source;
+            Theme.FontFamily = InstalledFonts.Resolve(Theme.FontFamily).Source;
         }
     }
 
@@ -325,11 +321,11 @@ namespace _1RM.Service
                 info.PropertyChanged += OnMatchProviderChangedHandler;
             }
 
-            // 
-
-
-            AdditionalDataSource = DataSourceService.AdditionalSourcesLoadFromProfile(AppPathHelper.Instance.ProfileAdditionalDataSourceJsonPath);
-            Save();
+            // The additional sources were already read by LoadFromAppPath and handed in above; reading the
+            // file a second time here threw that away. Only fall back to disk when nothing was passed.
+            if (additionalDataSource == null)
+                AdditionalDataSource = DataSourceService.AdditionalSourcesLoadFromProfile(AppPathHelper.Instance.ProfileAdditionalDataSourceJsonPath);
+            Save(); // writes only if the regulated config differs from what is on disk
         }
 
         private void OnMatchProviderChangedHandler(object? sender, PropertyChangedEventArgs args)
@@ -343,6 +339,7 @@ namespace _1RM.Service
         }
 
         public bool CanSave = true;
+        private string _lastSavedJson = "";
 
         public void Save()
         {
@@ -366,10 +363,18 @@ namespace _1RM.Service
                         return;
                     }
 
-                    RetryHelper.Try(() =>
+                    // Skip the write when nothing actually changed. Save() is called from every settings
+                    // setter and once more on construction, so a plain launch used to rewrite this file for
+                    // no reason — a synchronous flush that an on-access antivirus scan can stretch out.
+                    var json = JsonConvert.SerializeObject(this._cfg, Formatting.Indented);
+                    if (json != _lastSavedJson || !File.Exists(AppPathHelper.Instance.ProfileJsonPath))
                     {
-                        File.WriteAllText(AppPathHelper.Instance.ProfileJsonPath, JsonConvert.SerializeObject(this._cfg, Formatting.Indented), Encoding.UTF8);
-                    }, actionOnError: exception => UnifyTracing.Error(exception));
+                        RetryHelper.Try(() =>
+                        {
+                            File.WriteAllText(AppPathHelper.Instance.ProfileJsonPath, json, Encoding.UTF8);
+                        }, actionOnError: exception => UnifyTracing.Error(exception));
+                        _lastSavedJson = json;
+                    }
                 }
 
                 DataSourceService.AdditionalSourcesSaveToProfile(AppPathHelper.Instance.ProfileAdditionalDataSourceJsonPath, AdditionalDataSource);

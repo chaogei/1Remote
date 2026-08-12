@@ -49,8 +49,11 @@ namespace _1RM.View
         public ConfigurationService ConfigurationService { get; }
         //public ServerListPageViewModel? ServerListViewModel { get; } = IoC.Get<ServerListPageViewModel>();
         //public ServerTreeViewModel ServerTreeViewModel { get; } = IoC.Get<ServerTreeViewModel>();
-        public SettingsPageViewModel SettingViewModel { get; } = IoC.Get<SettingsPageViewModel>();
-        public AboutPageViewModel AboutViewModel { get; } = IoC.Get<AboutPageViewModel>();
+        // Resolved on first use rather than in the field initialiser. Building these at startup pulled in the
+        // whole settings view-model graph and had AboutPageViewModel fire an update check over the network
+        // before the main window had drawn, for a page most launches never open.
+        public SettingsPageViewModel SettingViewModel => IoC.Get<SettingsPageViewModel>();
+        public AboutPageViewModel AboutViewModel => IoC.Get<AboutPageViewModel>();
         private readonly GlobalData _appData;
 
 
@@ -508,8 +511,9 @@ namespace _1RM.View
                 window.ShowInTaskbar = false;
                 window.Hide();
                 window.Visibility = Visibility.Hidden;
-                // After startup and initalizing our application and when closing our window and minimize the application to tray we free memory with the following line:
-                System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet = System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet;
+                // No working set trim here. It used to sit on this line to make the number in Task Manager
+                // look smaller, but it hands the pages back to the OS and every one of them has to be faulted
+                // in again on the way back — which is exactly the stall people saw when reopening from tray.
             });
         }
 

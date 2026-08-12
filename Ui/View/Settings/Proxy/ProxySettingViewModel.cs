@@ -19,6 +19,8 @@ namespace _1RM.View.Settings.Proxy
         {
             _proxyService = proxyService;
             Proxies = new ObservableCollection<ProxyConfig>(_proxyService.Proxies);
+            foreach (var proxy in Proxies)
+                _persistedNames[proxy] = proxy.Name;
             SelectedProxy = Proxies.FirstOrDefault();
         }
 
@@ -71,8 +73,24 @@ namespace _1RM.View.Settings.Proxy
             private set => SetAndNotifyIfChanged(ref _isTesting, value);
         }
 
+        /// <summary>
+        /// The name each entry had at the last save. Servers point at a proxy by name, so a rename here has
+        /// to be carried over to them — and the edited object no longer remembers what it used to be called.
+        /// </summary>
+        private readonly Dictionary<ProxyConfig, string> _persistedNames = new Dictionary<ProxyConfig, string>();
+
         private void Persist()
         {
+            foreach (var proxy in Proxies)
+            {
+                if (_persistedNames.TryGetValue(proxy, out var previous)
+                    && !string.Equals(previous, proxy.Name, StringComparison.Ordinal))
+                {
+                    ProxyService.RenameInServers(previous, proxy.Name);
+                }
+                _persistedNames[proxy] = proxy.Name;
+            }
+
             _proxyService.Proxies.Clear();
             _proxyService.Proxies.AddRange(Proxies);
             _proxyService.Save();
@@ -102,9 +120,16 @@ namespace _1RM.View.Settings.Proxy
         {
             var proxy = SelectedProxy;
             if (proxy == null) return;
-            if (!MessageBoxHelper.Confirm(IoC.Translate("confirm_to_delete_selected"), ownerViewModel: this)) return;
+
+            var inUse = ProxyService.FindServersUsing(proxy.Name).Count;
+            var question = inUse > 0
+                ? IoC.Translate("proxy_delete_in_use_hint", inUse) + Environment.NewLine + Environment.NewLine + IoC.Translate("confirm_to_delete_selected")
+                : IoC.Translate("confirm_to_delete_selected");
+            if (!MessageBoxHelper.Confirm(question, ownerViewModel: this)) return;
+
             var index = Proxies.IndexOf(proxy);
             Proxies.Remove(proxy);
+            _persistedNames.Remove(proxy);
             SelectedProxy = Proxies.ElementAtOrDefault(Math.Min(index, Proxies.Count - 1));
             Persist();
         }, _ => SelectedProxy != null);

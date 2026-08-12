@@ -25,7 +25,9 @@ namespace _1RM.View.ServerView
         public ServerListPageView()
         {
             InitializeComponent();
-            // hide GridBottom when hover.
+            // Fade the footer out once the pointer reaches its band. It has to be driven from here rather
+            // than an IsMouseOver trigger: the footer is IsHitTestVisible="False" so clicks reach the row
+            // underneath it, and an element that cannot be hit also never reports being hovered.
             MouseMove += (sender, args) =>
             {
                 var p = args.GetPosition(GridBottom);
@@ -56,12 +58,6 @@ namespace _1RM.View.ServerView
                     server.IsSelected = false;
                 }
                 server.SetIsVisible(e.Accepted);
-
-
-                if (IoC.Get<DataSourceService>().AdditionalSources.Any())
-                {
-                    RefreshHeaderCheckBox();
-                }
             }
         }
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using Shawn.Utils;
 
 namespace _1RM.Utils.Proxy
@@ -63,8 +63,13 @@ namespace _1RM.Utils.Proxy
         }
 
         /// <summary>
-        /// True when the address points at this machine, in which case tunnelling it through a remote proxy
-        /// is almost certainly a mistake.
+        /// True only when the address is this very machine.
+        ///
+        /// Private ranges (10/8, 172.16/12, 192.168/16, fc00::/7) deliberately do NOT count. Reaching a
+        /// machine inside a LAN from outside it is the single most common reason to configure a proxy here,
+        /// so treating those as "local" would bypass the proxy in exactly the case it was set up for.
+        /// Whether a private address is directly reachable depends on which network the user is on right
+        /// now, which we cannot know — so we honour the explicit choice and tunnel it.
         /// </summary>
         public static bool IsLocalAddress(string host)
         {
@@ -72,22 +77,30 @@ namespace _1RM.Utils.Proxy
             if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)) return true;
             if (!IPAddress.TryParse(host, out var ip)) return false;
             if (IPAddress.IsLoopback(ip)) return true;
-
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                var b = ip.GetAddressBytes();
-                if (b[0] == 10) return true;                                  // 10.0.0.0/8
-                if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;     // 172.16.0.0/12
-                if (b[0] == 192 && b[1] == 168) return true;                  // 192.168.0.0/16
-                if (b[0] == 169 && b[1] == 254) return true;                  // 169.254.0.0/16 link-local
-            }
-            else if (ip.AddressFamily == AddressFamily.InterNetworkV6)
-            {
-                if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
-                if ((ip.GetAddressBytes()[0] & 0xFE) == 0xFC) return true;     // fc00::/7 unique local
-            }
-            return false;
+            return LocalAddresses.Contains(ip);
         }
+
+        /// <summary>
+        /// Addresses bound to this machine's own adapters. Resolved once — a proxy decision made mid-session
+        /// on a stale list is far less disruptive than querying every adapter on every connect.
+        /// </summary>
+        private static readonly Lazy<HashSet<IPAddress>> LazyLocalAddresses = new Lazy<HashSet<IPAddress>>(() =>
+        {
+            var set = new HashSet<IPAddress>();
+            try
+            {
+                foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+                    foreach (var addr in ni.GetIPProperties().UnicastAddresses)
+                        set.Add(addr.Address);
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Warning($"ProxyTunnelPool: could not enumerate local addresses, {e.Message}");
+            }
+            return set;
+        });
+
+        private static HashSet<IPAddress> LocalAddresses => LazyLocalAddresses.Value;
 
         public void Dispose()
         {

@@ -39,13 +39,29 @@ namespace _1RM.Service.Locality
         }
 
 
+        /// <summary>
+        /// Bumped whenever the group order changes, so anything caching a derived sort key can tell that its
+        /// copy is stale without having to be told individually.
+        /// </summary>
+        public static int GroupedOrderGeneration { get; private set; }
+
+        private static string _lastSavedJson = "";
+
         public static void Load()
         {
             if (!File.Exists(JsonPath))
+            {
+                // no early return here used to mean a first run threw and caught FileNotFoundException on
+                // every single Load()
                 _settings = new LocalityListViewSettings();
+                _lastSavedJson = "";
+                ++GroupedOrderGeneration;
+                return;
+            }
             try
             {
-                var tmp = JsonConvert.DeserializeObject<LocalityListViewSettings>(File.ReadAllText(JsonPath));
+                var text = File.ReadAllText(JsonPath);
+                var tmp = JsonConvert.DeserializeObject<LocalityListViewSettings>(text);
                 tmp ??= new LocalityListViewSettings();
                 _settings = tmp;
             }
@@ -53,12 +69,21 @@ namespace _1RM.Service.Locality
             {
                 _settings = new LocalityListViewSettings();
             }
+            _lastSavedJson = "";
+            ++GroupedOrderGeneration;
         }
 
         public static void Save()
         {
+            // Callers reach here on the UI thread from things as ordinary as a group being expanded, and
+            // virtualization re-applies the same value as containers recycle. Comparing first turns those
+            // repeats into no-ops instead of a synchronous disk round trip each.
+            var json = JsonConvert.SerializeObject(Settings, Formatting.Indented);
+            if (json == _lastSavedJson) return;
+
             AppPathHelper.CreateDirIfNotExist(AppPathHelper.Instance.LocalityDirPath, false);
-            RetryHelper.Try(() => { File.WriteAllText(JsonPath, JsonConvert.SerializeObject(Settings, Formatting.Indented), Encoding.UTF8); }, actionOnError: exception => UnifyTracing.Error(exception));
+            RetryHelper.Try(() => { File.WriteAllText(JsonPath, json, Encoding.UTF8); }, actionOnError: exception => UnifyTracing.Error(exception));
+            _lastSavedJson = json;
         }
 
         public static void ServerOrderBySet(EnumServerOrderBy value)
@@ -101,6 +126,7 @@ namespace _1RM.Service.Locality
                 Settings.GroupedOrder.Add(str, i);
                 ++i;
             }
+            ++GroupedOrderGeneration;
             Save();
         }
 
@@ -111,7 +137,8 @@ namespace _1RM.Service.Locality
         }
         public static void GroupedIsExpandedSet(string dataSourceName, bool isExpanded)
         {
-            Load();
+            // No Load() first. Settings is the live copy and nothing else writes the file, so re-reading it
+            // here only added a synchronous disk read to every expander toggle.
             try
             {
                 Settings.GroupedIsExpanded[dataSourceName] = isExpanded;

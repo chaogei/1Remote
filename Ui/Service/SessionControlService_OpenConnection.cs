@@ -196,10 +196,6 @@ namespace _1RM.Service
 
             #region prepare
 
-            //// trace source view
-            //if (string.IsNullOrEmpty(fromView) == false)
-            //    MsAppCenterHelper.TraceSessionOpen(protocol.Protocol, fromView);
-
             // connect count save to config
             _configurationService.Engagement.ConnectCount++;
             _configurationService.Save();
@@ -314,7 +310,8 @@ namespace _1RM.Service
             // Route through the selected proxy, if any. Deliberately after the instance check and the script
             // above, so both still see the real address, and before every protocol dispatch below, so all of
             // them connect to the loopback endpoint instead.
-            IoC.Get<ProxyService>().ApplyTo(protocolClone);
+            if (IoC.Get<ProxyService>().ApplyTo(protocolClone) == EProxyApplyResult.Abort)
+                return "";
 
             // dispatch for specified protocol
             if (protocolClone is RdpApp rdpApp)
@@ -340,6 +337,9 @@ namespace _1RM.Service
             {
                 // open SFTP when SSH is connected.
                 var tmpRunner = RunnerHelper.GetRunner(IoC.Get<ProtocolConfigurationService>(), protocolClone, SFTP.ProtocolName);
+                // ProxyName is deliberately not copied: ssh has already been through ApplyTo above, so its
+                // address is the loopback end of the tunnel. SFTP rides the same SSH port, so pointing it at
+                // that same endpoint reuses the one tunnel; copying the name too would tunnel a tunnel.
                 var sftp = new SFTP
                 {
                     ColorHex = ssh.ColorHex,
@@ -349,7 +349,8 @@ namespace _1RM.Service
                     Port = ssh.Port,
                     UserName = ssh.UserName,
                     Password = ssh.Password,
-                    PrivateKey = ssh.PrivateKey
+                    PrivateKey = ssh.PrivateKey,
+                    TrustUnverifiedHost = ssh.TrustUnverifiedHost,
                 };
                 assignTabToken = await Connect(sftp, fromView, assignTabToken, tmpRunner.Name, assignCredentialName);
             }

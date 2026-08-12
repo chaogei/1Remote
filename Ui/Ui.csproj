@@ -39,6 +39,13 @@
 
     <PropertyGroup Condition="!$(Configuration.Contains('Net6')) and !$(Configuration.Contains('Net48'))">
         <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+        <!-- Cold start on a WPF app is dominated by JIT; precompiling removes most of it. TieredPGO costs
+             nothing at startup and pays off in the steady state. Deliberately NOT enabling
+             InvariantGlobalization (culture data is used for sorting, matching and pinyin) or
+             PublishSingleFile (SQLite.Interop.dll has to sit on disk, and extracting on first run is slower
+             than just shipping the files). -->
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <TieredPGO>true</TieredPGO>
     </PropertyGroup>
 
     <PropertyGroup Condition="$(Configuration.Contains('Net6'))">
@@ -173,8 +180,6 @@
         <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
         <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
         <PackageReference Include="MySql.Data" Version="8.0.30" />
-        <PackageReference Include="Microsoft.AppCenter.Analytics" Version="5.0.1" />
-        <PackageReference Include="Microsoft.AppCenter.Crashes" Version="5.0.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Npgsql" Version="9.0.2" />
         <PackageReference Include="NUlid" Version="1.7.1" />
@@ -502,10 +507,10 @@
     </ItemGroup>
 
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)'!='Debug'">
-        <Exec Command="powershell.exe ..\scripts\Set-AssemblyVersion.ps1&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_APP_CENTER_SECRET===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\APP_CENTER_SECRET_1REMOTE.txt&quot;&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SENTRY_IO_DEN===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\SENTRY_IO_DEN.txt&quot;&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SALT===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\Salt.txt&quot;&#xD;&#xA;powershell.exe ..\scripts\Set-BuildDate.ps1 -filePath .\Ui\AppVersion.cs" />
+        <Exec Command="powershell.exe ..\scripts\Set-AssemblyVersion.ps1&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SENTRY_IO_DEN===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\SENTRY_IO_DEN.txt&quot;&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SALT===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\Salt.txt&quot;&#xD;&#xA;powershell.exe ..\scripts\Set-BuildDate.ps1 -filePath .\Ui\AppVersion.cs" />
     </Target>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'!='Debug'">
-        <Exec Command="powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_APP_CENTER_SECRET===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\APP_CENTER_SECRET_1REMOTE.txt&quot; -isRevert&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SENTRY_IO_DEN===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\SENTRY_IO_DEN.txt&quot; -isRevert&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SALT===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\Salt.txt&quot; -isRevert&#xD;&#xA;powershell.exe ..\scripts\Set-BuildDate.ps1 -filePath .\Ui\AppVersion.cs -isRevert" />
+        <Exec Command="powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SENTRY_IO_DEN===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\SENTRY_IO_DEN.txt&quot; -isRevert&#xD;&#xA;powershell.exe ..\scripts\Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern &quot;===REPLACE_ME_WITH_SALT===&quot; -localSecretFilePath &quot;C:\1Remote_Secret\Salt.txt&quot; -isRevert&#xD;&#xA;powershell.exe ..\scripts\Set-BuildDate.ps1 -filePath .\Ui\AppVersion.cs -isRevert" />
     </Target>
 </Project>

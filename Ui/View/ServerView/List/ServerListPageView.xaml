@@ -131,12 +131,14 @@
                         <Setter Property="ItemsPanel">
                             <Setter.Value>
                                 <ItemsPanelTemplate>
+                                    <!-- ScrollUnit must be Pixel: grouped virtualization silently turns
+                                         itself off with Item scrolling, which meant every card in every
+                                         group was realised at once as soon as a second data source existed. -->
                                     <controls2:VirtualizingWrapPanel IsVirtualizing="True"
                                                                      VirtualizationMode="Recycling"
-                                                                     ScrollUnit="Item"
+                                                                     ScrollUnit="Pixel"
                                                                      SpacingMode="None"
-                                                                     Margin="15 10 0 20"
-                                                                     Width="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=ListBox}, Path=ActualWidth}"></controls2:VirtualizingWrapPanel>
+                                                                     Margin="15 10 0 20"></controls2:VirtualizingWrapPanel>
                                 </ItemsPanelTemplate>
                             </Setter.Value>
                         </Setter>

@@ -35,18 +35,42 @@ namespace _1RM.View.ServerView
 {
     public abstract partial class ServerPageViewModelBase : NotifyPropertyChangedBaseScreen
     {
-        public bool IsAnySelected => VmServerList.Any(x => x.IsSelected == true);
-        public int SelectedCount => VmServerList.Count(x => x.IsSelected);
+        /// <summary>
+        /// Kept in step by <see cref="VmServerPropertyChanged"/> instead of being counted on demand. Merely
+        /// moving the mouse across the list flips IsSelected (the row template does that on hover), and each
+        /// flip asks all three of these properties again — walking the whole list every time made a large
+        /// list drop frames under the cursor.
+        /// </summary>
+        private int _selectedCount;
+
+        public bool IsAnySelected => _selectedCount > 0;
+        public int SelectedCount => _selectedCount;
+
+        /// <summary>
+        /// Drops the state that was keyed off the previous set of view models. Every reload hands out brand
+        /// new instances, so the old ones would otherwise stay alive as keys in the visibility map — one
+        /// whole server list, icons included, retained per refresh.
+        /// </summary>
+        protected void OnServerListRebuilt()
+        {
+            _selectedCount = VmServerList.Count(x => x.IsSelected);
+            IsServerVisible.Clear();
+        }
+
         public bool? IsSelectedAll
         {
             get
             {
-                var items = VmServerList.Where(x => x.IsVisible);
-                if (items.All(x => x.IsSelected))
-                    return true;
-                if (items.Any(x => x.IsSelected))
-                    return null;
-                return false;
+                // one pass, where the readable LINQ form took three
+                int visible = 0, selected = 0;
+                foreach (var item in VmServerList)
+                {
+                    if (!item.IsVisible) continue;
+                    visible++;
+                    if (item.IsSelected) selected++;
+                }
+                if (selected == visible) return true; // matches All() on an empty set
+                return selected > 0 ? null : false;
             }
             set
             {
@@ -137,6 +161,9 @@ namespace _1RM.View.ServerView
         {
             if (e.PropertyName == nameof(ProtocolBaseViewModel.IsSelected))
             {
+                // IsSelected notifies only when the value really changed, so a running total stays exact
+                if (sender is ProtocolBaseViewModel vm)
+                    _selectedCount += vm.IsSelected ? 1 : -1;
                 RaisePropertyChanged(nameof(IsAnySelected));
                 RaisePropertyChanged(nameof(IsSelectedAll));
                 RaisePropertyChanged(nameof(SelectedCount));

@@ -176,9 +176,6 @@ namespace _1RM.Service
                 _taskTrayIcon.ContextMenuStrip.Items.Add(about);
                 _taskTrayIcon.ContextMenuStrip.Items.Add(exit);
             });
-
-            // After startup and initializing our application and when closing our window and minimize the application to tray we free memory with the following line:
-            System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet = System.Diagnostics.Process.GetCurrentProcess().MinWorkingSet;
         }
         #endregion
 

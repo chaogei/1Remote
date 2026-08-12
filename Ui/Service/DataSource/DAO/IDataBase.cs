@@ -236,7 +236,11 @@ namespace _1RM.Service.DataSource.DAO
                 // Convert UNC path to file URI format: \\server\share\path -> \\\\server\share\path
                 dataSource = "\\\\\\\\" + dataSource.Trim('\\');
             }
-            return $"Data Source={dataSource}; Pooling=true;Min Pool Size=1";
+            // WAL lets a read proceed while a write is in flight, which matters because the read-timestamp
+            // bookkeeping writes on the same connection the server list reads from. BusyTimeout bounds the
+            // wait when the file is on a share and someone else holds a lock, instead of hanging on the
+            // 30 second default.
+            return $"Data Source={dataSource}; Pooling=true;Min Pool Size=1;Default Timeout=5;BusyTimeout=3000;Journal Mode=WAL;Synchronous=Normal";
         }
 
         public static string GetMysqlConnectionString(string host, int port, string dbName, string user, string password, int connectTimeOutSeconds)

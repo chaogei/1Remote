@@ -164,7 +164,11 @@ public static class ProtocolActionHelper
                     Port = ssh.Port,
                     UserName = ssh.UserName,
                     Password = ssh.Password,
-                    PrivateKey = ssh.PrivateKey
+                    PrivateKey = ssh.PrivateKey,
+                    // this is built from the stored server, so it still holds the real address and has to
+                    // take the same route to it as the SSH session would
+                    ProxyName = ssh.ProxyName,
+                    TrustUnverifiedHost = ssh.TrustUnverifiedHost,
                 };
                 GlobalEventHelper.OnRequestServerConnect?.Invoke(sftp, fromView: $"{nameof(LauncherWindowView)} - Action - Open SFTP", assignTabToken: DateTime.Now.Ticks.ToString());
             }));

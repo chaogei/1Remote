@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Shawn.Utils.Wpf;
+using _1RM.Utils;
 using _1RM.Utils.Theme;
 
 namespace _1RM.Service
@@ -190,7 +191,7 @@ namespace _1RM.Service
             SetKey(rd, "DarkPrimaryColor", ColorAndBrushHelper.HexColorToMediaColor(theme.AccentDarkColor));
             //SetKey(rd, "PrimaryDarkColor", ColorAndBrushHelper.HexColorToMediaColor(theme.AccentTextColor));
 
-            var font = GetFontFamily(theme.FontFamily);
+            var font = InstalledFonts.Resolve(theme.FontFamily);
             SetKey(rd, "GlobalFontFamily", font);
             theme.FontSize = Math.Max(10, theme.FontSize);
             double globalFontSizeSmall = Math.Min(20.0, theme.FontSize - 2.0);
@@ -269,17 +270,5 @@ namespace _1RM.Service
             setKey(rd, "SolidPanelBrush", new SolidColorBrush(primaryMid));
         }
 
-        private static FontFamily GetFontFamily(string name)
-        {
-            // set default font family
-            var fontFamily = Fonts.SystemFontFamilies.FirstOrDefault(x => string.Equals(x.Source, name, StringComparison.CurrentCultureIgnoreCase));
-            fontFamily ??= Fonts.SystemFontFamilies.FirstOrDefault(x => string.Equals(x.Source, "Microsoft YaHei", StringComparison.CurrentCultureIgnoreCase));
-            fontFamily ??= Fonts.SystemFontFamilies.FirstOrDefault(x => x.Source.EndsWith("YaHei", StringComparison.OrdinalIgnoreCase));
-            fontFamily ??= Fonts.SystemFontFamilies.FirstOrDefault(x => x.Source.IndexOf("YaHei", StringComparison.OrdinalIgnoreCase) >= 0);
-            fontFamily ??= Fonts.SystemFontFamilies.FirstOrDefault(x => x.Source.IndexOf("雅黑", StringComparison.OrdinalIgnoreCase) >= 0);
-            fontFamily ??= Fonts.SystemFontFamilies.FirstOrDefault(x => x.Source.IndexOf("雅黑", StringComparison.OrdinalIgnoreCase) >= 0);
-
-            return fontFamily ?? Fonts.SystemFontFamilies.First();
-        }
     }
 }

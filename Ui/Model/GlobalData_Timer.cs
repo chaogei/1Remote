@@ -100,7 +100,8 @@ namespace _1RM.Model
                 ds.AddRange(_sourceService.AdditionalSources.Values);
 
                 // do not reload when any selected / launcher is shown / editor view is show
-                if (listPageViewModel.VmServerList.Any(x => x.IsSelected)
+                // (IsAnySelected is a running count, so this no longer walks the whole list every second)
+                if (listPageViewModel.IsAnySelected
                     || launcherWindowViewModel?.View?.IsVisible == true)
                 {
                     var pause = IoC.Translate("Pause");
