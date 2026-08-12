@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Shawn.Utils;
 
 namespace _1RM.Utils.Theme
@@ -21,10 +22,7 @@ namespace _1RM.Utils.Theme
         private const string TINT_RESOURCE_KEY = "AcrylicTintColor";
         private const string BACKDROP_RESOURCE_KEY = "WindowBackdropBrush";
 
-        private const int WM_ENTERSIZEMOVE = 0x0231;
-        private const int WM_EXITSIZEMOVE = 0x0232;
-
-        private static readonly Dictionary<Window, HwndSource?> Registered = new Dictionary<Window, HwndSource?>();
+        private static readonly HashSet<Window> Registered = new HashSet<Window>();
 
         public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
             "IsEnabled", typeof(bool), typeof(AcrylicBehavior),
@@ -39,12 +37,10 @@ namespace _1RM.Utils.Theme
 
             if (e.NewValue is true)
             {
-                if (Registered.ContainsKey(window)) return;
-                Registered[window] = null;
-                window.SourceInitialized += OnSourceInitialized;
-                window.Closed += OnClosed;
+                if (!Registered.Add(window)) return;
+                Hook(window);
                 // a window that already has a handle never raises SourceInitialized again
-                Attach(window);
+                Apply(window);
             }
             else
             {
@@ -53,54 +49,62 @@ namespace _1RM.Utils.Theme
             }
         }
 
-        private static void OnSourceInitialized(object? sender, EventArgs e) => Attach(sender as Window);
-
-        private static void OnClosed(object? sender, EventArgs e) => Detach(sender as Window);
-
-        private static void Attach(Window? window)
+        /// <summary>
+        /// Unsubscribe first so this is safe to call more than once for the same window.
+        /// </summary>
+        private static void Hook(Window window)
         {
-            if (window == null || !Registered.ContainsKey(window)) return;
-
-            if (Registered[window] == null)
-            {
-                var handle = new WindowInteropHelper(window).Handle;
-                if (handle != IntPtr.Zero && HwndSource.FromHwnd(handle) is { } source)
-                {
-                    source.AddHook(SizeMoveHook);
-                    Registered[window] = source;
-                }
-            }
-
-            Apply(window);
+            window.SourceInitialized -= OnSourceInitialized;
+            window.SourceInitialized += OnSourceInitialized;
+            window.Closed -= OnClosed;
+            window.Closed += OnClosed;
+            // closing to the tray hides the window rather than closing it, and restoring can come back
+            // either as a visibility change or as a state change, so both are watched
+            window.IsVisibleChanged -= OnIsVisibleChanged;
+            window.IsVisibleChanged += OnIsVisibleChanged;
+            window.StateChanged -= OnStateChanged;
+            window.StateChanged += OnStateChanged;
         }
 
         private static void Detach(Window? window)
         {
-            if (window == null || !Registered.TryGetValue(window, out var source)) return;
+            if (window == null) return;
             window.SourceInitialized -= OnSourceInitialized;
             window.Closed -= OnClosed;
-            source?.RemoveHook(SizeMoveHook);
+            window.IsVisibleChanged -= OnIsVisibleChanged;
+            window.StateChanged -= OnStateChanged;
             Registered.Remove(window);
         }
 
-        /// <summary>
-        /// Swaps acrylic for the cheap blur while the window is being moved or resized. Acrylic re-samples
-        /// the desktop behind the window on every frame, which on Windows 10 drops a drag to a few frames a
-        /// second; plain blur does not.
-        /// </summary>
-        private static IntPtr SizeMoveHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private static void OnSourceInitialized(object? sender, EventArgs e) => Apply(sender as Window);
+
+        private static void OnClosed(object? sender, EventArgs e) => Detach(sender as Window);
+
+        private static void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (msg != WM_ENTERSIZEMOVE && msg != WM_EXITSIZEMOVE)
-                return IntPtr.Zero;
+            if (e.NewValue is true)
+                Restore(sender as Window);
+        }
 
-            var window = Registered.Keys.FirstOrDefault(w => new WindowInteropHelper(w).Handle == hwnd);
-            if (window == null)
-                return IntPtr.Zero;
+        private static void OnStateChanged(object? sender, EventArgs e)
+        {
+            if (sender is Window window && window.WindowState != WindowState.Minimized)
+                Restore(window);
+        }
 
-            var tint = ResolveTint();
-            if (tint.A > 0)
-                AcrylicHelper.Apply(window, tint, preferAcrylic: msg == WM_EXITSIZEMOVE);
-            return IntPtr.Zero;
+        /// <summary>
+        /// Re-applies the backdrop and forces a full repaint after the window comes back into view. Queued
+        /// at Loaded priority so it runs once WPF has laid the window out again — redrawing before that
+        /// would just repaint the same stale surface.
+        /// </summary>
+        private static void Restore(Window? window)
+        {
+            if (window == null || !Registered.Contains(window)) return;
+            window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Apply(window);
+                AcrylicHelper.ForceRedraw(window);
+            }), DispatcherPriority.Loaded);
         }
 
         /// <summary>
@@ -108,9 +112,10 @@ namespace _1RM.Utils.Theme
         /// </summary>
         public static void RefreshAll()
         {
-            foreach (var window in Registered.Keys.ToArray())
+            foreach (var window in Registered.ToArray())
             {
                 Apply(window);
+                AcrylicHelper.ForceRedraw(window);
             }
         }
 

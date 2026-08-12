@@ -62,6 +62,16 @@ namespace _1RM.Utils.Theme
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, uint flags);
+
+        private const uint RDW_INVALIDATE = 0x0001;
+        private const uint RDW_ERASE = 0x0004;
+        private const uint RDW_ALLCHILDREN = 0x0080;
+        private const uint RDW_UPDATENOW = 0x0100;
+        private const uint RDW_FRAME = 0x0400;
+
         #endregion
 
         /// <summary>
@@ -73,21 +83,46 @@ namespace _1RM.Utils.Theme
         /// </summary>
         /// <param name="window">Target window.</param>
         /// <param name="tint">Tint colour; its alpha channel controls how opaque the glass reads.</param>
-        /// <param name="preferAcrylic">
-        /// False selects the cheaper Aero-style blur instead of acrylic. Acrylic re-samples what is behind
-        /// the window every frame, and on Windows 10 that makes dragging the window visibly stutter, so the
-        /// caller downgrades to plain blur for the duration of a move or resize.
-        /// </param>
         /// <returns>True when the OS accepted the backdrop.</returns>
-        public static bool Apply(Window? window, Color tint, bool preferAcrylic = true)
+        public static bool Apply(Window? window, Color tint)
         {
             if (window == null) return false;
             var handle = new WindowInteropHelper(window).Handle;
             if (handle == IntPtr.Zero) return false;
 
-            // acrylic from Windows 10 1803; older builds still take the cheaper blur-behind
-            return (preferAcrylic && Apply(handle, tint, AccentState.EnableAcrylicBlurBehind))
+            return (SupportsSmoothAcrylic && Apply(handle, tint, AccentState.EnableAcrylicBlurBehind))
                    || Apply(handle, tint, AccentState.EnableBlurBehind);
+        }
+
+        /// <summary>
+        /// Windows 11 composites acrylic without re-sampling the desktop on every frame. Windows 10 does,
+        /// which is what made dragging the window stutter.
+        ///
+        /// The earlier attempt swapped acrylic for the cheap blur only for the duration of a drag, but the
+        /// two look different, so the window visibly changed appearance the moment the drag started and
+        /// again when it ended. Each OS now gets the one effect it can render smoothly and keeps it, which
+        /// is both consistent and still frosted — Windows 10 simply gets the lighter Aero-style blur.
+        ///
+        /// Under net48 Environment.OSVersion is shimmed to 6.2 unless the manifest opts in, so that target
+        /// falls through to blur-behind. That is the safe direction to be wrong in.
+        /// </summary>
+        private static bool SupportsSmoothAcrylic => Environment.OSVersion.Version.Build >= 22000;
+
+        /// <summary>
+        /// Repaints the window, children and frame included.
+        ///
+        /// With a transparent composition target WPF only redraws what it believes is dirty, and on the way
+        /// back from the tray it believes almost nothing is: the window reappears as a bare translucent
+        /// panel, and controls only surface one at a time as the mouse passes over them and invalidates
+        /// them. Asking the window manager for a full repaint is what actually clears that.
+        /// </summary>
+        public static void ForceRedraw(Window? window)
+        {
+            if (window == null) return;
+            var handle = new WindowInteropHelper(window).Handle;
+            if (handle == IntPtr.Zero) return;
+            RedrawWindow(handle, IntPtr.Zero, IntPtr.Zero,
+                RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | RDW_FRAME);
         }
 
         public static void Clear(Window? window)
