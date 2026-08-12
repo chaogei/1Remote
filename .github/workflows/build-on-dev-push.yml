@@ -7,6 +7,8 @@ on:
       - "*main*"
     tags:
       - "*"
+  # lets a build be started from the Actions tab without pushing another commit
+  workflow_dispatch:
 jobs:
   JobBuild:
     permissions:
@@ -74,9 +76,23 @@ jobs:
       - name: Run script
         shell: pwsh
         run: |
-          ./scripts/Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_APP_CENTER_SECRET===" -Secret ${{ secrets.APP_CENTER_SECRET_1REMOTE }}
-          ./scripts/Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SENTRY_IO_DEN===" -Secret ${{ secrets.SENTRY_IO_DEN }}
-          ./scripts/Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern "===REPLACE_ME_WITH_SALT===" -Secret ${{ secrets.GLOBAL_STRING_ENCRYPTION_SLAT }}
+          # A fork does not inherit the upstream repository's secrets, and Set-Secret.ps1 exits 1 on an empty
+          # one. Skipping the substitution instead leaves the placeholder constant in Assert.cs, which
+          # compiles and runs: telemetry is simply inert. Note that the encryption salt then falls back to a
+          # publicly known constant, so a build produced this way must not be pointed at a password store
+          # created by an official release.
+          $replacements = @(
+            @{ Pattern = "===REPLACE_ME_WITH_APP_CENTER_SECRET==="; Value = "${{ secrets.APP_CENTER_SECRET_1REMOTE }}" },
+            @{ Pattern = "===REPLACE_ME_WITH_SENTRY_IO_DEN==="    ; Value = "${{ secrets.SENTRY_IO_DEN }}" },
+            @{ Pattern = "===REPLACE_ME_WITH_SALT==="             ; Value = "${{ secrets.GLOBAL_STRING_ENCRYPTION_SLAT }}" }
+          )
+          foreach ($r in $replacements) {
+            if ([string]::IsNullOrWhiteSpace($r.Value)) {
+              Write-Host "::warning::No secret configured for $($r.Pattern), keeping the placeholder."
+              continue
+            }
+            ./scripts/Set-Secret.ps1 -filePath .\Ui\Assert.cs -Pattern $r.Pattern -Secret $r.Value
+          }
 
       # Get ${{env.BuildVersion}} and ${{env.PreRelease}}
       - name: Get Version
