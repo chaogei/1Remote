@@ -29,6 +29,8 @@ namespace _1RM.Utils.Theme
     {
         private const string TINT_RESOURCE_KEY = "AcrylicTintColor";
         private const string BACKDROP_RESOURCE_KEY = "WindowBackdropBrush";
+        private const string GLASS_PANEL_KEY = "GlassPanelBrush";
+        private const string GLASS_CONTENT_KEY = "GlassContentBrush";
         private const int SM_REMOTESESSION = 0x1000;
 
         [DllImport("user32.dll")]
@@ -266,6 +268,7 @@ namespace _1RM.Utils.Theme
                 {
                     AcrylicHelper.Clear(window);
                     window.Resources.Remove(BACKDROP_RESOURCE_KEY);
+                    SetLocalGlassOpaque(window, true);
                     SetCompositionTargetTransparent(window, false);
                     RecordApplied(window, false, "skipped (remote session or high contrast)");
                     return;
@@ -277,11 +280,19 @@ namespace _1RM.Utils.Theme
                 // DWM now paints the tint behind this window, so its own surface has to get out of the way.
                 // Scoped to Window.Resources rather than the app dictionary on purpose: if the OS refused the
                 // call, or the theme has the backdrop switched off, the window keeps the opaque app-level
-                // brush and stays readable.
+                // brush and stays readable. Card dialogs paint with GlassPanelBrush on a transparent root,
+                // so a failed accent policy must also snap those brushes opaque or they wash out over the
+                // unblurred desktop.
                 if (applied)
+                {
                     window.Resources[BACKDROP_RESOURCE_KEY] = Brushes.Transparent;
+                    SetLocalGlassOpaque(window, false);
+                }
                 else
+                {
                     window.Resources.Remove(BACKDROP_RESOURCE_KEY);
+                    SetLocalGlassOpaque(window, true);
+                }
 
                 SetCompositionTargetTransparent(window, applied);
 
@@ -289,6 +300,16 @@ namespace _1RM.Utils.Theme
             }
             catch (Exception ex)
             {
+                try
+                {
+                    SetLocalGlassOpaque(window, true);
+                    window.Resources.Remove(BACKDROP_RESOURCE_KEY);
+                    SetCompositionTargetTransparent(window, false);
+                }
+                catch (Exception)
+                {
+                    // best-effort fallback
+                }
                 SimpleLogHelper.Warning($"AcrylicBehavior: {ex.Message}");
             }
         }
@@ -330,6 +351,32 @@ namespace _1RM.Utils.Theme
             // entire HWND — including the 40–50px shadow gutter around card dialogs — as a solid slab.
             // Leave the target transparent and let the now-opaque GlassPanelBrush cards read as cards.
             target.BackgroundColor = window.AllowsTransparency ? Colors.Transparent : Colors.Black;
+        }
+
+        /// <summary>
+        /// Card dialogs fill with <c>GlassPanelBrush</c>, whose app-level alpha follows the theme slider
+        /// rather than whether this HWND actually received a backdrop. When frost is off for this window,
+        /// copy the always-opaque Solid* brushes into the window dictionary so those lookups cannot
+        /// composite against the desktop.
+        /// </summary>
+        private static void SetLocalGlassOpaque(Window window, bool opaque)
+        {
+            if (!opaque)
+            {
+                window.Resources.Remove(GLASS_PANEL_KEY);
+                window.Resources.Remove(GLASS_CONTENT_KEY);
+                return;
+            }
+
+            window.Resources[GLASS_PANEL_KEY] = CopyBrush("SolidPanelBrush");
+            window.Resources[GLASS_CONTENT_KEY] = CopyBrush("SolidSurfaceBrush");
+        }
+
+        private static Brush CopyBrush(string key)
+        {
+            if (Application.Current?.TryFindResource(key) is SolidColorBrush solid)
+                return new SolidColorBrush(solid.Color);
+            return Brushes.Black;
         }
 
         private static Color ResolveTint()
