@@ -389,8 +389,14 @@ namespace _1RM.Service
             // fully opaque accent rectangle on a frosted panel is a brick punched through the glass. Floored
             // well above the panel alpha, and above the user's slider, because AccentTextBrush has to stay
             // legible over whatever the desktop happens to be showing behind the blur.
+            // The floor is compared by hand rather than with Math.Max: both operands are bytes, and the
+            // .NET 10 SDK added a Math.Max(byte, byte) overload that makes such a call ambiguous against
+            // Math.Max(int, int).
+            const byte accentFloor = 0xC8;
             var accentMid = theme.GetAccentMidColor;
-            var accentAlpha = frost ? (byte)Math.Max(0xC8, alpha) : (byte)0xFF;
+            byte accentAlpha = 0xFF;
+            if (frost)
+                accentAlpha = alpha > accentFloor ? alpha : accentFloor;
             setKey(rd, "AccentGlassBrush", new SolidColorBrush(Color.FromArgb(accentAlpha, accentMid.R, accentMid.G, accentMid.B)));
 
             // BackgroundBrush deliberately stays opaque. It looks like the one lever that would turn every
