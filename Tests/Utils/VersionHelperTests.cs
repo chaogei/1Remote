@@ -1,4 +1,3 @@
-﻿using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shawn.Utils;
 using static Shawn.Utils.VersionHelper;
@@ -50,75 +49,43 @@ namespace Tests.Utils
         }
 
 
+        /// <summary>
+        /// The scenarios the old test covered, moved onto <see cref="VersionHelper.DefaultCheckMethod"/> —
+        /// the fetch and the parse used to sit in one method that took the page content, and only the parse
+        /// half can still be exercised without reaching the network.
+        /// </summary>
         [TestMethod()]
-        public void VersionHelperTest()
+        public void DefaultCheckMethodTest()
         {
-            var v1 = new Version(0, 6, 1, 0);
-            var v2 = new Version(0, 6, 2, 0);
-            var v3 = new Version(0, 7, 1, 0);
+            var current = new Version(0, 6, 1, 0);
+            var newer = new Version(0, 6, 2, 0);
+            var newest = new Version(0, 7, 1, 0);
+            const string publishUrl = "www.xxxx.xx";
+
             {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v2.ToString()}";
-                var checker = new VersionHelper(v1);
-                var ret = checker.CheckUpdateFromUrl(url, null, content);
-                Assert.IsTrue(ret.Item1);
-                var v = Version.FromString(ret.Item2);
-                Assert.IsTrue(v == v2);
-                Assert.IsTrue(ret.Item3 == url);
+                var result = DefaultCheckMethod($"latest version: {newer}", publishUrl, current, null);
+                Assert.IsTrue(result.NewerPublished);
+                Assert.IsTrue(Version.FromString(result.NewerVersion) == newer);
+                Assert.AreEqual(publishUrl, result.NewerUrl);
             }
             {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v2.ToString()}";
-                var checker = new VersionHelper(v1);
-                var ret = checker.CheckUpdateFromUrl(url, v3, content);
-                Assert.IsTrue(ret.Item1 == false);
+                // ignoring a version above the published one suppresses the notice
+                var result = DefaultCheckMethod($"latest version: {newer}", publishUrl, current, newest);
+                Assert.IsFalse(result.NewerPublished);
             }
             {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v2.ToString()}";
-                var checker = new VersionHelper(v1);
-                var ret = checker.CheckUpdateFromUrl(url, v2, content);
-                Assert.IsTrue(ret.Item1 == false);
+                // ignoring exactly the published version suppresses it too
+                var result = DefaultCheckMethod($"latest version: {newer}", publishUrl, current, newer);
+                Assert.IsFalse(result.NewerPublished);
             }
             {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v3.ToString()}";
-                var checker = new VersionHelper(v1);
-                var ret = checker.CheckUpdateFromUrl(url, v2, content);
-                Assert.IsTrue(ret.Item1 == true);
+                // but a version above the ignored one still gets through
+                var result = DefaultCheckMethod($"latest version: {newest}", publishUrl, current, newer);
+                Assert.IsTrue(result.NewerPublished);
             }
             {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v2.ToString()}";
-                var checker = new VersionHelper(v1);
-                var e = new ManualResetEvent(false);
-                checker.OnNewVersionRelease += (version, url2) =>
-                {
-                    var v = Version.FromString(version);
-                    Assert.IsTrue(url == url2);
-                    Assert.IsTrue(v == v2);
-                    e.Set();
-                };
-                checker.CheckUpdateAsync(url, content);
-                if (e.WaitOne(3000) == false)
-                {
-                    Assert.Fail();
-                }
-            }
-            {
-                var url = "www.xxxx.xx";
-                var content = $"latest version: {v2.ToString()}";
-                var checker = new VersionHelper(v3);
-                var e = new ManualResetEvent(false);
-                checker.OnNewVersionRelease += (version, url2) =>
-                {
-                    e.Set();
-                };
-                checker.CheckUpdateAsync(url, content);
-                if (e.WaitOne(3000) == true)
-                {
-                    Assert.Fail();
-                }
+                var result = DefaultCheckMethod("nothing that looks like a version here", publishUrl, current, null);
+                Assert.IsFalse(result.NewerPublished);
             }
         }
     }
