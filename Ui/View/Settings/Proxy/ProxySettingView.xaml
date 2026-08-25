@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:_1RM.View.Settings.Proxy"
+             xmlns:controls="clr-namespace:_1RM.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:ProxySettingViewModel}"
              d:DesignHeight="620" d:DesignWidth="900">
@@ -96,8 +97,8 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Password}" />
                                 <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="240" HorizontalAlignment="Left"
-                                             Text="{Binding SelectedProxy.Password, UpdateSourceTrigger=PropertyChanged}" />
+                                    <controls:PasswordInput Height="28" Width="240" HorizontalAlignment="Left"
+                                                            Password="{Binding SelectedProxy.Password, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                             </StackPanel>
                         </Grid>

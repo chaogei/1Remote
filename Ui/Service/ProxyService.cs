@@ -52,8 +52,6 @@ namespace _1RM.Service
 
         public void Save()
         {
-            foreach (var proxy in Proxies)
-                proxy.EncryptPassword();
             _configurationService.Save();
         }
 
@@ -121,15 +119,9 @@ namespace _1RM.Service
             try
             {
                 var tunnel = _pool.GetOrCreate(proxy, host, port);
+                target.RedirectThroughTunnel(ProxyTunnel.LOCAL_HOST, tunnel.LocalPort);
 
-                // The Address setter renames the server when the display name still mirrors the old address,
-                // which would retitle a session named after its IP to "127.0.0.1".
-                var displayName = protocol.DisplayName;
-                target.Address = ProxyTunnel.LOCAL_HOST;
-                target.Port = tunnel.LocalPort.ToString();
-                protocol.DisplayName = displayName;
-
-                SimpleLogHelper.Info($"ProxyService: {displayName} -> {host}:{port} through proxy '{proxy.Name}' at {ProxyTunnel.LOCAL_HOST}:{tunnel.LocalPort}");
+                SimpleLogHelper.Info($"ProxyService: {protocol.DisplayName} -> {host}:{port} through proxy '{proxy.Name}' at {ProxyTunnel.LOCAL_HOST}:{tunnel.LocalPort}");
                 return EProxyApplyResult.Tunnelled;
             }
             catch (Exception e)

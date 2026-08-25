@@ -28,7 +28,7 @@ namespace _1RM.Utils.Proxy
         private readonly string _proxyAddress;
         private readonly int _proxyPort;
         private readonly string _proxyUserName;
-        private readonly string _proxyPassword;
+        private string _proxyPassword;
 
         private readonly TcpListener _listener;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
@@ -46,8 +46,7 @@ namespace _1RM.Utils.Proxy
             _proxyAddress = proxy.Address;
             _proxyPort = proxy.Port;
             _proxyUserName = proxy.UserName;
-            // resolved once here so the relay never touches the encrypted config again
-            _proxyPassword = proxy.GetPlainPassword();
+            _proxyPassword = proxy.Password;
 
             TargetHost = targetHost;
             TargetPort = targetPort;
@@ -88,6 +87,19 @@ namespace _1RM.Utils.Proxy
             var any = new TcpListener(IPAddress.Loopback, 0);
             any.Start();
             return any;
+        }
+
+        /// <summary>
+        /// Takes the password from the current configuration, for connections opened from now on.
+        ///
+        /// Everything else that identifies a tunnel is part of its pool key and so cannot have changed
+        /// under it; the password is not. Without this, correcting a mistyped proxy password would have no
+        /// effect until the app was restarted, because the pool would keep handing back the tunnel that
+        /// still held the wrong one.
+        /// </summary>
+        public void RefreshCredentials(ProxyConfig proxy)
+        {
+            Volatile.Write(ref _proxyPassword, proxy.Password);
         }
 
         private async Task AcceptLoopAsync()
@@ -131,7 +143,7 @@ namespace _1RM.Utils.Proxy
                 // the handshake is synchronous, so these timeouts actually bound it
                 proxyStream.ReadTimeout = HANDSHAKE_TIMEOUT_MS;
                 proxyStream.WriteTimeout = HANDSHAKE_TIMEOUT_MS;
-                ProxyHandshake.Perform(proxyStream, _proxyType, TargetHost, TargetPort, _proxyUserName, _proxyPassword);
+                ProxyHandshake.Perform(proxyStream, _proxyType, TargetHost, TargetPort, _proxyUserName, Volatile.Read(ref _proxyPassword));
                 // an interactive session can idle for hours, it must not be torn down for being quiet
                 proxyStream.ReadTimeout = Timeout.Infinite;
                 proxyStream.WriteTimeout = Timeout.Infinite;

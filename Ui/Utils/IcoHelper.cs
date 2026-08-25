@@ -11,6 +11,9 @@ namespace _1RM.Utils
 {
     internal class IcoHelper
     {
+        /// <summary>An ICO directory entry gives each side one byte, where 0 stands for 256.</summary>
+        private const int MAX_SIDE = 256;
+
         public static bool ConvertToIcon(Stream input, Stream output, int size = 16, bool preserveAspectRatio = false)
         {
             if (Image.FromStream(input) is Bitmap inputBitmap)
@@ -41,12 +44,19 @@ namespace _1RM.Utils
             if (preserveAspectRatio)
             {
                 width = size;
-                height = (int)(inputBitmap.Height * 1.0 / inputBitmap.Width * size);
+                // Clamped before the cast, not after: a source taller than it is wide scales past 256, which
+                // no ICO entry can describe and which this assembly's checked arithmetic would reject on the
+                // way to a byte. A zero-width source would divide to infinity and throw there too.
+                var scaled = inputBitmap.Width > 0
+                    ? inputBitmap.Height * 1.0 / inputBitmap.Width * size
+                    : size;
+                height = (int)Math.Max(1, Math.Min(scaled, MAX_SIDE));
             }
             else
             {
                 width = height = size;
             }
+            width = Math.Max(1, Math.Min(width, MAX_SIDE));
             using var newBitmap = new Bitmap(inputBitmap, new Size(width, height));
             // save the resized png into a memory stream for future use
             using var memoryStream = new MemoryStream();
@@ -65,9 +75,9 @@ namespace _1RM.Utils
 
             // image entry 1
             // 0 image width
-            iconWriter.Write((byte)width);
+            iconWriter.Write((byte)(width == MAX_SIDE ? 0 : width));
             // 1 image height
-            iconWriter.Write((byte)height);
+            iconWriter.Write((byte)(height == MAX_SIDE ? 0 : height));
 
             // 2 number of colors
             iconWriter.Write((byte)0);

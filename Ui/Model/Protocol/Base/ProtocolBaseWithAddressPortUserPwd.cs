@@ -103,7 +103,7 @@ namespace _1RM.Model.Protocol.Base
 
         protected override string GetSubTitle()
         {
-            return string.IsNullOrEmpty(UserName) ? base.GetSubTitle() : $"{Address}:{Port} ({UserName})";
+            return string.IsNullOrEmpty(UserName) ? base.GetSubTitle() : $"{RealAddress}:{RealPort} ({UserName})";
         }
 
 
@@ -177,7 +177,7 @@ namespace _1RM.Model.Protocol.Base
         /// <returns></returns>
         public override string BuildConnectionId()
         {
-            return $"{Id}_{Address}:{Port}({MD5Helper.GetMd5Hash16BitString(Password)}@{UserName})";
+            return $"{Id}_{RealAddress}:{RealPort}({MD5Helper.GetMd5Hash16BitString(Password)}@{UserName})";
         }
     }
 }

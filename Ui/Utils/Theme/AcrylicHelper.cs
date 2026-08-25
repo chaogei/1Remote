@@ -139,8 +139,10 @@ namespace _1RM.Utils.Theme
             {
                 AccentState = state,
                 AccentFlags = state == AccentState.Disabled ? 0 : DRAW_ALL_BORDERS,
-                // the struct wants 0xAABBGGRR, which is byte-reversed from WPF's ARGB
-                GradientColor = (uint)((tint.A << 24) | (tint.B << 16) | (tint.G << 8) | tint.R),
+                // the struct wants 0xAABBGGRR, which is byte-reversed from WPF's ARGB. Each byte is widened to
+                // uint before it is shifted: packing in int instead makes any alpha of 0x80 or more negative,
+                // and this assembly's checked arithmetic rejects that on the way back to uint.
+                GradientColor = ((uint)tint.A << 24) | ((uint)tint.B << 16) | ((uint)tint.G << 8) | tint.R,
                 AnimationId = 0,
             };
 

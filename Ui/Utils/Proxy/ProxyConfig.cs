@@ -30,10 +30,14 @@ namespace _1RM.Utils.Proxy
         }
 
         private string _address = "";
+        /// <summary>
+        /// Trimmed on the way in: an address is usually pasted, a stray space around it is invisible in the
+        /// editor, and it would otherwise reach both the connect call and the tunnel pool key.
+        /// </summary>
         public string Address
         {
             get => _address;
-            set => SetAndNotifyIfChanged(ref _address, value);
+            set => SetAndNotifyIfChanged(ref _address, value?.Trim() ?? "");
         }
 
         private int _port = 1080;
@@ -50,19 +54,32 @@ namespace _1RM.Utils.Proxy
             set => SetAndNotifyIfChanged(ref _userName, value);
         }
 
+        [JsonProperty(nameof(Password))]
+        private string EncryptedPassword { get; set; } = "";
+
         /// <summary>
-        /// Stored encrypted in the profile, exactly like the other secrets. Read it through
-        /// <see cref="GetPlainPassword"/> rather than directly.
+        /// Plain text to the rest of the app, enciphered in the profile — the same split the database
+        /// sources use. Exposing the enciphered form directly is what used to put a block of cipher text in
+        /// the settings editor, for an empty password as much as for a real one.
         /// </summary>
-        private string _password = "";
+        [JsonIgnore]
         public string Password
         {
-            get => _password;
-            set => SetAndNotifyIfChanged(ref _password, value);
+            get => string.IsNullOrEmpty(EncryptedPassword)
+                ? ""
+                : UnSafeStringEncipher.DecryptOrReturnOriginalString(EncryptedPassword);
+            set
+            {
+                var plain = value ?? "";
+                if (plain == Password) return;
+                EncryptedPassword = plain.Length == 0 ? "" : UnSafeStringEncipher.SimpleEncrypt(plain);
+                RaisePropertyChanged();
+            }
         }
 
         /// <summary>
-        /// Targets that resolve to the local machine or a private range skip the proxy entirely.
+        /// Targets that are this machine itself skip the proxy entirely. Private ranges do not count as
+        /// local here, see <see cref="ProxyTunnelPool.IsLocalAddress"/>.
         /// </summary>
         private bool _bypassForLocalAddress = true;
         public bool BypassForLocalAddress
@@ -76,10 +93,6 @@ namespace _1RM.Utils.Proxy
                                 && !string.IsNullOrWhiteSpace(Address)
                                 && Port > 0
                                 && Port <= 65535;
-
-        public string GetPlainPassword() => UnSafeStringEncipher.DecryptOrReturnOriginalString(Password);
-
-        public void EncryptPassword() => Password = UnSafeStringEncipher.EncryptOnce(Password);
 
         public ProxyConfig CloneMe() => (ProxyConfig)MemberwiseClone();
 

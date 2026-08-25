@@ -47,7 +47,7 @@ namespace _1RM.Utils.Proxy
                     var stream = client.GetStream();
                     stream.ReadTimeout = timeoutMs;
                     stream.WriteTimeout = timeoutMs;
-                    ProxyHandshake.Perform(stream, proxy.Type, targetHost.Trim(), targetPort, proxy.UserName, proxy.GetPlainPassword());
+                    ProxyHandshake.Perform(stream, proxy.Type, targetHost.Trim(), targetPort, proxy.UserName, proxy.Password);
 
                     stopwatch.Stop();
                     return Result.Ok(stopwatch.ElapsedMilliseconds);

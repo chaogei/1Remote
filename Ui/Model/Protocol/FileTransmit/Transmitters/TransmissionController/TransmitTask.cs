@@ -348,7 +348,12 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters.TransmissionController
                     return "";
                 var bps = TransmittedBytesPerSec;
                 if (bps <= 0) return "";
-                int es = (int)Math.Ceiling((TotalByteLength - TransmittedByteLength) / bps);
+                // Progress can momentarily read past the declared total when the remote size was wrong, and a
+                // slow enough link puts the estimate beyond int.MaxValue. Under this assembly's checked
+                // arithmetic the first underflows the subtraction and the second overflows the cast.
+                var remaining = TotalByteLength > TransmittedByteLength ? TotalByteLength - TransmittedByteLength : 0ul;
+                var estimate = Math.Ceiling(remaining / bps);
+                int es = estimate >= int.MaxValue ? int.MaxValue : (int)estimate;
                 int seconds = es % 60;
                 string toDisplay = seconds.ToString("D") + "s";
                 es /= 60;

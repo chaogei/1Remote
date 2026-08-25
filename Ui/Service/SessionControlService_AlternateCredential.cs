@@ -319,7 +319,10 @@ namespace _1RM.Service
         public static async Task<Credential?> GetCredential(ProtocolBaseWithAddressPort protocol, string assignCredentialName = "")
         {
             // set the credential from the raw protocol (for reconnection since the credential may be changed when first connection)
-            if (IoC.Get<GlobalData>().VmItemList.FirstOrDefault(x => x.Id == protocol.Id) is { Server: ProtocolBaseWithAddressPort swap })
+            // Skipped once the session has been pointed at a proxy tunnel: the stored server still holds the
+            // real address, and writing it back here would send the reconnect around the proxy.
+            if (protocol.IsTunnelled == false
+                && IoC.Get<GlobalData>().VmItemList.FirstOrDefault(x => x.Id == protocol.Id) is { Server: ProtocolBaseWithAddressPort swap })
             {
                 var swap2 = (ProtocolBaseWithAddressPort)swap.Clone();
                 swap2.DecryptToConnectLevel();

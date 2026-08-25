@@ -403,7 +403,9 @@ namespace _1RM.Model.Protocol.Base
                 { "SERVER_TAGS", string.Join(",", this.Tags.ToArray()) }
             };
             if (this is ProtocolBaseWithAddressPort p)
-                evs["SERVER_HOST"] = $"{p.Address}:{p.Port}";
+                // the real endpoint, so the after-disconnect script sees the same host as the before-connect
+                // one rather than the loopback end of a proxy tunnel
+                evs["SERVER_HOST"] = $"{p.RealAddress}:{p.RealPort}";
             return evs;
         }
 

@@ -94,8 +94,8 @@ public static class ProtocolActionHelper
                     {
                         Clipboard.SetDataObject(
                             IoC.TryGet<ConfigurationService>()?.General.CopyPortWhenCopyAddress == false
-                                ? $"{protocolServerWithAddrPortBase.Address}"
-                                : $"{protocolServerWithAddrPortBase.Address}:{protocolServerWithAddrPortBase.GetPort()}");
+                                ? $"{protocolServerWithAddrPortBase.RealAddress}"
+                                : $"{protocolServerWithAddrPortBase.RealAddress}:{protocolServerWithAddrPortBase.RealPort}");
                     }
                     catch (Exception)
                     {
@@ -181,8 +181,12 @@ public static class ProtocolActionHelper
             {
                 var path = SelectFileHelper.SaveFile(filter: "rdp|*.rdp", selectedFileName: rdp.DisplayName + ".rdp");
                 if (string.IsNullOrEmpty(path)) return;
-                var text = rdp.ToRdpConfig().ToString();
-                File.WriteAllText(path, text);
+                // mstsc opens the exported file on its own, with no tunnel of ours behind it, so it has to
+                // name the real host even when this runs on a session that is going through a proxy
+                var export = (RDP)rdp.Clone();
+                export.Address = rdp.RealAddress;
+                export.Port = rdp.RealPort;
+                File.WriteAllText(path, export.ToRdpConfig().ToString());
             }));
         }
 

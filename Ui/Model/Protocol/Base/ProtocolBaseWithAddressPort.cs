@@ -56,9 +56,41 @@ namespace _1RM.Model.Protocol.Base
             }
         }
 
+        /// <summary>
+        /// Where this session was really headed before it was pointed at a proxy tunnel, or null when it
+        /// connects straight out.
+        ///
+        /// A tunnelled session has <see cref="Address"/> rewritten to loopback, which is what the protocol
+        /// runner must dial. Everything that identifies or describes the session instead has to keep using
+        /// <see cref="RealAddress"/>, or a proxied session looks like it is connected to this machine.
+        /// </summary>
+        [JsonIgnore] public string? TunnelledFromAddress { get; private set; }
+        [JsonIgnore] public string? TunnelledFromPort { get; private set; }
+
+        [JsonIgnore] public bool IsTunnelled => TunnelledFromAddress != null;
+
+        /// <summary>The endpoint the user picked, whether or not the session goes through a proxy.</summary>
+        [JsonIgnore] public string RealAddress => TunnelledFromAddress ?? Address;
+        [JsonIgnore] public string RealPort => TunnelledFromPort ?? Port;
+
+        /// <summary>
+        /// Sends this session to a loopback relay while remembering where it was really going.
+        /// </summary>
+        public void RedirectThroughTunnel(string loopbackHost, int loopbackPort)
+        {
+            TunnelledFromAddress ??= Address;
+            TunnelledFromPort ??= Port;
+            // The Address setter renames the server when the display name still mirrors the old address,
+            // which would retitle a session named after its IP to the loopback address.
+            var displayName = DisplayName;
+            Address = loopbackHost;
+            Port = loopbackPort.ToString();
+            DisplayName = displayName;
+        }
+
         protected override string GetSubTitle()
         {
-            return $"{Address}:{Port}";
+            return $"{RealAddress}:{RealPort}";
         }
 
 
@@ -137,7 +169,9 @@ namespace _1RM.Model.Protocol.Base
         /// <returns></returns>
         public override string BuildConnectionId()
         {
-            return $"{Id}_{Address}:{Port}";
+            // the real endpoint, not the tunnel: this identifies which server the session is talking to, and
+            // the caller that looks a running session up by it has not been through the proxy yet
+            return $"{Id}_{RealAddress}:{RealPort}";
         }
 
         #region IDataErrorInfo

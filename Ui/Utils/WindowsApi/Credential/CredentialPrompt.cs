@@ -733,7 +733,10 @@ namespace _1RM.Utils.WindowsApi.Credential
                 int i = 0;
                 while (true)
                 {
-                    char c = (char)Marshal.ReadInt16(p, i++ * sizeof(short));
+                    // ReadInt16 is signed, so any UTF-16 unit at or above 0x8000 - most CJK, and either half
+                    // of a surrogate pair - comes back negative, and converting that to char would overflow
+                    // under this assembly's checked arithmetic
+                    char c = unchecked((char)Marshal.ReadInt16(p, i++ * sizeof(short)));
                     if (c == '\u0000')
                         break;
                     s.AppendChar(c);
@@ -745,7 +748,7 @@ namespace _1RM.Utils.WindowsApi.Credential
             {
                 SecureString s = new SecureString();
                 for (var i = 0; i < length; i++)
-                    s.AppendChar((char)Marshal.ReadInt16(p, i * sizeof(short)));
+                    s.AppendChar(unchecked((char)Marshal.ReadInt16(p, i * sizeof(short))));
                 s.MakeReadOnly();
                 return s;
             }

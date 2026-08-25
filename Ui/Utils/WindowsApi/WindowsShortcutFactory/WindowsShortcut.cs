@@ -31,7 +31,10 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
                 var iid = IID_IShellLinkW;
                 uint res = NativeMethods.CoCreateInstance(&clsid, null, CLSCTX_INPROC_SERVER, &iid, (void**)&inst);
                 if (res != 0)
-                    throw new COMException("Unable to create ShellLink object.", (int)res);
+                    // every failure HRESULT has the top bit set, and this assembly is compiled with
+                    // CheckForOverflowUnderflow, so a plain cast would raise OverflowException here instead
+                    // of the COMException the caller is written to handle
+                    throw new COMException("Unable to create ShellLink object.", unchecked((int)res));
 
                 this.inst = inst;
             }
@@ -203,7 +206,7 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
                 {
                     uint res = inst->Vtbl->SetShowCmd(inst, n);
                     if (res != 0)
-                        throw new COMException("Unable to set window show command.", (int)res);
+                        throw new COMException("Unable to set window show command.", unchecked((int)res));
                 }
             }
         }
@@ -273,7 +276,7 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
 
                 uint res = inst->Vtbl->QueryInterface(inst, &iid, (void**)&persistInst);
                 if (res != 0)
-                    throw new COMException("Unable to get IPersistFile interface.", (int)res);
+                    throw new COMException("Unable to get IPersistFile interface.", unchecked((int)res));
 
                 try
                 {
@@ -282,7 +285,7 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
                     {
                         res = persistInst->Vtbl->Save(persistInst, ptr, (uint)(fileName.Length));
                         if (res != 0)
-                            throw new COMException("Unable to save shortcut file.", (int)res);
+                            throw new COMException("Unable to save shortcut file.", unchecked((int)res));
                     }
                     finally
                     {
@@ -322,7 +325,7 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
 
                 uint res = inst->Vtbl->QueryInterface(inst, &iid, (void**)&persistInst);
                 if (res != 0)
-                    throw new COMException("Unable to get IPersistFile interface.", (int)res);
+                    throw new COMException("Unable to get IPersistFile interface.", unchecked((int)res));
 
                 try
                 {
@@ -331,7 +334,7 @@ namespace _1RM.Utils.WindowsApi.WindowsShortcutFactory
                     {
                         res = persistInst->Vtbl->Load(persistInst, ptr, 0);
                         if (res != 0)
-                            throw new COMException("Unable to load shortcut file.", (int)res);
+                            throw new COMException("Unable to load shortcut file.", unchecked((int)res));
                     }
                     finally
                     {

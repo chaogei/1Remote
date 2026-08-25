@@ -32,7 +32,12 @@ namespace _1RM.Utils.Proxy
             {
                 if (_tunnels.TryGetValue(key, out var existed))
                 {
-                    if (existed.IsAlive) return existed;
+                    if (existed.IsAlive)
+                    {
+                        // the key covers the route but not the password, so hand the current one over
+                        existed.RefreshCredentials(proxy);
+                        return existed;
+                    }
                     _tunnels.Remove(key);
                 }
 
@@ -54,10 +59,16 @@ namespace _1RM.Utils.Proxy
             const uint fnvOffsetBasis = 2166136261;
             const uint fnvPrime = 16777619;
             var hash = fnvOffsetBasis;
-            foreach (var c in key)
+            // FNV-1a is defined over arithmetic modulo 2^32 and relies on the multiply wrapping around.
+            // This project is built with CheckForOverflowUnderflow, which makes that wrap throw instead,
+            // so the block has to opt out explicitly.
+            unchecked
             {
-                hash ^= c;
-                hash *= fnvPrime;
+                foreach (var c in key)
+                {
+                    hash ^= c;
+                    hash *= fnvPrime;
+                }
             }
             return FIRST_DYNAMIC_PORT + (int)(hash % (uint)(LAST_DYNAMIC_PORT - FIRST_DYNAMIC_PORT));
         }

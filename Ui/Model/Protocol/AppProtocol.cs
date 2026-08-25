@@ -100,9 +100,9 @@ namespace _1RM.Model.Protocol
             {
                 if (!string.IsNullOrEmpty(Port))
                 {
-                    return string.IsNullOrEmpty(UserName) ? $"{Address}:{Port}" : $"{Address}:{Port}({UserName})";
+                    return string.IsNullOrEmpty(UserName) ? $"{RealAddress}:{RealPort}" : $"{RealAddress}:{RealPort}({UserName})";
                 }
-                return Address;
+                return RealAddress;
             }
 
             try
