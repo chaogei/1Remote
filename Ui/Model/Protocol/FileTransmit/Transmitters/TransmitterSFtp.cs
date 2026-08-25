@@ -30,6 +30,16 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
         private Task SFtpConnection;
         private SftpClient? _sftp = null;
 
+        /// <summary>
+        /// Guards the <see cref="_sftp"/> field, and nothing else.
+        ///
+        /// INVARIANT: never hold it across a call to the server. <see cref="IsConnected"/> is evaluated on
+        /// the dispatcher — the transfer commands ask it before they enable themselves — so a holder that
+        /// is waiting on the network freezes the whole app, hosted remote sessions included, for as long
+        /// as the server takes to answer.
+        /// </summary>
+        private readonly object _lock = new object();
+
         public TransmitterSFtp(string host, int port, string username, string key, bool keyIsPassword, bool trustUnverifiedHost = false)
         {
             Hostname = host;
@@ -61,12 +71,10 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
 
         public bool IsConnected()
         {
-            bool isConnected = true;
-            lock (this)
+            lock (_lock)
             {
-                isConnected = _sftp?.IsConnected == true;
+                return _sftp?.IsConnected == true;
             }
-            return isConnected;
         }
 
         public ITransmitter Clone()
@@ -109,12 +117,14 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
         public async Task<bool> Exists(string path)
         {
             await SFtpConnection;
-            bool ret = false;
-            lock (this)
+            SftpClient? client;
+            lock (_lock)
             {
-                ret = _sftp?.Exists(path) == true;
+                client = _sftp;
             }
-            return ret;
+            // The lock is only taken to read the field: Exists is a round trip to the server, and holding
+            // it across that is what stalled IsConnected() on the dispatcher.
+            return client?.Exists(path) == true;
         }
 
         private RemoteItem SftpFile2RemoteItem(ISftpFile item)
@@ -302,11 +312,32 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
 
         private void ReleaseSftp()
         {
-            lock (this)
+            SftpClient? old;
+            lock (_lock)
             {
-                _sftp?.Disconnect();
-                _sftp?.Dispose();
+                old = _sftp;
                 _sftp = null;
+            }
+            if (old == null) return;
+
+            // Both of these talk to the server — Disconnect is a protocol exchange and Dispose waits on it
+            // — so they run with the lock released. A dead link makes them take their full timeout, and
+            // that used to be time IsConnected() spent blocking the dispatcher.
+            try
+            {
+                old.Disconnect();
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Warning($"TransmitterSFtp: disconnect failed, {e.Message}");
+            }
+            try
+            {
+                old.Dispose();
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Warning($"TransmitterSFtp: dispose failed, {e.Message}");
             }
         }
 
@@ -337,13 +368,29 @@ namespace _1RM.Model.Protocol.FileTransmit.Transmitters
                         }
                         connectionInfo.Timeout = TimeSpan.FromSeconds(CONNECT_TIMEOUT_SECONDS);
 
-                        _sftp = new SftpClient(connectionInfo);
-                        _sftp.OperationTimeout = TimeSpan.FromMinutes(OPERATION_TIMEOUT_MINUTES);
+                        var client = new SftpClient(connectionInfo);
+                        client.OperationTimeout = TimeSpan.FromMinutes(OPERATION_TIMEOUT_MINUTES);
                         // without this an idle session is dropped by NAT or the firewall and the failure only
                         // surfaces on the user's next action
-                        _sftp.KeepAliveInterval = TimeSpan.FromSeconds(KEEP_ALIVE_SECONDS);
-                        _sftp.HostKeyReceived += OnHostKeyReceived;
-                        _sftp.Connect();
+                        client.KeepAliveInterval = TimeSpan.FromSeconds(KEEP_ALIVE_SECONDS);
+                        client.HostKeyReceived += OnHostKeyReceived;
+                        try
+                        {
+                            client.Connect();
+                        }
+                        catch
+                        {
+                            // it never reached the field, so ReleaseSftp will not find it on the next attempt
+                            client.Dispose();
+                            throw;
+                        }
+
+                        // Published only once it is usable. Logging in is the slow part and it happens off
+                        // the lock; the field is set here so IsConnected() never sees a half-built client.
+                        lock (_lock)
+                        {
+                            _sftp = client;
+                        }
                     });
                 }
             });
