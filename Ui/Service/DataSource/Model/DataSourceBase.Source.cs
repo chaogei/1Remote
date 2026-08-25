@@ -51,11 +51,15 @@ namespace _1RM.Service.DataSource.Model
         /// Bumped under <see cref="_readLock"/> for every read that got its rows. Building the view models
         /// happens with the lock released, so two overlapping reads can finish out of order; the older one
         /// compares its ticket against this and drops its result rather than publishing stale rows.
+        /// Servers and credentials count separately, so a server read can not void a credential read.
         /// </summary>
         [JsonIgnore] private long _readGeneration;
+        [JsonIgnore] private long _credentialReadGeneration;
 
         /// <summary>
         /// Last time read servers from data source, in milliseconds since epoch.
+        /// Guarded by <see cref="_readLock"/>: the reload timer writes it from a pool thread while the
+        /// UI thread reads it, and Dictionary tolerates neither.
         /// </summary>
         [JsonIgnore] private readonly Dictionary<string, long> _lastReadTimestamp = new Dictionary<string, long>();
 
@@ -66,10 +70,14 @@ namespace _1RM.Service.DataSource.Model
         /// <param name="tableName"></param>
         public bool NeedRead(string tableName)
         {
-            if (!_lastReadTimestamp.ContainsKey(tableName) || _lastReadTimestamp[tableName] <= 0)
+            long lastRead;
+            lock (_readLock)
             {
-                SimpleLogHelper.Debug($"Check NeedRead of [{DataSourceName}] = RAM 0 < DB any = True");
-                return true;
+                if (!_lastReadTimestamp.TryGetValue(tableName, out lastRead) || lastRead <= 0)
+                {
+                    SimpleLogHelper.Debug($"Check NeedRead of [{DataSourceName}] = RAM 0 < DB any = True");
+                    return true;
+                }
             }
 
 
@@ -88,24 +96,28 @@ namespace _1RM.Service.DataSource.Model
                 return true;
             }
 
+            // The round-trip stays outside the lock, the snapshot taken above is what we compare against.
             var dataBase = GetDataBase();
             var ret = dataBase.GetTableUpdateTimestamp(tableName);
             if (!ret.IsSuccess)
             {
-                SimpleLogHelper.Debug($"Check NeedRead of [{DataSourceName}] = RAM {_lastReadTimestamp[tableName]} < DB {ret.Result} = {_lastReadTimestamp[tableName] < ret.Result}");
+                SimpleLogHelper.Debug($"Check NeedRead of [{DataSourceName}] = RAM {lastRead} < DB {ret.Result} = {lastRead < ret.Result}");
                 SetStatus(false);
             }
             else
             {
                 // read data source update timestamp，and compare with last read timestamp. if 
-                return _lastReadTimestamp[tableName] < ret.Result;
+                return lastRead < ret.Result;
             }
             return true;
         }
 
         public void ClearReadTimestamp()
         {
-            _lastReadTimestamp.Clear();
+            lock (_readLock)
+            {
+                _lastReadTimestamp.Clear();
+            }
         }
 
         /// <summary>
@@ -124,13 +136,9 @@ namespace _1RM.Service.DataSource.Model
             {
                 timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             }
-            if (_lastReadTimestamp.ContainsKey(tableName))
+            lock (_readLock)
             {
                 _lastReadTimestamp[tableName] = timestamp;
-            }
-            else
-            {
-                _lastReadTimestamp.Add(tableName, timestamp);
             }
         }
 
@@ -528,16 +536,29 @@ namespace _1RM.Service.DataSource.Model
             {
                 return CachedCredentials;
             }
+            // Same shape as GetServers: the database round-trip stays outside the cache lock so a
+            // UI-thread reader is not stuck behind a slow MySQL / network SQLite query, and each read
+            // takes a generation ticket so an overlapping older read can not publish stale rows.
+            var result = GetDataBase().GetCredentials();
+            if (!result.IsSuccess)
+                return CachedCredentials;
+
+            long generation;
             lock (_readLock)
             {
-                var result = GetDataBase().GetCredentials();
-                if (result.IsSuccess)
+                SetReadTimestamp(TableCredential.TABLE_NAME);
+                generation = ++_credentialReadGeneration;
+            }
+
+            foreach (var credential in result.Items)
+            {
+                credential.DataSource = this;
+            }
+
+            lock (_readLock)
+            {
+                if (generation == _credentialReadGeneration)
                 {
-                    SetReadTimestamp(TableCredential.TABLE_NAME);
-                    foreach (var credential in result.Items)
-                    {
-                        credential.DataSource = this;
-                    }
                     CachedCredentials = result.Items;
                     SetStatus(true);
                 }
