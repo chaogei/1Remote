@@ -5,10 +5,12 @@
                     xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
                     xmlns:theme="clr-namespace:_1RM.Utils.Theme">
 
-    <!-- Merged so the ComboBoxTemplate copy at the bottom can reach ComboBoxToggleButton and ControlBase:
+    <!-- Merged so the copies below can reach the keys they build on — ComboBoxTemplate needs
+         ComboBoxToggleButton and ControlBase, the caption button styles need ButtonBarPrimaryStyle:
          a StaticResource inside a dictionary is resolved against that dictionary, not the application. -->
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/ComboBoxStyle.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/ButtonStyle.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!--
@@ -300,6 +302,41 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+
+    <!-- ===== window caption buttons =====
+         The minimise / maximise / close cluster is drawn by us, not by the OS (UseAeroCaptionButtons is
+         False and CaptionHeight is 0), and it used to take ButtonBarPrimaryStyle as-is. That style paints
+         PrimaryMidBrush at rest and PrimaryLightBrush on hover, both fully opaque. Before the frosted
+         chrome that was invisible, because the title bar was PrimaryMid too; now the strip is
+         GlassPanelBrush over the DWM blur, so three opaque rectangles punched a solid slab through the
+         glass in the top right corner — on every palette, since PrimaryMid is what every theme defines.
+
+         So: transparent at rest, which lets the one tint the title bar already applies show through
+         instead of stacking a second translucent layer on top of it, and Layer* overlays for the
+         interactive states. Those are the foreground colour at a low alpha (see ThemeService.
+         ApplyGlassLayers), which darkens a light theme and lightens a dark one, so a single pair of keys
+         stays visible either way.
+
+         BasedOn rather than a fresh template on purpose: ButtonBarPrimaryStyle's template already reads
+         its fills from Background and the VisionElement attached properties, so the call sites that
+         override those per button — the close buttons and their red hover — keep working untouched. -->
+    <Style x:Key="WindowCaptionButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource LayerHoverBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource LayerSelectedBrush}" />
+        <!-- the inherited 0.8 would fade the pressed fill back down to roughly the hover one, and dim the
+             glyph with it; the deeper Layer brush is the whole press affordance here -->
+        <Setter Property="attachProperty:VisionElement.OpacityOnMouseDown" Value="1" />
+    </Style>
+
+    <!-- Windows' own close-button red, kept because it is the one caption affordance users read by colour.
+         Idle stays transparent like its neighbours; only hover and press light up. -->
+    <Style x:Key="WindowCaptionCloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WindowCaptionButtonStyle}">
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="White" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="#E81123" />
+        <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="White" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="#C4101E" />
+    </Style>
 
     <!-- ===== Modern Acrylic / Glass Button Styles ===== -->
     <Style x:Key="GlassGhostButtonStyle" TargetType="Button">
