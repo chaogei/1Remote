@@ -188,6 +188,41 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- Terminal session recording -->
+                        <Grid Style="{StaticResource GridOneRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="GeneralCol1"></ColumnDefinition>
+                                <ColumnDefinition MinWidth="260" SharedSizeGroup="GeneralCol2"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Width="160" />
+                            <StackPanel Grid.Column="1">
+                                <CheckBox IsChecked="{Binding RecordTerminalSessions, Mode=TwoWay}"
+                                          Content="{DynamicResource session_log_enable}"
+                                          VerticalAlignment="Center" />
+                                <TextBlock Margin="24 4 0 0" MaxWidth="420" TextWrapping="Wrap"
+                                           Opacity="0.65" LineHeight="17"
+                                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                           Text="{DynamicResource session_log_enable_hint}" />
+                                <StackPanel Orientation="Horizontal" Margin="24 8 0 0"
+                                            Visibility="{Binding SessionLogFolderVisibility}">
+                                    <TextBox Width="250" Height="26"
+                                             VerticalContentAlignment="Center"
+                                             IsReadOnly="True"
+                                             ToolTip="{Binding SessionLogFolder}"
+                                             Text="{Binding SessionLogFolder, Mode=OneWay}" />
+                                    <Button Height="26" MinWidth="34" Margin="8 0 0 0"
+                                            Style="{StaticResource GlassGhostButtonStyle}"
+                                            Command="{Binding CmdSelectSessionLogFolder}"
+                                            Content="..." />
+                                    <Button Height="26" MinWidth="80" Margin="8 0 0 0"
+                                            Style="{StaticResource GlassGhostButtonStyle}"
+                                            Command="{Binding CmdOpenSessionLogFolder}"
+                                            Content="{DynamicResource session_log_open_folder}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
                         <!-- Session icon in window -->
                         <Grid Style="{StaticResource GridOneRow}">
                             <Grid.ColumnDefinitions>

@@ -121,6 +121,72 @@ namespace _1RM.View.Settings.General
             }
         }
 
+        public bool RecordTerminalSessions
+        {
+            get => _configurationService.General.RecordTerminalSessions;
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _configurationService.General.RecordTerminalSessions, value))
+                {
+                    _configurationService.Save();
+                    RaisePropertyChanged(nameof(SessionLogFolderVisibility));
+                }
+            }
+        }
+
+        public Visibility SessionLogFolderVisibility =>
+            RecordTerminalSessions ? Visibility.Visible : Visibility.Collapsed;
+
+        /// <summary>Shows the effective folder even when none was chosen, so the path is never a mystery.</summary>
+        public string SessionLogFolder
+        {
+            get => string.IsNullOrWhiteSpace(_configurationService.General.SessionLogFolder)
+                ? AppPathHelper.Instance.SessionLogDirPath
+                : _configurationService.General.SessionLogFolder;
+            set
+            {
+                var folder = (value ?? "").Trim();
+                // Storing the default as empty keeps a portable install portable: the folder follows the
+                // app instead of being pinned to wherever it happened to live when this was set.
+                if (string.Equals(folder, AppPathHelper.Instance.SessionLogDirPath, StringComparison.OrdinalIgnoreCase))
+                    folder = "";
+                if (SetAndNotifyIfChanged(ref _configurationService.General.SessionLogFolder, folder))
+                {
+                    _configurationService.Save();
+                    RaisePropertyChanged(nameof(SessionLogFolder));
+                }
+            }
+        }
+
+        private RelayCommand? _cmdSelectSessionLogFolder;
+        public RelayCommand CmdSelectSessionLogFolder => _cmdSelectSessionLogFolder ??= new RelayCommand(_ =>
+        {
+            using var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = IoC.Translate("session_log_folder"),
+                UseDescriptionForTitle = true,
+                SelectedPath = SessionLogFolder,
+                ShowNewFolderButton = true,
+            };
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            SessionLogFolder = dialog.SelectedPath;
+        });
+
+        private RelayCommand? _cmdOpenSessionLogFolder;
+        public RelayCommand CmdOpenSessionLogFolder => _cmdOpenSessionLogFolder ??= new RelayCommand(_ =>
+        {
+            try
+            {
+                var folder = SessionLogFolder;
+                AppPathHelper.CreateDirIfNotExist(folder, isFile: false);
+                Process.Start("explorer.exe", folder);
+            }
+            catch (Exception e)
+            {
+                UnifyTracing.Error(e);
+            }
+        });
+
 
         public bool ShowSessionIconInSessionWindow
         {

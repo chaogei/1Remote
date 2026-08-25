@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:_1RM.View.Settings.Backup"
+             xmlns:controls="clr-namespace:_1RM.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:BackupSettingViewModel}"
              d:DesignHeight="620" d:DesignWidth="900">
@@ -33,6 +34,88 @@
                 <TextBlock Margin="20 24 20 0" TextWrapping="Wrap" Opacity="0.7"
                            FontSize="{DynamicResource GlobalFontSizeSmall}"
                            Text="{DynamicResource backup_scope_hint}" />
+
+                <!-- Off-machine copy -->
+                <Border Margin="20 24 20 0"
+                        Background="{DynamicResource LayerFillBrush}"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource CardCornerRadius}"
+                        Padding="20 16"
+                        HorizontalAlignment="Left"
+                        MaxWidth="700">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 6">
+                            <Path Data="{StaticResource GeometryNetwork}"
+                                  Width="15" Height="15" Stretch="Uniform"
+                                  UseLayoutRounding="True"
+                                  Fill="{DynamicResource AccentMidBrush}"
+                                  VerticalAlignment="Center" Margin="0 0 8 0" />
+                            <TextBlock Text="{DynamicResource webdav_title}"
+                                       FontWeight="SemiBold"
+                                       FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Margin="23 0 0 14" TextWrapping="Wrap" Opacity="0.7"
+                                   LineHeight="18"
+                                   FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                   Foreground="{DynamicResource BackgroundTextBrush}"
+                                   Text="{DynamicResource webdav_hint}" />
+
+                        <Grid Style="{StaticResource EditorRowGrid}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource webdav_url}" />
+                                <TextBox MinWidth="380" HorizontalAlignment="Left"
+                                         Text="{Binding WebDav.Url, UpdateSourceTrigger=PropertyChanged}"
+                                         Tag="https://cloud.example.com/remote.php/dav/files/me/1Remote/" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource EditorRowGrid}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource User}" />
+                                <TextBox MinWidth="220" HorizontalAlignment="Left"
+                                         Text="{Binding WebDav.UserName, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource EditorRowGrid}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Password}" />
+                                <controls:PasswordInput Height="28" Width="220" HorizontalAlignment="Left"
+                                                        Password="{Binding WebDav.Password, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Height="28" MinWidth="80" Margin="10 0 0 0"
+                                        Style="{StaticResource GlassGhostButtonStyle}"
+                                        Command="{Binding CmdSaveWebDav}"
+                                        Content="{DynamicResource Save}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Visibility="{Binding WebDavActionsVisibility}">
+                            <StackPanel Orientation="Horizontal" Margin="0 14 0 0">
+                                <Button MinWidth="150" Height="30" Margin="0 0 10 0"
+                                        Style="{StaticResource GlassAccentButtonStyle}"
+                                        Command="{Binding CmdWebDavUpload}"
+                                        Content="{DynamicResource webdav_upload}" />
+                                <Button MinWidth="110" Height="30" Margin="0 0 10 0"
+                                        Style="{StaticResource GlassGhostButtonStyle}"
+                                        Command="{Binding CmdWebDavRefresh}"
+                                        Content="{DynamicResource webdav_refresh}" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Margin="0 12 0 0">
+                                <ComboBox MinWidth="330" Height="28" HorizontalAlignment="Left"
+                                          ItemsSource="{Binding RemoteBackups}"
+                                          SelectedItem="{Binding SelectedRemoteBackup}" />
+                                <Button MinWidth="150" Height="28" Margin="10 0 0 0"
+                                        Style="{StaticResource GlassGhostButtonStyle}"
+                                        Command="{Binding CmdWebDavRestore}"
+                                        Content="{DynamicResource webdav_restore}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>

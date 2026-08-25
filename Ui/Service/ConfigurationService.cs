@@ -1,4 +1,5 @@
 using _1RM.Model;
+using _1RM.Service.Backup;
 using _1RM.Service.DataSource;
 using _1RM.Service.DataSource.Model;
 using _1RM.Utils;
@@ -81,6 +82,17 @@ namespace _1RM.Service
         [DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int ServerReachabilityIntervalSeconds = 60;
+
+        /// <summary>
+        /// Write everything a terminal session prints to a file. Off by default: a session log holds
+        /// whatever crossed the screen, which regularly includes output nobody meant to keep.
+        /// </summary>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool RecordTerminalSessions = false;
+
+        /// <summary>Empty means <see cref="AppPathHelper.SessionLogDirPath"/>.</summary>
+        public string SessionLogFolder = "";
 
         public int LogLevel = (int)SimpleLogHelper.EnumLogLevel.Warning;
         #endregion
@@ -238,6 +250,8 @@ namespace _1RM.Service
         /// Saved commands, offered when sending text into running terminal sessions.
         /// </summary>
         public List<CommandSnippet> CommandSnippets { get; set; } = new List<CommandSnippet>();
+        /// <summary>Optional off-machine destination for backups.</summary>
+        public WebDavConfig WebDav { get; set; } = new WebDavConfig();
         public static Configuration? Load(string path)
         {
             var tmp = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText(path));
@@ -286,6 +300,7 @@ namespace _1RM.Service
         public List<ProxyConfig> Proxies => _cfg.Proxies;
         public List<PortForwardConfig> PortForwards => _cfg.PortForwards;
         public List<CommandSnippet> CommandSnippets => _cfg.CommandSnippets;
+        public WebDavConfig WebDav => _cfg.WebDav;
         /// <summary>
         /// Tags that show on the tab bar of the main window
         /// </summary>
