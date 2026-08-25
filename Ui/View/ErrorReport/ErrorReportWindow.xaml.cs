@@ -171,25 +171,7 @@ namespace _1RM.View.ErrorReport
         {
             try
             {
-                HyperlinkHelper.OpenUriBySystem("https://github.com/1Remote/1Remote/issues");
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        private void ButtonSendByEmail_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                string mailto = string.Format("mailto:{0}?Subject={1}&Body={2}", "veckshawn@gmail.com", $"{Assert.APP_DISPLAY_NAME} error report.", "");
-#pragma warning disable CS0618
-#pragma warning disable SYSLIB0013 // 类型或成员已过时
-                mailto = Uri.EscapeUriString(mailto);
-#pragma warning restore SYSLIB0013 // 类型或成员已过时
-#pragma warning restore CS0618
-                HyperlinkHelper.OpenUriBySystem(mailto);
+                HyperlinkHelper.OpenUriBySystem("https://github.com/chaogei/1Remote/issues");
             }
             catch
             {

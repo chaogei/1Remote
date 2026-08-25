@@ -19,28 +19,24 @@ namespace _1RM
             string.IsNullOrEmpty(PreRelease)
                 ? new[]
                 {
-                    "https://1remote.github.io/download/",
-                    "https://github.com/1Remote/1Remote",
+                    // The "latest" page resolves to the newest non-prerelease, so a stable build never
+                    // gets nagged about a beta tag.
+                    "https://github.com/chaogei/1Remote/releases/latest",
                 }
                 : new[]
                 {
-                    "https://github.com/1Remote/1Remote/releases/expanded_assets/Nightly",
-                    "https://1remote.github.io/download/",
-                    "https://github.com/1Remote/1Remote",
+                    "https://github.com/chaogei/1Remote/releases",
                 };
 
         public static string[] UpdatePublishUrls =>
             string.IsNullOrEmpty(PreRelease)
                 ? new[]
                 {
-                    "https://1remote.github.io/download/",
-                    "https://github.com/1Remote/1Remote",
+                    "https://github.com/chaogei/1Remote/releases/latest",
                 }
                 : new[]
                 {
-                    "https://github.com/1Remote/1Remote/releases/tag/Nightly",
-                    "https://1remote.github.io/download/",
-                    "https://github.com/1Remote/1Remote",
+                    "https://github.com/chaogei/1Remote/releases",
                 };
     }
 }

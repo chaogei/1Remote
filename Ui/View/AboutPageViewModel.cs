@@ -66,6 +66,9 @@ namespace _1RM.View
 
             var patterns = new List<string>()
             {
+                // The releases index only carries tag links; asset names are loaded lazily and are
+                // absent from its HTML, so the tag is the only version marker available there.
+                @"/releases/tag/v?(\d+(?:\.\d+)+(?:-[a-z0-9.]+)?)",
                 @".?1remote-([\d|\.]*.*)-net",
                 @".?latest\sversion:\s*([\d|.]*)",
             };
