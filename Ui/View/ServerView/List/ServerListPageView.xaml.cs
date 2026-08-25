@@ -462,12 +462,12 @@ namespace _1RM.View.ServerView
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length == 3
+            // the pinned marker is drawn as a Path next to this text, not folded into it
+            if (values.Length == 2
                 && values[0] is string tagName
-                && values[1] is int count
-                && values[2] is bool isPinned)
+                && values[1] is int count)
             {
-                return isPinned ? $"📌 {tagName} ({count})" : $"{tagName} ({count})";
+                return $"{tagName} ({count})";
             }
             return values[0];
         }

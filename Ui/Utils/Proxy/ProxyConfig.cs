@@ -19,14 +19,26 @@ namespace _1RM.Utils.Proxy
         public string Name
         {
             get => _name;
-            set => SetAndNotifyIfChanged(ref _name, value.Length > 64 ? value.Substring(0, 64) : value);
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _name, value.Length > 64 ? value.Substring(0, 64) : value))
+                {
+                    RaisePropertyChanged(nameof(Summary));
+                }
+            }
         }
 
         private EProxyType _type = EProxyType.Socks5;
         public EProxyType Type
         {
             get => _type;
-            set => SetAndNotifyIfChanged(ref _type, value);
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _type, value))
+                {
+                    RaisePropertyChanged(nameof(Summary));
+                }
+            }
         }
 
         private string _address = "";
@@ -37,15 +49,35 @@ namespace _1RM.Utils.Proxy
         public string Address
         {
             get => _address;
-            set => SetAndNotifyIfChanged(ref _address, value?.Trim() ?? "");
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _address, value?.Trim() ?? ""))
+                {
+                    RaisePropertyChanged(nameof(Summary));
+                }
+            }
         }
 
         private int _port = 1080;
         public int Port
         {
             get => _port;
-            set => SetAndNotifyIfChanged(ref _port, value);
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _port, value))
+                {
+                    RaisePropertyChanged(nameof(Summary));
+                }
+            }
         }
+
+        /// <summary>
+        /// A short formatted summary for UI lists (e.g. "Socks5 · 127.0.0.1:1080").
+        /// </summary>
+        [JsonIgnore]
+        public string Summary => string.IsNullOrWhiteSpace(Address)
+            ? Type.ToString()
+            : $"{Type} · {Address}:{Port}";
 
         private string _userName = "";
         public string UserName

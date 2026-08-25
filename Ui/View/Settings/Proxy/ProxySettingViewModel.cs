@@ -43,11 +43,15 @@ namespace _1RM.View.Settings.Proxy
             {
                 if (!SetAndNotifyIfChanged(ref _selectedProxy, value)) return;
                 TestResult = "";
+                IsTestSuccess = false;
+                IsTestFailed = false;
                 RaisePropertyChanged(nameof(EditorVisibility));
+                RaisePropertyChanged(nameof(EmptyPlaceholderVisibility));
             }
         }
 
         public Visibility EditorVisibility => SelectedProxy == null ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility EmptyPlaceholderVisibility => SelectedProxy == null ? Visibility.Visible : Visibility.Collapsed;
 
         private string _testTarget = "";
         /// <summary>
@@ -63,7 +67,28 @@ namespace _1RM.View.Settings.Proxy
         public string TestResult
         {
             get => _testResult;
-            private set => SetAndNotifyIfChanged(ref _testResult, value);
+            private set
+            {
+                if (SetAndNotifyIfChanged(ref _testResult, value))
+                    RaisePropertyChanged(nameof(HasTestResult));
+            }
+        }
+
+        /// <summary>Whether the result badge has anything to show.</summary>
+        public bool HasTestResult => !string.IsNullOrEmpty(TestResult);
+
+        private bool _isTestSuccess;
+        public bool IsTestSuccess
+        {
+            get => _isTestSuccess;
+            private set => SetAndNotifyIfChanged(ref _isTestSuccess, value);
+        }
+
+        private bool _isTestFailed;
+        public bool IsTestFailed
+        {
+            get => _isTestFailed;
+            private set => SetAndNotifyIfChanged(ref _isTestFailed, value);
         }
 
         private bool _isTesting;
@@ -150,18 +175,31 @@ namespace _1RM.View.Settings.Proxy
             }
 
             IsTesting = true;
+            IsTestSuccess = false;
+            IsTestFailed = false;
             TestResult = IoC.Translate("proxy_testing");
             try
             {
                 var result = await ProxyTester.TestAsync(proxy, host, port);
-                TestResult = result.IsSuccess
-                    ? $"{IoC.Translate("proxy_test_ok")} ({result.ElapsedMilliseconds} ms)"
-                    : $"{IoC.Translate("proxy_test_failed")}: {result.Message}";
+                if (result.IsSuccess)
+                {
+                    IsTestSuccess = true;
+                    IsTestFailed = false;
+                    TestResult = $"{IoC.Translate("proxy_test_ok")} ({result.ElapsedMilliseconds} ms)";
+                }
+                else
+                {
+                    IsTestSuccess = false;
+                    IsTestFailed = true;
+                    TestResult = $"{IoC.Translate("proxy_test_failed")}: {result.Message}";
+                }
             }
             catch (Exception e)
             {
                 // the command body is async void, an escaping exception would take the process down
                 SimpleLogHelper.Error(e);
+                IsTestSuccess = false;
+                IsTestFailed = true;
                 TestResult = $"{IoC.Translate("proxy_test_failed")}: {e.Message}";
             }
             finally

@@ -4,141 +4,446 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:_1RM.View.Settings.Proxy"
+             xmlns:proxy="clr-namespace:_1RM.Utils.Proxy"
              xmlns:controls="clr-namespace:_1RM.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:ProxySettingViewModel}"
-             d:DesignHeight="620" d:DesignWidth="900">
+             d:DesignHeight="680" d:DesignWidth="920">
+
+    <UserControl.Resources>
+        <!-- Custom ListBoxItem for Proxy List with smooth hover and indicator pill -->
+        <Style x:Key="ProxyListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Margin" Value="0 2" />
+            <Setter Property="Padding" Value="10 8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderThickness="1"
+                                BorderBrush="Transparent"
+                                CornerRadius="{DynamicResource DefaultCornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Border x:Name="SelectedIndicator"
+                                        Width="3" Height="18"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        CornerRadius="1.5"
+                                        Background="{DynamicResource AccentMidBrush}"
+                                        Margin="-7 0 0 0"
+                                        Opacity="0" />
+                                <ContentPresenter />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerSelectedBrush}" />
+                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource CardStrokeBrush}" />
+                                <Setter Property="Opacity" TargetName="SelectedIndicator" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="Transparent">
-        <ScrollViewer>
-            <StackPanel Margin="0 0 0 20">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0 0 0 24">
 
-                <TextBlock Text="{DynamicResource proxy_title}" Style="{StaticResource BlockTitleColumn}" />
+                <!-- Page Header -->
+                <TextBlock Text="{DynamicResource proxy_title}" Style="{StaticResource BlockTitleColumn}" Margin="20 16 20 4" />
 
-                <TextBlock Margin="20 0 20 10" TextWrapping="Wrap" Opacity="0.7"
+                <TextBlock Margin="20 0 20 16" TextWrapping="Wrap" Opacity="0.75"
                            FontSize="{DynamicResource GlobalFontSizeSmall}"
+                           LineHeight="18"
                            Text="{DynamicResource proxy_page_hint}" />
 
-                <!-- proxy list + actions -->
-                <Grid Margin="20 6 20 0">
+                <!-- Main 2-Column Content -->
+                <Grid Margin="20 0 20 0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="260" />
+                        <ColumnDefinition Width="280" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0 0 16 0">
-                        <ListBox MinHeight="240" MaxHeight="360"
-                                 Background="Transparent"
-                                 ItemsSource="{Binding Proxies}"
-                                 SelectedItem="{Binding SelectedProxy}"
-                                 DisplayMemberPath="Name" />
-                        <StackPanel Orientation="Horizontal" Margin="0 8 0 0">
-                            <Button MinWidth="80" Height="28" Margin="0 0 8 0"
-                                    Command="{Binding CmdAdd}"
-                                    Content="{DynamicResource Add}" />
-                            <Button MinWidth="80" Height="28"
-                                    Command="{Binding CmdRemove}"
-                                    Content="{DynamicResource Delete}" />
+                    <!-- Left Column: Proxy List Card -->
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource LayerFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource CardCornerRadius}"
+                            Padding="12"
+                            Margin="0 0 16 0"
+                            VerticalAlignment="Top">
+                        <StackPanel>
+                            <!-- List Header -->
+                            <Grid Margin="4 2 4 10">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource GeometryNetwork}"
+                                          Width="15" Height="15" Stretch="Uniform"
+                                          UseLayoutRounding="True"
+                                          Fill="{DynamicResource AccentMidBrush}"
+                                          VerticalAlignment="Center"
+                                          Margin="0 0 8 0" />
+                                    <TextBlock Text="{DynamicResource proxy_title}"
+                                               FontWeight="SemiBold"
+                                               FontSize="{DynamicResource GlobalFontSizeBody}"
+                                               Foreground="{DynamicResource BackgroundTextBrush}"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding Proxies.Count, StringFormat='{}{0}'}"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                           Opacity="0.6"
+                                           Foreground="{DynamicResource BackgroundTextBrush}" />
+                            </Grid>
+
+                            <!-- Proxy Items List -->
+                            <ListBox MinHeight="260" MaxHeight="400"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     ItemsSource="{Binding Proxies}"
+                                     SelectedItem="{Binding SelectedProxy}"
+                                     ItemContainerStyle="{StaticResource ProxyListBoxItemStyle}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type proxy:ProxyConfig}">
+                                        <Grid Margin="2 0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Proxy Icon Badge -->
+                                            <Border Grid.Column="0"
+                                                    Width="30" Height="30"
+                                                    CornerRadius="6"
+                                                    Background="{DynamicResource ContentLayerFillBrush}"
+                                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                                                    BorderThickness="1"
+                                                    Margin="0 0 10 0"
+                                                    VerticalAlignment="Center">
+                                                <Path Data="{StaticResource GeometryNetwork}"
+                                                      Width="15" Height="15" Stretch="Uniform"
+                                                      UseLayoutRounding="True"
+                                                      Fill="{DynamicResource AccentMidBrush}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                            </Border>
+                                            <!-- Proxy Info -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="{DynamicResource GlobalFontSizeBody}"
+                                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Summary}"
+                                                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                                           Opacity="0.65"
+                                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                                           Margin="0 2 0 0"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- List Action Buttons -->
+                            <Grid Margin="0 12 0 0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0"
+                                        Style="{StaticResource GlassGhostButtonStyle}"
+                                        Command="{Binding CmdAdd}"
+                                        Margin="0 0 6 0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource GeometryCross}"
+                                              Width="11" Height="11" Stretch="Uniform"
+                                              UseLayoutRounding="True"
+                                              Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                              Margin="0 0 6 0"
+                                              VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Add}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource GlassDangerButtonStyle}"
+                                        Command="{Binding CmdRemove}"
+                                        MinWidth="42"
+                                        ToolTip="{DynamicResource Delete}">
+                                    <Path Data="{StaticResource GeometryDelete}"
+                                          Width="13" Height="13" Stretch="Uniform"
+                                          UseLayoutRounding="True"
+                                          Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                          VerticalAlignment="Center" />
+                                </Button>
+                            </Grid>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
 
-                    <!-- editor for the selected proxy -->
-                    <StackPanel Grid.Column="1" Visibility="{Binding EditorVisibility}">
-
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Name}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="240" HorizontalAlignment="Left"
-                                             Text="{Binding SelectedProxy.Name, UpdateSourceTrigger=PropertyChanged}" />
-                                </Grid>
+                    <!-- Right Column: Detail Editor & Test Cards -->
+                    <Grid Grid.Column="1">
+                        <!-- Placeholder when no proxy selected -->
+                        <Border Visibility="{Binding EmptyPlaceholderVisibility}"
+                                Background="{DynamicResource LayerFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource CardCornerRadius}"
+                                Padding="30"
+                                MinHeight="360">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.6">
+                                <Path Data="{StaticResource GeometryNetwork}"
+                                      Width="46" Height="46" Stretch="Uniform"
+                                      Fill="{DynamicResource BackgroundTextBrush}"
+                                      HorizontalAlignment="Center"
+                                      Margin="0 0 0 14" />
+                                <TextBlock Text="{DynamicResource proxy_page_hint}"
+                                           TextWrapping="Wrap"
+                                           MaxWidth="320"
+                                           TextAlignment="Center"
+                                           FontSize="{DynamicResource GlobalFontSizeBody}" />
                             </StackPanel>
-                        </Grid>
+                        </Border>
 
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource proxy_type}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <ComboBox MinWidth="240" HorizontalAlignment="Left"
-                                              ItemsSource="{Binding ProxyTypes}"
-                                              SelectedItem="{Binding SelectedProxy.Type}" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                        <!-- Editor Panel -->
+                        <StackPanel Visibility="{Binding EditorVisibility}">
+                            <!-- Card 1: Configuration Details -->
+                            <Border Background="{DynamicResource LayerFillBrush}"
+                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{DynamicResource CardCornerRadius}"
+                                    Padding="22 18">
+                                <StackPanel>
+                                    <!-- Card Title -->
+                                    <StackPanel Orientation="Horizontal" Margin="0 0 0 16">
+                                        <Path Data="{StaticResource GeometryGear}"
+                                              Width="15" Height="15" Stretch="Uniform"
+                                              UseLayoutRounding="True"
+                                              Fill="{DynamicResource AccentMidBrush}"
+                                              VerticalAlignment="Center"
+                                              Margin="0 0 8 0" />
+                                        <TextBlock Text="{DynamicResource Name}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                                   Foreground="{DynamicResource BackgroundTextBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
 
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Hostname}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="200"
-                                             Text="{Binding SelectedProxy.Address, UpdateSourceTrigger=PropertyChanged}"
-                                             Tag="e.g. 127.0.0.1" />
-                                </Grid>
-                                <TextBlock Style="{StaticResource EditorRowGridTitleFollowing}" Width="60" Text="{DynamicResource Port}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="60" HorizontalAlignment="Left"
-                                             InputMethod.IsInputMethodEnabled="False"
-                                             InputScope="Number"
-                                             Text="{Binding SelectedProxy.Port, UpdateSourceTrigger=PropertyChanged}" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                                    <!-- Name -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Name}" />
+                                            <Grid Style="{StaticResource EditorRowGridInput}">
+                                                <TextBox MinWidth="260" HorizontalAlignment="Left"
+                                                         Text="{Binding SelectedProxy.Name, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource User}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="240" HorizontalAlignment="Left"
-                                             Text="{Binding SelectedProxy.UserName, UpdateSourceTrigger=PropertyChanged}" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                                    <!-- Proxy Type -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource proxy_type}" />
+                                            <Grid Style="{StaticResource EditorRowGridInput}">
+                                                <ComboBox MinWidth="260" HorizontalAlignment="Left"
+                                                          ItemsSource="{Binding ProxyTypes}"
+                                                          SelectedItem="{Binding SelectedProxy.Type}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Password}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <controls:PasswordInput Height="28" Width="240" HorizontalAlignment="Left"
-                                                            Password="{Binding SelectedProxy.Password, UpdateSourceTrigger=PropertyChanged}" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                                    <!-- Host & Port (Side by Side) -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Hostname}" />
+                                            <TextBox MinWidth="195" HorizontalAlignment="Left"
+                                                     Text="{Binding SelectedProxy.Address, UpdateSourceTrigger=PropertyChanged}"
+                                                     Tag="e.g. 127.0.0.1" />
+                                            <TextBlock Text="{DynamicResource Port}"
+                                                       Style="{StaticResource EditorRowGridTitleFollowing}"
+                                                       Width="Auto"
+                                                       Margin="12 0 10 0"
+                                                       VerticalAlignment="Center" />
+                                            <TextBox MinWidth="75" Width="75" HorizontalAlignment="Left"
+                                                     InputMethod.IsInputMethodEnabled="False"
+                                                     InputScope="Number"
+                                                     Text="{Binding SelectedProxy.Port, UpdateSourceTrigger=PropertyChanged}"
+                                                     Tag="1080" />
+                                        </StackPanel>
+                                    </Grid>
 
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <CheckBox Margin="0 5 0 0"
-                                              IsChecked="{Binding SelectedProxy.BypassForLocalAddress}"
-                                              Content="{DynamicResource proxy_bypass_local}" />
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                                    <!-- UserName -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource User}" />
+                                            <Grid Style="{StaticResource EditorRowGridInput}">
+                                                <TextBox MinWidth="260" HorizontalAlignment="Left"
+                                                         Text="{Binding SelectedProxy.UserName, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <!-- connectivity check -->
-                        <Grid Style="{StaticResource EditorRowGrid}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource proxy_test}" />
-                                <Grid Style="{StaticResource EditorRowGridInput}">
-                                    <TextBox MinWidth="200"
-                                             Text="{Binding TestTarget, UpdateSourceTrigger=PropertyChanged}"
-                                             Tag="e.g. example.com:443" />
-                                </Grid>
-                                <Button MinWidth="90" Height="28" Margin="10 0 0 0"
-                                        Command="{Binding CmdTest}"
-                                        Content="{DynamicResource proxy_test_run}" />
-                            </StackPanel>
-                        </Grid>
+                                    <!-- Password -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource Password}" />
+                                            <Grid Style="{StaticResource EditorRowGridInput}">
+                                                <controls:PasswordInput Height="28" Width="260" HorizontalAlignment="Left"
+                                                                        Password="{Binding SelectedProxy.Password, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
 
-                        <TextBlock Margin="20 0 20 10" TextWrapping="Wrap"
-                                   FontSize="{DynamicResource GlobalFontSizeSmall}"
-                                   Text="{Binding TestResult}" />
+                                    <!-- Bypass local checkbox -->
+                                    <Grid Style="{StaticResource EditorRowGrid}" Margin="0 4 0 0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="" />
+                                            <CheckBox Margin="0 0 0 0"
+                                                      IsChecked="{Binding SelectedProxy.BypassForLocalAddress}"
+                                                      Content="{DynamicResource proxy_bypass_local}"
+                                                      VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
 
-                        <StackPanel Orientation="Horizontal" Margin="20 6 20 0">
-                            <Button MinWidth="90" Height="28"
-                                    Command="{Binding CmdSave}"
-                                    Content="{DynamicResource Save}" />
+                            <!-- Card 2: Connectivity Test Card -->
+                            <Border Background="{DynamicResource LayerFillBrush}"
+                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{DynamicResource CardCornerRadius}"
+                                    Padding="22 18"
+                                    Margin="0 14 0 0">
+                                <StackPanel>
+                                    <!-- Test Card Title -->
+                                    <StackPanel Orientation="Horizontal" Margin="0 0 0 14">
+                                        <Path Data="{StaticResource GeometryMagnifier}"
+                                              Width="15" Height="15" Stretch="Uniform"
+                                              UseLayoutRounding="True"
+                                              Fill="{DynamicResource AccentMidBrush}"
+                                              VerticalAlignment="Center"
+                                              Margin="0 0 8 0" />
+                                        <TextBlock Text="{DynamicResource proxy_test}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                                   Foreground="{DynamicResource BackgroundTextBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <!-- Test Input Row -->
+                                    <Grid Style="{StaticResource EditorRowGrid}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource proxy_test}" />
+                                            <TextBox MinWidth="200" HorizontalAlignment="Left"
+                                                     Text="{Binding TestTarget, UpdateSourceTrigger=PropertyChanged}"
+                                                     Tag="e.g. example.com:443" />
+                                            <Button Height="28" MinWidth="85" Margin="10 0 0 0"
+                                                    Style="{StaticResource GlassGhostButtonStyle}"
+                                                    Command="{Binding CmdTest}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Data="{StaticResource GeometryPlay}"
+                                                          Width="10" Height="10" Stretch="Uniform"
+                                                          UseLayoutRounding="True"
+                                                          Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                                          Margin="0 0 6 0"
+                                                          VerticalAlignment="Center" />
+                                                    <TextBlock Text="{DynamicResource proxy_test_run}" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Test Result Status Badge -->
+                                    <Grid Margin="180 2 0 0" Visibility="{Binding HasTestResult, Converter={StaticResource ConverterBool2Visible}}">
+                                        <Border CornerRadius="{DynamicResource DefaultCornerRadius}"
+                                                Padding="12 8"
+                                                HorizontalAlignment="Left"
+                                                MaxWidth="420">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsTestSuccess}" Value="True">
+                                                            <Setter Property="Background" Value="#2000CC66" />
+                                                            <Setter Property="BorderBrush" Value="#4000CC66" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsTestFailed}" Value="True">
+                                                            <Setter Property="Background" Value="#20FF3344" />
+                                                            <Setter Property="BorderBrush" Value="#40FF3344" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <!-- Status icon: the same hourglass / tick / cross the alternate
+                                                     address list uses, so a probe reads the same everywhere -->
+                                                <Path Width="13" Height="13" Stretch="Uniform"
+                                                      UseLayoutRounding="True"
+                                                      Margin="0 0 8 0"
+                                                      VerticalAlignment="Center">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Setter Property="Data" Value="{StaticResource GeometrySandClock}" />
+                                                            <Setter Property="Fill" Value="{DynamicResource AccentMidBrush}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsTestSuccess}" Value="True">
+                                                                    <Setter Property="Data" Value="{StaticResource GeometryHook}" />
+                                                                    <Setter Property="Fill" Value="#2ECC71" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding IsTestFailed}" Value="True">
+                                                                    <Setter Property="Data" Value="{StaticResource GeometryCloseCross}" />
+                                                                    <Setter Property="Fill" Value="#E74C3C" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                                <!-- Status Text -->
+                                                <TextBlock Text="{Binding TestResult}"
+                                                           TextWrapping="Wrap"
+                                                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Card 3: Action Bar (Save) -->
+                            <Grid Margin="0 18 0 0">
+                                <Button HorizontalAlignment="Right"
+                                        Style="{StaticResource GlassAccentButtonStyle}"
+                                        Command="{Binding CmdSave}"
+                                        MinWidth="120" Height="34">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="{StaticResource GeometrySave}"
+                                              Width="13" Height="13" Stretch="Uniform"
+                                              UseLayoutRounding="True"
+                                              Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                              Margin="0 0 8 0"
+                                              VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource Save}"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
