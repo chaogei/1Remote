@@ -244,7 +244,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
+          # Bare tag, no "Release " prefix: every release up to v1.3.0.9-beta was titled after its tag,
+          # because changelogithub renamed them on the way out. Now that it is gone, the title this step
+          # sets is the one that sticks, so it has to match.
+          release_name: ${{ github.ref_name }}
           body: ${{ steps.notes.outputs.body }}
           draft: false
           prerelease: false
@@ -377,7 +380,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
+          # see the note on StableRelease: the title has to match the tag-only titles of every release
+          # published while changelogithub was still overwriting them
+          release_name: ${{ github.ref_name }}
           body: ${{ steps.notes.outputs.body }}
           draft: false
           prerelease: true
