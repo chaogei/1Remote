@@ -76,8 +76,24 @@ namespace _1RM.View
             {
                 var mc = Regex.Matches(html, pattern, RegexOptions.IgnoreCase);
                 if (mc.Count <= 0) continue;
+
+                // GitHub orders the releases index by tag name as a string, so v1.3.0.10-beta lands
+                // between v1.3.0.2-beta and v1.3.0.1-beta rather than at the top. The first match on the
+                // page is therefore not the newest build; compare every match numerically and keep the
+                // highest one.
                 var versionString = mc[0].Groups[1].Value;
                 var releasedVersion = VersionHelper.Version.FromString(versionString);
+                for (var i = 1; i < mc.Count; i++)
+                {
+                    var candidateString = mc[i].Groups[1].Value;
+                    var candidate = VersionHelper.Version.FromString(candidateString);
+                    if (candidate > releasedVersion)
+                    {
+                        releasedVersion = candidate;
+                        versionString = candidateString;
+                    }
+                }
+
                 if (ignoreVersion is not null)
                 {
                     if (releasedVersion <= ignoreVersion)
