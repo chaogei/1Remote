@@ -495,8 +495,11 @@
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type GroupItem}">
                                                 <Grid>
+                                                    <!-- Transparent for the same reason the rows are: one group
+                                                         header per group covers the page, and an opaque fill
+                                                         here closes the glass back up. -->
                                                     <Expander IsExpanded="{Binding Items[0].GroupedIsExpanded, FallbackValue=False, TargetNullValue=False}"
-                                                              Background="{DynamicResource BackgroundBrush}" 
+                                                              Background="Transparent" 
                                                               Foreground="{DynamicResource BackgroundTextBrush}" 
                                                               Style="{StaticResource ExpanderWithAnEye}"
                                                               BorderThickness="0">

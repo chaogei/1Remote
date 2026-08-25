@@ -20,9 +20,11 @@
 
                 <StackPanel Orientation="Horizontal" Margin="20 10 20 0">
                     <Button MinWidth="140" Height="30" Margin="0 0 12 0"
+                            Style="{StaticResource GlassAccentButtonStyle}"
                             Command="{Binding CmdCreate}"
                             Content="{DynamicResource backup_create}" />
                     <Button MinWidth="140" Height="30"
+                            Style="{StaticResource GlassGhostButtonStyle}"
                             Command="{Binding CmdRestore}"
                             Content="{DynamicResource backup_restore}" />
                 </StackPanel>
