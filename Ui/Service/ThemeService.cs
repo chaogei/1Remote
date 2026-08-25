@@ -18,20 +18,8 @@ namespace _1RM.Service
         public ThemeService(ResourceDictionary appResourceDictionary, ThemeConfig defaultTheme)
         {
             _appResourceDictionary = appResourceDictionary;
-            Themes.Add("Light", new ThemeConfig()
-            {
-                ThemeName = "Light",
-                PrimaryMidColor = "#FFF2F3F5",
-                PrimaryLightColor = "#FFFFFFFF",
-                PrimaryDarkColor = "#FFE4E7EB",
-                PrimaryTextColor = "#FF232323",
-                AccentMidColor = "#FFE83D61",
-                AccentLightColor = "#FFED6884",
-                AccentDarkColor = "#FFB5304C",
-                AccentTextColor = "#FFFFFFFF",
-                BackgroundColor = "#FFFFFFFF",
-                BackgroundTextColor = "#000000",
-            });
+
+            // === Modern Frosted Glass / Acrylic Optimized Palettes ===
             Themes.Add("Dark", new ThemeConfig()
             {
                 ThemeName = "Dark",
@@ -45,6 +33,134 @@ namespace _1RM.Service
                 AccentTextColor = "#FFFFFFFF",
                 BackgroundColor = "#1e1e1e",
                 BackgroundTextColor = "#cccccc",
+            });
+            Themes.Add("Mica Slate", new ThemeConfig()
+            {
+                ThemeName = "Mica Slate",
+                PrimaryMidColor = "#20232A",
+                PrimaryLightColor = "#2C313B",
+                PrimaryDarkColor = "#181B20",
+                PrimaryTextColor = "#E1E4EA",
+                AccentMidColor = "#0078D4",
+                AccentLightColor = "#2B88D8",
+                AccentDarkColor = "#005A9E",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#16191E",
+                BackgroundTextColor = "#E1E4EA",
+            });
+            Themes.Add("Nord Frost", new ThemeConfig()
+            {
+                ThemeName = "Nord Frost",
+                PrimaryMidColor = "#2E3440",
+                PrimaryLightColor = "#3B4252",
+                PrimaryDarkColor = "#242933",
+                PrimaryTextColor = "#ECEFF4",
+                AccentMidColor = "#88C0D0",
+                AccentLightColor = "#8FBCBB",
+                AccentDarkColor = "#5E81AC",
+                AccentTextColor = "#242933",
+                BackgroundColor = "#242933",
+                BackgroundTextColor = "#ECEFF4",
+            });
+            Themes.Add("Tokyo Night", new ThemeConfig()
+            {
+                ThemeName = "Tokyo Night",
+                PrimaryMidColor = "#1F2335",
+                PrimaryLightColor = "#292E42",
+                PrimaryDarkColor = "#1A1B26",
+                PrimaryTextColor = "#C0CAF5",
+                AccentMidColor = "#7AA2F7",
+                AccentLightColor = "#BB9AF7",
+                AccentDarkColor = "#3D59A1",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#1A1B26",
+                BackgroundTextColor = "#C0CAF5",
+            });
+            Themes.Add("Catppuccin Mocha", new ThemeConfig()
+            {
+                ThemeName = "Catppuccin Mocha",
+                PrimaryMidColor = "#1E1E2E",
+                PrimaryLightColor = "#313244",
+                PrimaryDarkColor = "#181825",
+                PrimaryTextColor = "#CDD6F4",
+                AccentMidColor = "#CBA6F7",
+                AccentLightColor = "#F5C2E7",
+                AccentDarkColor = "#B4BEFE",
+                AccentTextColor = "#11111B",
+                BackgroundColor = "#181825",
+                BackgroundTextColor = "#CDD6F4",
+            });
+            Themes.Add("Emerald Glass", new ThemeConfig()
+            {
+                ThemeName = "Emerald Glass",
+                PrimaryMidColor = "#14231E",
+                PrimaryLightColor = "#1E352E",
+                PrimaryDarkColor = "#0D1714",
+                PrimaryTextColor = "#E2ECE8",
+                AccentMidColor = "#10B981",
+                AccentLightColor = "#34D399",
+                AccentDarkColor = "#059669",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#0D1714",
+                BackgroundTextColor = "#E2ECE8",
+            });
+            Themes.Add("Cyber Neon", new ThemeConfig()
+            {
+                ThemeName = "Cyber Neon",
+                PrimaryMidColor = "#181926",
+                PrimaryLightColor = "#24273A",
+                PrimaryDarkColor = "#12131D",
+                PrimaryTextColor = "#CAD3F5",
+                AccentMidColor = "#00E5FF",
+                AccentLightColor = "#70EFFF",
+                AccentDarkColor = "#00B4D8",
+                AccentTextColor = "#0B0C10",
+                BackgroundColor = "#12131D",
+                BackgroundTextColor = "#CAD3F5",
+            });
+            Themes.Add("Rose Pine", new ThemeConfig()
+            {
+                ThemeName = "Rose Pine",
+                PrimaryMidColor = "#1F1D2E",
+                PrimaryLightColor = "#26233A",
+                PrimaryDarkColor = "#191724",
+                PrimaryTextColor = "#E0DEF4",
+                AccentMidColor = "#EB6F92",
+                AccentLightColor = "#F6C177",
+                AccentDarkColor = "#B4637A",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#191724",
+                BackgroundTextColor = "#E0DEF4",
+            });
+            Themes.Add("macOS Light Glass", new ThemeConfig()
+            {
+                ThemeName = "macOS Light Glass",
+                PrimaryMidColor = "#E8EEF5",
+                PrimaryLightColor = "#F4F8FC",
+                PrimaryDarkColor = "#D9E2EC",
+                PrimaryTextColor = "#1E293B",
+                AccentMidColor = "#007AFF",
+                AccentLightColor = "#388BFD",
+                AccentDarkColor = "#0056B3",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#F8FAFC",
+                BackgroundTextColor = "#0F172A",
+            });
+
+            // === Classic Palettes ===
+            Themes.Add("Light", new ThemeConfig()
+            {
+                ThemeName = "Light",
+                PrimaryMidColor = "#FFF2F3F5",
+                PrimaryLightColor = "#FFFFFFFF",
+                PrimaryDarkColor = "#FFE4E7EB",
+                PrimaryTextColor = "#FF232323",
+                AccentMidColor = "#FFE83D61",
+                AccentLightColor = "#FFED6884",
+                AccentDarkColor = "#FFB5304C",
+                AccentTextColor = "#FFFFFFFF",
+                BackgroundColor = "#FFFFFFFF",
+                BackgroundTextColor = "#000000",
             });
             Themes.Add("PRemoteM", new ThemeConfig()
             {
@@ -62,7 +178,7 @@ namespace _1RM.Service
             });
             Themes.Add("SecretKey", new ThemeConfig()
             {
-                ThemeName = "Light",
+                ThemeName = "SecretKey",
                 PrimaryMidColor = "#FF473368",
                 PrimaryLightColor = "#796090",
                 PrimaryDarkColor = "#382853",

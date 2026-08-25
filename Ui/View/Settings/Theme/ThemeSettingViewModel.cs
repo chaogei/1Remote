@@ -29,7 +29,8 @@ namespace _1RM.View.Settings.Theme
 
         private void SetThemeByName(string name)
         {
-            Debug.Assert(_themeService.Themes.ContainsKey(name));
+            if (!_themeService.Themes.ContainsKey(name))
+                name = "Dark";
             var theme = _themeService.Themes[name];
             _configurationService.Theme.PrimaryMidColor = theme.PrimaryMidColor;
             _configurationService.Theme.PrimaryLightColor = theme.PrimaryLightColor;
@@ -61,14 +62,30 @@ namespace _1RM.View.Settings.Theme
             get => _configurationService.Theme.ThemeName;
             set
             {
-                Debug.Assert(_themeService.Themes.ContainsKey(value));
-                if (SetAndNotifyIfChanged(ref _configurationService.Theme.ThemeName, value))
+                var safeName = _themeService.Themes.ContainsKey(value) ? value : "Dark";
+                if (SetAndNotifyIfChanged(ref _configurationService.Theme.ThemeName, safeName))
                 {
-                    SetThemeByName(value);
+                    SetThemeByName(safeName);
                     _configurationService.Save();
                 }
             }
         }
+
+        public class ThemeOption
+        {
+            public string Name { get; set; } = "";
+            public string PrimaryColor { get; set; } = "";
+            public string AccentColor { get; set; } = "";
+            public string BackgroundColor { get; set; } = "";
+        }
+
+        public List<ThemeOption> ThemeOptions => _themeService.Themes.Select(x => new ThemeOption
+        {
+            Name = x.Key,
+            PrimaryColor = x.Value.PrimaryMidColor,
+            AccentColor = x.Value.AccentMidColor,
+            BackgroundColor = x.Value.BackgroundColor
+        }).ToList();
 
         public List<string> ThemeList => _themeService.Themes.Select(x => x.Key).ToList();
 
