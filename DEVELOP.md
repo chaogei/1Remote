@@ -65,6 +65,40 @@ Please check out [invoke-build](https://chocolatey.org/packages/invoke-build) pa
 
 Task `BuildInSandbox` starts [Windows Sandbox] and executes `ib Deps, Build` tasks. This takes some time (~20 minutes) as all dependencies are downloaded from the Internet and installed, using [Chocolatey] package manager, but it guaranties pristine environment. Note that when you close the sandbox entire environment is gone.
 
+
+## Releases
+
+### GitHub lists releases by tag name, not by date
+
+The releases page and `GET /repos/:owner/:repo/releases` both order by tag name as a string, in spite of
+what the API docs say about reverse chronological order. Once the build number reaches two digits the list
+stops looking chronological:
+
+```
+v1.3.0.9-beta     <- sorts first, but is not the newest
+v1.3.0.8-beta
+...
+v1.3.0.2-beta
+v1.3.0.10-beta    <- the newest build, published hours after v1.3.0.9-beta
+v1.3.0.1-beta
+```
+
+After the shared `v1.3.0.` prefix the next character decides, so `9` and `2` both beat the `1` that starts
+`10`. Nothing on GitHub's side can reorder this: the sort key is the tag name, so the only way to change the
+order is to rename the tags. Renaming published tags breaks the download links people already have, so we
+live with it and read the list correctly instead — `AboutPageViewModel.CustomCheckMethod` compares every tag
+it finds numerically rather than trusting the page order.
+
+Anything else reading that list is subject to the same order and is outside our control. The release badge
+in the readme, for one, reports `v1.3.0.9-beta` while `v1.3.0.10-beta` is out, because shields.io takes the
+first entry the API returns.
+
+If the order itself ever needs to be right on github.com, it takes a new tag scheme applied going forward,
+neither of which is in place today:
+
+- zero-pad the build, `v1.3.0.010-beta`, which sorts correctly as a string up to 999 builds
+- move the build into the pre-release part, `v1.3.0-beta.10`, which is what SemVer intends
+
 [Microsoft Visual Studio 2019]: https://visualstudio.microsoft.com/vs
 [Windows 10]:       https://www.microsoft.com/en-us/software-download/windows10
 [Invoke-Build]:     https://github.com/nightroman/Invoke-Build
