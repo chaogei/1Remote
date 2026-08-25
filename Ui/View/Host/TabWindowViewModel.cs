@@ -8,8 +8,10 @@ using System.Timers;
 using Dragablz;
 using _1RM.Service;
 using _1RM.Utils;
+using _1RM.Utils.SessionInput;
 using _1RM.Utils.WindowsApi;
 using _1RM.View.Host.ProtocolHosts;
+using _1RM.View.Host.SendCommand;
 using _1RM.View.Settings;
 using _1RM.View.Utils;
 using Shawn.Utils.Wpf;
@@ -44,6 +46,8 @@ namespace _1RM.View.Host
         private void ItemsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             RaisePropertyChanged(nameof(BtnCloseAllVisibility));
+            RaisePropertyChanged(nameof(CanSendCommand));
+            RaisePropertyChanged(nameof(SendCommandVisibility));
             if (Items.Count == 0)
             {
                 View.Hide();
@@ -245,6 +249,30 @@ namespace _1RM.View.Host
 
 
         #region CMD
+
+        /// <summary>
+        /// Whether any session in this window is a terminal that text can be typed into. Drives the button,
+        /// so the entry point is simply absent from a window that only holds RDP tabs.
+        /// </summary>
+        public bool CanSendCommand => Items.Any(x => SessionTextSender.CanSendTo(x.Content));
+
+        public Visibility SendCommandVisibility => CanSendCommand ? Visibility.Visible : Visibility.Collapsed;
+
+        private RelayCommand? _cmdSendCommand;
+        public RelayCommand CmdSendCommand
+        {
+            get
+            {
+                return _cmdSendCommand ??= new RelayCommand((o) =>
+                {
+                    var vm = new SendCommandViewModel(
+                        IoC.Get<ConfigurationService>(),
+                        IoC.Get<SessionControlService>(),
+                        SelectedItem?.Content?.ConnectionId);
+                    IoC.Get<IWindowManager>().ShowDialog(vm, ownerViewModel: this);
+                });
+            }
+        }
 
         private RelayCommand? _cmdHostGoFullScreen;
         public RelayCommand CmdHostGoFullScreen

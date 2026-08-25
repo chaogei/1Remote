@@ -1,4 +1,4 @@
-﻿<styles:WindowChromeBase x:Class="_1RM.View.Host.TabWindowView"
+<styles:WindowChromeBase x:Class="_1RM.View.Host.TabWindowView"
                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -286,6 +286,7 @@
                                 <Grid Width="185"></Grid>
                                 <Grid Width="45" Visibility="{Binding SelectedItem.Content.CanFullScreen, Converter={StaticResource BooleanToVisibilityConverter}}"></Grid>
                                 <Grid Width="45" Visibility="{Binding BtnCloseAllVisibility}"></Grid>
+                                <Grid Width="42" Visibility="{Binding SendCommandVisibility}"></Grid>
                             </StackPanel>
 
                             <Grid Width="18" Height="18" VerticalAlignment="Center">
@@ -337,6 +338,7 @@
                                 <Grid Width="185"></Grid>
                                 <Grid Width="45" Visibility="{Binding SelectedItem.Content.CanFullScreen, Converter={StaticResource BooleanToVisibilityConverter}}"></Grid>
                                 <Grid Width="45" Visibility="{Binding BtnCloseAllVisibility}"></Grid>
+                                <Grid Width="42" Visibility="{Binding SendCommandVisibility}"></Grid>
                             </StackPanel>
 
                         </Grid>
@@ -470,6 +472,19 @@
                     <CheckBox Content="{DynamicResource 'Place the close button on the left side to prevent accidental touches'}" IsChecked="{Binding SettingsPage.GeneralSettingViewModel.TabWindowCloseButtonOnLeft}"></CheckBox>
                 </ContextMenu>
             </StackPanel.ContextMenu>
+
+            <!-- Send command to sessions -->
+            <Button Command="{Binding CmdSendCommand}"
+                    ToolTip="{DynamicResource send_command_title}"
+                    Visibility="{Binding SendCommandVisibility}"
+                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}"
+                    VerticalAlignment="Top" Background="Transparent"
+                    Style="{StaticResource ButtonBarPrimaryStyle}">
+                <Path Data="{StaticResource GeometryTerminal}"
+                      Height="13" Width="13"
+                      Fill="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"
+                      Stretch="Uniform" />
+            </Button>
 
             <!-- Pin Button (Always on top) -->
             <CheckBox ToolTip="{DynamicResource 'Always on top'}"

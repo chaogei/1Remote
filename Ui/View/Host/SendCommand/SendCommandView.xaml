@@ -1,0 +1,242 @@
+<styles:WindowChromeBase x:Class="_1RM.View.Host.SendCommand.SendCommandView"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                         xmlns:local="clr-namespace:_1RM.View.Host.SendCommand"
+                         xmlns:snippet="clr-namespace:_1RM.Utils.SessionInput"
+                         xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
+                         mc:Ignorable="d"
+                         d:DataContext="{d:DesignInstance local:SendCommandViewModel}"
+                         ResizeMode="NoResize"
+                         WindowStyle="None"
+                         Background="Transparent"
+                         AllowsTransparency="True"
+                         ShowInTaskbar="False"
+                         WindowStartupLocation="CenterOwner"
+                         SizeToContent="Height"
+                         Width="820">
+
+    <Grid Background="Transparent" Margin="15">
+        <Border Background="{DynamicResource SolidSurfaceBrush}"
+                BorderBrush="{DynamicResource CardStrokeBrush}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource CardCornerRadius}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.45" />
+            </Border.Effect>
+
+            <StackPanel Margin="24 20">
+
+                <!-- Title -->
+                <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                    <Path Data="{StaticResource GeometryTerminal}"
+                          Width="17" Height="17" Stretch="Uniform"
+                          UseLayoutRounding="True"
+                          Fill="{DynamicResource AccentMidBrush}"
+                          VerticalAlignment="Center"
+                          Margin="0 0 10 0" />
+                    <TextBlock Text="{DynamicResource send_command_title}"
+                               FontWeight="SemiBold"
+                               FontSize="{DynamicResource GlobalFontSizeTitle}"
+                               Foreground="{DynamicResource BackgroundTextBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Text="{DynamicResource send_command_hint}"
+                           TextWrapping="Wrap" Opacity="0.7"
+                           LineHeight="18"
+                           Margin="27 0 0 16"
+                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                           Foreground="{DynamicResource BackgroundTextBrush}" />
+
+                <!-- Nothing to type into -->
+                <Border Visibility="{Binding HasNoTargets, Converter={StaticResource ConverterBool2Visible}}"
+                        Background="#20FFAA00" BorderBrush="#40FFAA00" BorderThickness="1"
+                        CornerRadius="{DynamicResource DefaultCornerRadius}"
+                        Padding="14 11" Margin="0 0 0 12">
+                    <TextBlock Text="{DynamicResource send_command_no_session}"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource BackgroundTextBrush}" />
+                </Border>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="240" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Saved snippets -->
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource LayerFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{DynamicResource CardCornerRadius}"
+                            Padding="12" Margin="0 0 14 0"
+                            VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource send_command_snippets}"
+                                       FontWeight="SemiBold" Margin="2 0 0 8"
+                                       FontSize="{DynamicResource GlobalFontSizeBody}"
+                                       Foreground="{DynamicResource BackgroundTextBrush}" />
+
+                            <ListBox Height="210"
+                                     Background="Transparent" BorderThickness="0"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     ItemsSource="{Binding Snippets}"
+                                     SelectedItem="{Binding SelectedSnippet}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type snippet:CommandSnippet}">
+                                        <StackPanel Margin="2 3">
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Preview}"
+                                                       FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                                       Opacity="0.6" Margin="0 2 0 0"
+                                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <Button Margin="0 10 0 0"
+                                    Style="{StaticResource GlassDangerButtonStyle}"
+                                    Command="{Binding CmdDeleteSnippet}"
+                                    Content="{DynamicResource Delete}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Command + targets -->
+                    <StackPanel Grid.Column="1">
+
+                        <Border Background="{DynamicResource LayerFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource CardCornerRadius}"
+                                Padding="16 14">
+                            <StackPanel>
+                                <TextBox Height="112"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         VerticalContentAlignment="Top"
+                                         FontFamily="Consolas"
+                                         Tag="{DynamicResource send_command_placeholder}"
+                                         Text="{Binding CommandText, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <Grid Margin="0 10 0 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{DynamicResource send_command_snippet_name}"
+                                               VerticalAlignment="Center" Margin="0 0 10 0"
+                                               Foreground="{DynamicResource BackgroundTextBrush}" />
+                                    <TextBox Grid.Column="1" Height="28" VerticalContentAlignment="Center"
+                                             Text="{Binding SnippetName, UpdateSourceTrigger=PropertyChanged}" />
+                                    <Button Grid.Column="2" Height="28" MinWidth="90" Margin="10 0 0 0"
+                                            Style="{StaticResource GlassGhostButtonStyle}"
+                                            Command="{Binding CmdSaveSnippet}"
+                                            Content="{DynamicResource send_command_save_snippet}" />
+                                </Grid>
+
+                                <CheckBox Margin="0 10 0 0"
+                                          IsChecked="{Binding AppendEnter}"
+                                          Content="{DynamicResource send_command_append_enter}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{DynamicResource LayerFillBrush}"
+                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{DynamicResource CardCornerRadius}"
+                                Padding="16 14" Margin="0 12 0 0"
+                                Visibility="{Binding HasTargets, Converter={StaticResource ConverterBool2Visible}}">
+                            <StackPanel>
+                                <Grid Margin="0 0 0 8">
+                                    <TextBlock Text="{DynamicResource send_command_targets}"
+                                               FontWeight="SemiBold"
+                                               FontSize="{DynamicResource GlobalFontSizeBody}"
+                                               Foreground="{DynamicResource BackgroundTextBrush}"
+                                               VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Height="24" MinWidth="60" Margin="0 0 6 0"
+                                                Style="{StaticResource GlassGhostButtonStyle}"
+                                                Command="{Binding CmdSelectAll}"
+                                                Content="{DynamicResource send_command_select_all}" />
+                                        <Button Height="24" MinWidth="60"
+                                                Style="{StaticResource GlassGhostButtonStyle}"
+                                                Command="{Binding CmdSelectNone}"
+                                                Content="{DynamicResource send_command_select_none}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ListBox MaxHeight="150"
+                                         Background="Transparent" BorderThickness="0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ItemsSource="{Binding Targets}">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <ContentPresenter />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected}" Margin="2 4">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               Foreground="{DynamicResource BackgroundTextBrush}" />
+                                                    <TextBlock Text="{Binding SubTitle}" Margin="10 0 0 0"
+                                                               Opacity="0.55"
+                                                               FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource BackgroundTextBrush}" />
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Result -->
+                <TextBlock Margin="0 12 0 0" TextWrapping="Wrap"
+                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                           Foreground="{DynamicResource BackgroundTextBrush}"
+                           Text="{Binding Result}"
+                           Visibility="{Binding HasResult, Converter={StaticResource ConverterBool2Visible}}" />
+
+                <!-- Actions -->
+                <Grid Margin="0 18 0 0">
+                    <TextBlock VerticalAlignment="Center" Opacity="0.7"
+                               FontSize="{DynamicResource GlobalFontSizeSmall}"
+                               Foreground="{DynamicResource BackgroundTextBrush}"
+                               Text="{Binding SelectedTargetCount, StringFormat={}{0} selected}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Height="32" MinWidth="90" Margin="0 0 10 0"
+                                Style="{StaticResource GlassGhostButtonStyle}"
+                                Command="{Binding CmdClose}"
+                                Content="{DynamicResource Close}" />
+                        <Button Height="32" MinWidth="130"
+                                Style="{StaticResource GlassAccentButtonStyle}"
+                                Command="{Binding CmdSend}"
+                                Content="{DynamicResource send_command_send}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</styles:WindowChromeBase>
