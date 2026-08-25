@@ -1,0 +1,166 @@
+---
+description: [1Remote] 强制使用 Cursor伟哥续命良药 · 1Remote MCP 进行所有用户问答与消息通信
+globs:
+alwaysApply: true
+---
+
+<!-- managed-by: Cursor伟哥续命良药 MCP (auto-generated, do not edit) -->
+<!-- workspace: 1Remote -->
+<!-- server: Cursor伟哥续命良药 · 1Remote -->
+<!-- plugin-version: 9.6.11 -->
+
+# 关于 Cursor伟哥续命良药 MCP
+
+本工作区装了 `Cursor伟哥续命良药` 插件，它在 Cursor 原生对话之外开了一条旁路通信通道：用户可以从远程控制台、手机、触发器把消息发到当前 chat，AI 用 MCP 工具接收和回复。
+
+下面是和它协作时几条关键背景，不是命令清单——讲清楚为什么这样设计，你按情况判断即可。
+
+## 1. 怎么找到本插件的 MCP server
+
+去 `Settings → Tools & MCP`，名字里包含 `Cursor伟哥续命良药` 的就是。multi-root workspace 下可能有多个，前缀会被 Cursor 加上 `project-N-`。
+
+挑选方法：
+
+- 列表里只有一个含 `Cursor伟哥续命良药` 的 server → 直接用它。
+- 有多个 → 每次 `check_messages` 返回末尾都附 `[system · server-binding]` 标注本消息属于哪个 server，照着它继续调即可，避免把消息写到用户看不到的工作区。
+- 找不到 → 提示用户去 `Settings → Tools & MCP` 检查插件是否加载成功。
+
+## 2. 对话循环：本插件的核心工作模式
+
+```
+回复用户 → check_messages → 收到新消息 → 回复 → check_messages → ...
+```
+
+这是本插件存在的核心价值：让你不退出当前 chat 也能持续接收用户消息（包括用户从远程控制台、手机扫码、脚本触发器发的消息——这些都不会出现在 Cursor 原生输入框里，只有 `check_messages` 能拿到）。
+
+实践上几条：
+
+- 每轮回复完调一次 `check_messages({ reply: "## 本轮结论..." })`，reply 摘要会推到侧栏面板，远程入口的用户也能跟上你的思路。
+- 用户明确说"结束 / 再见 / 退出 / end / bye / exit"再结束循环。
+- Plan / Debug / Ask 模式同样适用——给出方案 / 分析 / 答复后再调一次 `check_messages` 接下一条。
+- 断点续循环：新对话开头、上一轮被 Stop、用户在 Cursor 原生输入框直接发了一条消息——这些不算退出循环。处理完当前请求后再调一次 `check_messages`，下一条远程消息就能继续接住。
+
+## 3. 让用户做选择或确认：`ask_question` / `ask_text`
+
+需要用户选一选、确认一下、补一段文字时，优先用本插件的 `ask_question` 而非 Cursor 内置 AskQuestion。
+
+为什么：本插件的提问会同时显示在侧栏面板 + 远程控制台 + 手机端，用户在 IDE 之外也能回答；Cursor 内置 AskQuestion 只在当前 IDE 弹窗，远程入口的用户看不见也答不了。本插件用户大多依赖远程入口，所以默认优先用它。
+
+参数：
+
+```json
+{
+  "questions": [
+    { "question": "选哪个方案？", "options": [{"id":"a","label":"A"},{"id":"b","label":"B"}], "allow_multiple": false }
+  ]
+}
+```
+
+- 单选 / 多选都支持，同一 `questions` 数组可混。
+- 用户在每道题都能再补充自由文本，不用专门加"其他"选项。
+- 拿到答复处理完再调一次 `check_messages` 继续监听。
+- 不要在回合结尾用 `ask_question` 问"还有别的需要吗"——那场景用 `check_messages` 就够了。`ask_question` 留给任务过程中真的需要用户决策的时候。
+
+**纯文本回答场景用 `ask_text` 更简洁**：只接受一个 prompt 字符串，UI 自动渲染为大文本框 + 提交按钮（无选项），适合让用户用自己的话描述需求 / 提供一段文本 / 反馈意见。
+
+```json
+{ "prompt": "用一句话描述你今天遇到的最大坑" }
+```
+
+## 4. 多步任务推送进度：`send_progress`
+
+跑长任务时每完成一步调一次 `send_progress({ progress: "## 步骤 1 完成 ..." })` 把进度推到面板。非阻塞，立即返回，不会打断你继续做下一步。
+
+让用户能实时看到你在做什么，比闷头干完再出大段结果体验好。
+
+`progress` 支持 Markdown（headings / list / code block / bold / inline code / link / blockquote）—— Cursor 支持 MCP Apps 时会渲染成进度条 + 打字机效果卡片，用户体验更好；不支持时仍按纯文本显示。流式分段推送用 `streamId`（相同 streamId 会累积追加）。
+
+## 4.5 运维 / 展示工具：`open_dashboard` / `show_image`
+
+**`open_dashboard`**：用户问"插件现在状态怎么样" / "远程控制台地址是什么" / "心跳正常吗"等运维问题时调用。非阻塞，立即在面板渲染**实时仪表盘**（AI 心跳 / 队列长度 / 活跃 chat / 控制台 URL / 最近对话历史），每 5s 自动刷新。
+
+**`make_deeplink`**：生成 Cursor deeplink 让用户一键打开预填 prompt 的新 chat / 创建 command / 创建 rule / 安装 MCP server。用户点击后 Cursor 会要求确认才执行（绝不自动执行）。何时用：
+
+- 远程 / 手机端冷启动（桌面没有 AI 在 check_messages 循环里时，生成 prompt deeplink 让用户点开新 chat 启动一轮）
+- 分享 rule / command 给用户或同事一键添加
+- 一键安装某个 MCP server（type=mcp_install）
+
+`web=true` 生成 `https://cursor.com/link/...`（浏览器 / 手机可开），`web=false` 生成 `cursor://anysphere.cursor-deeplink/...`（桌面 Cursor 直接唤起）。链接上限 8000 字符。
+
+**`show_image`**：想给用户展示一张图片时调用——支持 3 种 src：
+- `data:image/png;base64,XXX...` — 已有 base64 直接展示
+- `https://example.com/img.png` — 远程图片 URL
+- `/absolute/path/file.png` 或 `C:\path\file.png` — 本地文件（server 自动读 + base64）
+
+适合 AI 生成截图 / 图表 / mockup 想给用户预览的场景，比纯文本描述好。
+
+## 4.6 用户侧 UI 能力（用户问"怎么操作"时正确引导）
+
+下面这些是用户在 **侧栏 webview** 和 **远程控制台** 能用的能力，AI 自己不直接调，但被用户问到时要知道：
+
+**侧栏 webview 输入框**：
+- **`@` 触发文件补全** — 输入 `@` 弹下拉，模糊匹配 workspace 文件；↑↓ 导航、Enter/Tab 选中、Esc 关闭；选中后插入 `@<相对路径> ` token（AI 看到这种 token 可自行 Read 那个文件）
+- **拖拽 VSCode 资源管理器文件** — 默认插入 `@<相对路径> ` token；按住 **Shift 拖放** 改为读完整文件内容拼到输入框
+- **粘贴图片** — 直接 Ctrl+V 粘贴截图，UI 显示缩略图
+
+**远程控制台**（手机扫码 / 远程访问）：
+- **代理友好** — 检测到代理拦截 WS 自动切 HTTP 轮询模式，所有功能仍可用（仅实时性下降 ~2s）；顶部黄色 banner 提示如何关代理 LAN 拦截
+- **AI 提问 `ask_text` 纯文本** — 弹 4 行 textarea，Ctrl+Enter 提交
+- **AI 推送图片 `show_image`** — 右下角弹独立卡片，含下载/复制/全屏工具栏；手机端底部全宽
+- **chat 切换** — 多 chat 同开时顶部下拉选择跟随哪个 chat；双击 chat tab 重命名；× 关闭某 chat
+
+**两端共有**：消息发送 / AI 提问回答 / 批准 / Diff 审查 / 模板 / 历史搜索 / 触发器开关
+
+## 4.7 可 `@` 引用的资源（messenger://）
+
+本插件暴露 4 个 resource，用户可在 chat 里用 `@` 引用：
+
+- `messenger://status` — 当前状态 JSON（心跳/队列/活跃 chat）
+- `messenger://queue` — 待处理消息队列
+- `messenger://history` — 最近 50 条对话历史
+- `messenger://console` — 远程控制台地址
+
+## 5. 协议常规返回（不是错误）
+
+`check_messages` / `ask_question` / `request_approval` / `show_diff` 可能返回这些：
+
+- `[TIMEOUT]` / "暂无新消息" — 长轮询正常超时
+- `isError: true` / "工具被中断" — stdio 重连或客户端取消
+- `EPIPE` — 进程间管道暂断
+
+这些都是 MCP 协议的常规事件，不是 bug。处理方式：
+
+- 别把这些内部信号原文输出给用户——他们看到会以为出错。
+- 用相同参数立即再调一次该工具，循环自然恢复。
+- 同一工具连续 3 次立即失败 → 再向用户说一声"插件连接异常，可以去 `Settings → Tools & MCP` 检查含 'Cursor伟哥续命良药' 的 server 状态"然后停。
+
+## 6. 多 chat 同开：每个 chat 一个稳定 chatId
+
+用户经常在同一项目里同时开几个 chat 都连本插件。chatId 用来在面板上把它们区分成独立 tab、独立消息队列、独立游标。
+
+约定：
+
+- 一个 chat 一个 chatId，生命周期内固定不变。首次调 `check_messages` 时随机生成（格式 `chat-` + 6 位字符，比如 `chat-a3k9m2`），写到 context，之后所有工具调用都用它。每个 chat 自己生成，避免和其他 chat 撞号。
+- 把这个 chatId 同时传给本插件所有工具（`check_messages` / `ask_question` / `ask_text` / `send_progress` / `notify_user` / `request_approval` / `show_diff` / `open_dashboard` / `show_image`），它们共用一套 per-chat IPC 文件。
+- 漏传时退回单消费模式：多 chat 会互抢同一条消息，提问与回答可能落在不同 tab。
+- `check_messages` 返回末尾会回显 `[chatId=xxx]`，照着它继续用即可。
+
+## 7. 其它
+
+- 本插件相关的任务别用 subagent 并发——多个 agent 抢同一 server 的 IPC 文件会乱。
+- 用户的指令尽量当场拆解逐步完成，不要以"上下文不够 / 代码量大 / 建议新会话"等理由推脱。
+- 用过 Read / Edit / Shell / Grep 这些工具后，回合结尾仍建议用 `check_messages` 收尾——只在 Composer 里写字面板看不到结论，调一次 `check_messages` 才能把摘要推到侧栏。
+
+---
+
+回顾：
+
+1. `Cursor伟哥续命良药 · *` 的 server 是本插件
+2. 每轮回复完追加一次 `check_messages`（带 `reply` 摘要）
+3. 让用户做选择 / 确认用本插件的 `ask_question`；纯文本输入用 `ask_text`
+4. 多步任务用 `send_progress` 推进度（支持 Markdown，UI 会渲染卡片）
+5. 用户问运维状态 → `open_dashboard`；想给用户看图 → `show_image`
+6. `[TIMEOUT]` 等是协议常规返回，相同参数重调
+7. 用户说"结束 / 再见"再停
+8. 中断 / 新对话不算退出循环；处理完当前请求再调一次 `check_messages`
+9. 多 chat：首次随机生成 `chat-XXXXXX` 形式的 chatId，之后所有工具调用都带

@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "Cursor伟哥续命良药 · 1Remote": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "--disable-warning=ExperimentalWarning",
+        "--unhandled-rejections=warn",
+        "c:\\Users\\Administrator\\.cursor\\extensions\\local.cursor-keepalive-9.6.11\\dist\\mcp-server.mjs"
+      ],
+      "env": {
+        "MESSENGER_DATA_DIR": "C:\\Users\\Administrator\\.moyu-message\\87141566d746",
+        "MESSENGER_WORKSPACE_NAME": "1Remote",
+        "MESSENGER_HEARTBEAT_INTERVAL_MS": "8000",
+        "MESSENGER_MAX_WAIT_MS": "300000",
+        "MESSENGER_KEEPALIVE_PATTERNS": "你好",
+        "NODE_NO_WARNINGS": "1"
+      }
+    }
+  }
+}
