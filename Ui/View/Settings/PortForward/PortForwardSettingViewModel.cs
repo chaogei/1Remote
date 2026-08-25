@@ -25,7 +25,9 @@ namespace _1RM.View.Settings.PortForward
         {
             // A session can be dropped while the page is closed, which takes its forwards down without
             // anything here noticing, so the list is reconciled every time it comes back into view.
-            _service.RefreshStatuses();
+            // Reconciling closes the forwards it finds dead, and closing them talks to the bastion, so it
+            // runs off the dispatcher — the badges update through binding when it lands.
+            _ = _service.RefreshStatusesAsync();
             RefreshHosts();
         }
 
@@ -119,7 +121,10 @@ namespace _1RM.View.Settings.PortForward
             if (forward == null) return;
             if (!MessageBoxHelper.Confirm(IoC.Translate("confirm_to_delete_selected"), ownerViewModel: this)) return;
 
-            _service.Stop(forward);
+            // Not awaited: tearing the forward down means closing its port and possibly its session, which
+            // is network work. The entry is going away either way, so the list updates now and the bastion
+            // is dealt with on a pool thread instead of freezing the app until it answers.
+            _ = _service.StopAsync(forward);
             var index = Forwards.IndexOf(forward);
             Forwards.Remove(forward);
             SelectedForward = Forwards.ElementAtOrDefault(Math.Min(index, Forwards.Count - 1));
@@ -164,7 +169,25 @@ namespace _1RM.View.Settings.PortForward
         }, _ => SelectedForward != null && !IsBusy);
 
         private RelayCommand? _cmdStopAll;
-        public RelayCommand CmdStopAll => _cmdStopAll ??= new RelayCommand(_ => _service.StopAll(),
-            _ => Forwards.Any(x => x.IsRunning));
+        public RelayCommand CmdStopAll => _cmdStopAll ??= new RelayCommand(async _ =>
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            try
+            {
+                // Every session gets disconnected here, and a bastion that has gone unreachable takes its
+                // timeout to say so. On the dispatcher that is the whole app frozen, hosted sessions too.
+                await _service.StopAllAsync();
+            }
+            catch (Exception e)
+            {
+                // the command body is async void, an escaping exception would take the process down
+                Shawn.Utils.SimpleLogHelper.Error(e);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }, _ => Forwards.Any(x => x.IsRunning) && !IsBusy);
     }
 }
