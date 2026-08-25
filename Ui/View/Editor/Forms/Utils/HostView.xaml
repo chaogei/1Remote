@@ -28,6 +28,18 @@
 
         <Grid Style="{StaticResource EditorRowGrid}">
             <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource wol_mac_address}"></TextBlock>
+                <Grid Style="{StaticResource EditorRowGridInput}">
+                    <TextBox Text="{Binding New.MacAddress, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True, ValidatesOnExceptions=True, ValidatesOnNotifyDataErrors=True}"
+                             MinWidth="220" HorizontalAlignment="Left"
+                             ToolTip="{DynamicResource wol_mac_address_hint}"
+                             Tag="e.g. 00:1A:2B:3C:4D:5E"></TextBox>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <Grid Style="{StaticResource EditorRowGrid}">
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Style="{StaticResource EditorRowGridTitle}" Text="{DynamicResource proxy_title}"></TextBlock>
                 <Grid Style="{StaticResource EditorRowGridInput}">
                     <ComboBox MinWidth="220" HorizontalAlignment="Left"

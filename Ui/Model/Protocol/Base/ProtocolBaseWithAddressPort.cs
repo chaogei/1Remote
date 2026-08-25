@@ -94,6 +94,22 @@ namespace _1RM.Model.Protocol.Base
         }
 
 
+        private string _macAddress = "";
+        /// <summary>
+        /// Optional hardware address, used only to wake the machine. Stored as typed and interpreted
+        /// leniently, so pasting from an ARP table, a DHCP lease or a NIC properties dialog all work.
+        /// </summary>
+        public string MacAddress
+        {
+            get => _macAddress;
+            set => SetAndNotifyIfChanged(ref _macAddress, value?.Trim() ?? "");
+        }
+
+        /// <summary>Whether there is an address good enough to send a magic packet to.</summary>
+        [JsonIgnore]
+        public bool CanWakeOnLan => Utils.WakeOnLan.WakeOnLan.TryParseMac(MacAddress, out _);
+
+
         private ObservableCollection<Credential>? _alternateCredentials = new ObservableCollection<Credential>();
         public ObservableCollection<Credential> AlternateCredentials
         {
@@ -199,6 +215,15 @@ namespace _1RM.Model.Protocol.Base
                                 if (!long.TryParse(Port, out _) && Port != ServerEditorDifferentOptions)
                                     return IoC.Translate("Not a number");
                             }
+                            break;
+                        }
+                    case nameof(MacAddress):
+                        {
+                            // Optional, so only a value that was typed and cannot be read is an error.
+                            if (!string.IsNullOrWhiteSpace(MacAddress)
+                                && MacAddress != ServerEditorDifferentOptions
+                                && !CanWakeOnLan)
+                                return IoC.Translate("wol_invalid_mac");
                             break;
                         }
                     default:

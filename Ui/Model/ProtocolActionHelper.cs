@@ -102,6 +102,24 @@ public static class ProtocolActionHelper
                         // ignored
                     }
                 }));
+
+            // Only offered once a MAC is on file, since there is nothing to address the packet to without
+            // one. Pairs with the reachability dot: the server that shows red is the one worth waking.
+            if (protocolServerWithAddrPortBase.CanWakeOnLan)
+            {
+                actions.Add(new ProtocolAction(IoC.Translate("wol_action"),
+                    () =>
+                    {
+                        try
+                        {
+                            Utils.WakeOnLan.WakeOnLan.Send(protocolServerWithAddrPortBase.MacAddress);
+                        }
+                        catch (Exception e)
+                        {
+                            MessageBoxHelper.ErrorAlert(IoC.Translate("wol_failed", e.Message));
+                        }
+                    }));
+            }
         }
 
 
