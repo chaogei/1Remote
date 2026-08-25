@@ -19,6 +19,13 @@ namespace _1RM.View.Guidance
         private readonly ThemeService _themeService;
         private readonly Configuration _configuration;
 
+        /// <summary>
+        /// First-run guidance constructs ThemeService before AppInit assigns
+        /// <c>ThemeServiceObj</c>. Exposing it lets a remote/high-contrast flip
+        /// during the modal dialog restain Glass* brushes, not only HWND frost.
+        /// </summary>
+        public ThemeService ThemeService => _themeService;
+
         public GuidanceWindowViewModel(LanguageService languageService, Configuration configuration, ProfileStorage? assignedProfileStorage)
         {
             _languageService = languageService;

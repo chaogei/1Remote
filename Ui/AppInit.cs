@@ -200,6 +200,10 @@ namespace _1RM
                         }
 
                         var guidanceWindowViewModel = new GuidanceWindowViewModel(LanguageServiceObj, newConfiguration, defaultStorage);
+                        // Guidance builds its own ThemeService before the post-config ThemeServiceObj
+                        // assignment below. Point at it for the duration of ShowDialog so a session
+                        // switch can snap GlassPanelBrush opaque instead of RefreshAll-only.
+                        ThemeServiceObj = guidanceWindowViewModel.ThemeService;
                         var guidanceWindow = new GuidanceWindow(guidanceWindowViewModel);
                         guidanceWindow.ShowDialog();
                         selectedMode = guidanceWindowViewModel.ProfileModeIsPortable ? ProfileStorage.Portable : ProfileStorage.AppData;
