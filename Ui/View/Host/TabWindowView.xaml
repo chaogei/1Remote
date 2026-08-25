@@ -319,7 +319,7 @@
 
                                 <Button Grid.Column="0" Width="26" Height="22" VerticalAlignment="Center"
                                         Visibility="{Binding SettingsPage.LauncherSettingViewModel.LauncherEnabled, Converter={StaticResource ConverterBool2Visible}}"
-                                        Style="{StaticResource ButtonBarPrimaryStyle}"
+                                        Style="{StaticResource WindowCaptionButtonStyle}"
                                         attachProperty:VisionElement.Opacity="0.6"
                                         attachProperty:VisionElement.OpacityAccent="1"
                                         Margin="4 0"
@@ -479,8 +479,8 @@
                     ToolTip="{DynamicResource send_command_title}"
                     Visibility="{Binding SendCommandVisibility}"
                     Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}"
-                    VerticalAlignment="Top" Background="Transparent"
-                    Style="{StaticResource ButtonBarPrimaryStyle}">
+                    VerticalAlignment="Top"
+                    Style="{StaticResource WindowCaptionButtonStyle}">
                 <Path Data="{StaticResource GeometryTerminal}"
                       Height="13" Width="13"
                       Fill="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=Button}}"
@@ -524,10 +524,9 @@
 
             <!-- Fullscreen Button -->
             <Button Command="{Binding CmdHostGoFullScreen}"
-                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="Transparent"
-                    >
+                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
+                    <Style TargetType="Button" BasedOn="{StaticResource WindowCaptionButtonStyle}">
                         <Setter Property="Visibility" Value="Visible"></Setter>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding WindowResizeMode}" Value="NoResize">
@@ -547,12 +546,8 @@
             <!-- Close All Button -->
             <Button ToolTip="{DynamicResource 'Close all'}" 
                     Command="{Binding CmdCloseAll}" 
-                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="Transparent"
-                    Style="{StaticResource ButtonBarPrimaryStyle}"
-                    attachProperty:VisionElement.ForegroundAccent="White"
-                    attachProperty:VisionElement.BackgroundAccent="#E81123"
-                    attachProperty:VisionElement.ForegroundOnMouseDown="White"
-                    attachProperty:VisionElement.BackgroundOnMouseDown="#C4101E"
+                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top"
+                    Style="{StaticResource WindowCaptionCloseButtonStyle}"
                     Visibility="{Binding BtnCloseAllVisibility}">
                 <Path Data="{StaticResource GeometryDelete}"
                       Height="12" Width="12"
@@ -561,20 +556,19 @@
 
             <!-- Minimize Button -->
             <Button Command="{Binding CmdGoMinimize}" 
-                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="Transparent"
-                    Style="{StaticResource ButtonBarPrimaryStyle}">
+                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top"
+                    Style="{StaticResource WindowCaptionButtonStyle}">
                 <Rectangle Width="10" Height="1" Fill="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" />
             </Button>
 
             <!-- Maximize Button -->
             <Button Command="{Binding CmdGoMaximize}"
-                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="Transparent"
-                    >
+                    Width="42" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top">
                 <Button.InputBindings>
                     <MouseBinding Gesture="RightClick" Command="{Binding CmdGoMaximizeF11}" />
                 </Button.InputBindings>
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
+                    <Style TargetType="Button" BasedOn="{StaticResource WindowCaptionButtonStyle}">
                         <Setter Property="Visibility" Value="Visible"></Setter>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding WindowResizeMode}" Value="NoResize">
@@ -621,13 +615,9 @@
 
             <!-- Close Button -->
             <Button ToolTip="{DynamicResource Close}" 
-                    Width="46" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="Transparent"
+                    Width="46" Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top"
                     Command="{Binding CmdClose}" 
-                    Style="{StaticResource ButtonBarPrimaryStyle}"
-                    attachProperty:VisionElement.ForegroundAccent="White"
-                    attachProperty:VisionElement.BackgroundAccent="#E81123"
-                    attachProperty:VisionElement.ForegroundOnMouseDown="White"
-                    attachProperty:VisionElement.BackgroundOnMouseDown="#C4101E">
+                    Style="{StaticResource WindowCaptionCloseButtonStyle}">
                 <Path Height="10" Width="10"
                       Fill="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}"
                       Data="{StaticResource GeometryCloseCross}"

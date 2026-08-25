@@ -150,11 +150,13 @@
                                     </Grid>
                                 </Border>
                                 <ControlTemplate.Triggers>
+                                    <!-- Layer* rather than PrimaryLight/PrimaryDark: those are opaque, so they
+                                         re-solidified the strip the same way the caption buttons used to. -->
                                     <Trigger Property="CheckBox.IsMouseOver" Value="True">
-                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource PrimaryLightBrush}"></Setter>
+                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource LayerHoverBrush}"></Setter>
                                     </Trigger>
                                     <Trigger Property="CheckBox.IsChecked" Value="True">
-                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource PrimaryDarkBrush}"></Setter>
+                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource LayerSelectedBrush}"></Setter>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -501,12 +503,12 @@
                     </Border>
                 </Popup>
 
-                <Button Name="BtnMinimize" Style="{StaticResource ButtonBarPrimaryStyle}"
+                <Button Name="BtnMinimize" Style="{StaticResource WindowCaptionButtonStyle}"
                                Width="45" Height="35" VerticalAlignment="Top" BorderThickness="0">
                     <Rectangle Width="10" Height="1" Stroke="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" StrokeThickness="0.5" />
                 </Button>
 
-                <Button Name="BtnMaximize" Style="{StaticResource ButtonBarPrimaryStyle}" Width="45" Height="35" VerticalAlignment="Top">
+                <Button Name="BtnMaximize" Style="{StaticResource WindowCaptionButtonStyle}" Width="45" Height="35" VerticalAlignment="Top">
                     <Grid>
                         <Path Height="10" Width="10"
                               StrokeThickness="0.5" 
@@ -545,11 +547,7 @@
                 </Button>
 
                 <Button Name="BtnClose" Width="45" Height="35" VerticalAlignment="Top"
-                    Style="{StaticResource ButtonBarPrimaryStyle}"
-                    attachProperty:VisionElement.ForegroundAccent="White"
-                    attachProperty:VisionElement.BackgroundAccent="Red"
-                    attachProperty:VisionElement.ForegroundOnMouseDown="White"
-                    attachProperty:VisionElement.BackgroundOnMouseDown="Red">
+                    Style="{StaticResource WindowCaptionCloseButtonStyle}">
                     <Path Height="10" Width="10"
                           StrokeThickness="0.5" 
                           Stroke="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}"
