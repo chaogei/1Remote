@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using _1RM.Service;
 using Shawn.Utils;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace _1RM.Model.Protocol.Base
 {

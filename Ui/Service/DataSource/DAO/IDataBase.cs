@@ -10,7 +10,6 @@ using Npgsql;
 using Shawn.Utils;
 using System;
 using System.Collections.Generic;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 // ReSharper disable InconsistentNaming
 
 namespace _1RM.Service.DataSource.DAO

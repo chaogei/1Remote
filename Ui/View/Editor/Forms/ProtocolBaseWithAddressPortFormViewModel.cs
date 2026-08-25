@@ -1,7 +1,6 @@
 ﻿using _1RM.Model.Protocol.Base;
 using _1RM.View.Editor.Forms.AlternativeCredential;
 using _1RM.View.Editor.Forms.Utils;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace _1RM.View.Editor.Forms
 {

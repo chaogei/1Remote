@@ -1,6 +1,5 @@
 ﻿using System;
 using _1RM.Utils;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace _1RM.View.Launcher;
 
