@@ -172,7 +172,14 @@ namespace _1RM.View.Launcher
 
         public void RebuildVmServerList()
         {
-            if (this.View is not ServerSelectionsView view) return;
+            // OnReloadAll is raised from the database-check timer thread. Building an ObservableCollection
+            // and touching the view there either throws or blocks the dispatcher; hop to the UI instead.
+            Execute.OnUIThread(RebuildVmServerListOnUi);
+        }
+
+        private void RebuildVmServerListOnUi()
+        {
+            if (this.View is not ServerSelectionsView) return;
             if (IoC.TryGet<LauncherWindowView>()?.IsClosing != false) return;
 
             var selectedId = SelectedItem?.Id ?? "";

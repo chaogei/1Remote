@@ -216,11 +216,13 @@ namespace _1RM.View.ServerView
 
         public sealed override void BuildView()
         {
+            List<ProtocolBaseViewModel> list;
             lock (this)
             {
-                var list = AppData.VmItemList.ToList();
-                Execute.OnUIThread(() =>
-                {
+                list = AppData.VmItemList.ToList();
+            }
+            Execute.OnUIThread(() =>
+            {
                     // Unsubscribe from existing items
                     foreach (var vs in VmServerList)
                     {
@@ -254,8 +256,7 @@ namespace _1RM.View.ServerView
                     CalcServerVisibleAndRefresh(true);
 
                     SimpleLogHelper.Debug($"[{this.GetHashCode()}] ListView rebuilt with {AppData.VmItemList.Count} servers");
-                });
-            }
+            });
         }
 
         public override void ClearSelection()

@@ -9,7 +9,6 @@ using _1RM.Service.DataSource.DAO.Dapper;
 using _1RM.View;
 using Newtonsoft.Json;
 using Shawn.Utils;
-using Stylet;
 
 namespace _1RM.Service.DataSource.Model
 {
@@ -151,42 +150,33 @@ namespace _1RM.Service.DataSource.Model
 
             ResultSelects<ProtocolBase> result;
             long generation;
+            // The database round-trip stays outside the cache lock so a UI-thread reader is not stuck
+            // behind a slow MySQL / network SQLite query. Two overlapping reads are fine: each takes a
+            // generation ticket before publishing.
+            result = Database_GetServers();
+            if (!result.IsSuccess)
+                return CachedProtocols;
+
             lock (_readLock)
             {
-                result = Database_GetServers();
-                if (!result.IsSuccess)
-                    return CachedProtocols;
                 SetReadTimestamp(TableServer.TABLE_NAME);
                 generation = ++_readGeneration;
             }
 
-            // Deliberately outside the lock: this waits for the dispatcher, and the UI thread reads through
-            // here too, so holding the lock across the wait is the deadlock described on _readLock.
-            // Still one hop for the whole batch — marshalling per server queued a separate dispatcher
-            // operation each time, chopping the UI thread into as many slices as there are servers right
-            // while the main window is trying to draw its first frame.
+            // ProtocolBaseViewModel no longer builds NoteIcon in the ctor, so this does not need the
+            // dispatcher. OnUIThreadSync here still froze every window — chrome and hosted remote HWNDs —
+            // for the length of the list on every reload tick.
             var loaded = new List<ProtocolBaseViewModel>(result.Items.Count);
-            try
+            foreach (var protocol in result.Items)
             {
-                Execute.OnUIThreadSync(() =>
+                try
                 {
-                    foreach (var protocol in result.Items)
-                    {
-                        try
-                        {
-                            loaded.Add(new ProtocolBaseViewModel(protocol));
-                        }
-                        catch (Exception e)
-                        {
-                            SimpleLogHelper.DebugInfo(e);
-                        }
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                SimpleLogHelper.DebugInfo(e);
-                return CachedProtocols;
+                    loaded.Add(new ProtocolBaseViewModel(protocol));
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.DebugInfo(e);
+                }
             }
 
             lock (_readLock)
