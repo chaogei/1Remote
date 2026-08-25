@@ -16,6 +16,7 @@ using _1RM.Model.Protocol;
 using _1RM.Model.Protocol.Base;
 using _1RM.Service;
 using _1RM.Utils;
+using _1RM.Utils.SessionRecording;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
 using Shawn.Utils.Wpf.FileSystem;
@@ -286,6 +287,33 @@ namespace _1RM.Model.ProtocolRunner.Default
             return regex.IsMatch(ipAddress);
         }
 
+        /// <summary>
+        /// The switch that records the session, or nothing when recording is off. PuTTY writes the log
+        /// itself; there is no stream for us to tap from outside, and it would only be a worse copy.
+        /// </summary>
+        private static string GetSessionLogArgument(ProtocolBase protocol)
+        {
+            var config = IoC.TryGet<ConfigurationService>();
+            if (config?.General.RecordTerminalSessions != true) return "";
+
+            try
+            {
+                var folder = string.IsNullOrWhiteSpace(config.General.SessionLogFolder)
+                    ? AppPathHelper.Instance.SessionLogDirPath
+                    : config.General.SessionLogFolder;
+                AppPathHelper.CreateDirIfNotExist(folder, isFile: false);
+
+                var path = SessionLogPath.Build(folder, protocol.DisplayName, DateTime.Now);
+                return $" -sessionlog {ProcessArgumentEscaper.Escape(path)}";
+            }
+            catch (Exception e)
+            {
+                // A log that cannot be written must not stop the session from opening.
+                SimpleLogHelper.Warning($"PuttyRunner: session logging disabled for this connection, {e.Message}");
+                return "";
+            }
+        }
+
         public override string GetExeArguments(ProtocolBase protocol)
         {
             var p = protocol.Clone();
@@ -293,6 +321,8 @@ namespace _1RM.Model.ProtocolRunner.Default
             {
                 p.DecryptToConnectLevel();
             }
+
+            var sessionLog = GetSessionLogArgument(protocol);
 
 
             if (p is SSH ssh)
@@ -321,7 +351,8 @@ namespace _1RM.Model.ProtocolRunner.Default
                           + $" -P {ProcessArgumentEscaper.Escape(ssh.Port)}"
                           + $" -l {ProcessArgumentEscaper.Escape(ssh.UserName)}"
                           + passwordArgument
-                          + $" -{(int)(ssh.SshVersion ?? 2)} {ipv6} {m}";
+                          + $" -{(int)(ssh.SshVersion ?? 2)} {ipv6} {m}"
+                          + sessionLog;
                 return " " + arg;
             }
 
@@ -329,7 +360,8 @@ namespace _1RM.Model.ProtocolRunner.Default
             {
                 return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
                        + $" -telnet {ProcessArgumentEscaper.Escape(tel.Address)}"
-                       + $" -P {ProcessArgumentEscaper.Escape(tel.Port)}";
+                       + $" -P {ProcessArgumentEscaper.Escape(tel.Port)}"
+                       + sessionLog;
             }
 
             if (p is Serial serial)
@@ -345,7 +377,8 @@ namespace _1RM.Model.ProtocolRunner.Default
                 serial.DecryptToConnectLevel();
                 return $" -load {ProcessArgumentEscaper.Escape(protocol.SessionId)}"
                        + $" -serial {ProcessArgumentEscaper.Escape(serial.SerialPort)}"
-                       + $" -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}";
+                       + $" -sercfg {serial.BitRate},{serial.DataBits},{serial.GetParityFlag()},{serial.StopBits},{serial.GetFlowControlFlag()}"
+                       + sessionLog;
             }
             throw new NotSupportedException($"The protocol type {p.GetType()} is not supported for PuttyRunner.");
         }

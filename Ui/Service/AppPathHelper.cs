@@ -70,6 +70,8 @@ namespace _1RM.Service
         /// <summary>Fingerprints of hosts the user has explicitly accepted. See <see cref="HostTrustService"/>.</summary>
         public string HostTrustJsonPath => Path.Combine(BaseDirPathForLocality, ".locality", "known_hosts.json");
         public string LocalityIconDirPath => Path.Combine(BaseDirPathForLocality, ".icons");
+        /// <summary>Where recorded terminal output goes when no folder was chosen in the settings.</summary>
+        public string SessionLogDirPath => Path.Combine(BaseDirPathForLocality, ".sessionlogs");
         public string KittyDirPath => Path.Combine(BaseDirPathForLocality, "KiTTY");
         public string PuttyDirPath => Path.Combine(BaseDirPathForLocality, "PuTTY");
         #endregion
