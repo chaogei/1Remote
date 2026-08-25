@@ -23,6 +23,13 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         }
 
         /// <summary>
+        /// Serializes access to the shared connection. Do not lock the instance itself: anything else that
+        /// happened to <c>lock (database)</c> would then sit in the same queue as every query.
+        /// Monitor is re-entrant, so DapperDatabaseFree can hold this across Open / base / Close.
+        /// </summary>
+        protected readonly object DatabaseLock = new object();
+
+        /// <summary>
         /// Quote character         sqlite              MySQL             Postgres
         /// Double quote (")      Identifier       String literal       Identifier
         /// Single quote (')    String literal     String literal     String literal
@@ -42,7 +49,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override void CloseConnection()
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 _dbConnection?.Close();
                 if (DatabaseType == DatabaseType.Sqlite)
@@ -59,7 +66,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <param name="newConnectionString"></param>
         public override Result OpenNewConnection(string newConnectionString)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 if (_connectionString == newConnectionString && IsConnected())
                     return Result.Success();
@@ -86,7 +93,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
             }
 
             if (IsConnected()) return Result.Success();
-            lock (this)
+            lock (DatabaseLock)
             {
                 if (IsConnected()) return Result.Success();
                 _dbConnection?.Close();
@@ -175,7 +182,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override bool IsConnected()
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 return _dbConnection?.State == ConnectionState.Open;
             }
@@ -245,7 +252,7 @@ CREATE TABLE IF NOT EXISTS `{TableServer.TABLE_NAME}` (
         {
             string info = IoC.Translate("We can not select from database:");
 
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return ResultSelects<ProtocolBase>.Fail(result.ErrorInfo);
@@ -274,7 +281,7 @@ VALUES
         public override Result AddServer(ref ProtocolBase protocolBase)
         {
             string info = IoC.Translate("We can not insert into database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -305,7 +312,7 @@ VALUES
         public override Result AddServer(IEnumerable<ProtocolBase> protocolBases)
         {
             string info = IoC.Translate("We can not insert into database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess || _dbConnection == null) return result;
@@ -425,7 +432,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
         public override Result UpdateServer(ProtocolBase server)
         {
             string info = IoC.Translate("We can not update on database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -453,7 +460,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
         public override Result UpdateServer(IEnumerable<ProtocolBase> servers)
         {
             string info = IoC.Translate("We can not update on database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -481,7 +488,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
         public override Result DeleteServer(IEnumerable<string> ids)
         {
             var info = IoC.Translate("We can not delete from database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -517,7 +524,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
         protected ResultString GetConfigPrivate(string key, bool closeInEnd = false)
         {
             string info = IoC.Translate("We can not read from database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return ResultString.Fail(result.ErrorInfo);
@@ -546,7 +553,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
         protected Result SetConfigPrivate(string key, string? value, bool closeInEnd = false)
         {
             string info = IoC.Translate("We can not update on database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -576,7 +583,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
 
         public override Result SetTableUpdateTimestamp(string tableName, long time = -1, bool closeInEnd = false)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 var timestamp = time;
                 if (time <= 0)
@@ -587,7 +594,7 @@ WHERE `{nameof(TableServer.Id)}`= @{nameof(TableServer.Id)};");
 
         public override ResultLong GetTableUpdateTimestamp(string tableName, bool closeInEnd = false)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 var val = GetConfigPrivate("UpdateTimestamp_" + tableName);
                 if (!val.IsSuccess) return ResultLong.Fail(val.ErrorInfo);

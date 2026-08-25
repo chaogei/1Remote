@@ -7,6 +7,7 @@ using _1RM.Model;
 using _1RM.Model.Protocol.Base;
 using _1RM.Service;
 using _1RM.Service.DataSource;
+using _1RM.Service.DataSource.DAO;
 using _1RM.Service.DataSource.Model;
 using _1RM.Utils;
 using _1RM.View.Editor;
@@ -73,6 +74,33 @@ namespace _1RM.View.Settings.CredentialVault
         }
 
 
+        /// <summary>
+        /// Credential writes go to SQLite / a remote server, and update/delete also walk every protocol to
+        /// find inherited names. That used to run on the dispatcher (save button, delete confirm), which
+        /// froze the chrome and every hosted session until the round trip finished. ReloadAll stays on
+        /// this worker too: it is already safe from the database-check timer, and GetServers must not
+        /// return to the UI thread.
+        /// </summary>
+        private static async Task<Result> PersistCredentialAsync(Func<Result> persist)
+        {
+            try
+            {
+                return await Task.Run(() =>
+                {
+                    var ret = persist();
+                    if (ret.IsSuccess && ret.NeedReloadUI)
+                        IoC.Get<GlobalData>().ReloadAll();
+                    return ret;
+                });
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Error(e);
+                return Result.Fail(e.Message);
+            }
+        }
+
+
         private RelayCommand? _cmdAdd;
         public RelayCommand CmdAdd
         {
@@ -89,26 +117,18 @@ namespace _1RM.View.Settings.CredentialVault
                         RequirePassword = true,
                         RequirePrivateKey = true,
                     };
-                    vm.OnSave += () =>
+                    vm.OnSave += async () =>
                     {
-                        var ret = source.Database_InsertCredential(vm.New);
+                        var ret = await PersistCredentialAsync(() => source.Database_InsertCredential(vm.New));
                         if (ret.IsSuccess)
                         {
-                            if (ret.NeedReloadUI)
-                            {
-                                IoC.Get<GlobalData>().ReloadAll();
-                            }
-                            else
-                            {
+                            if (!ret.NeedReloadUI)
                                 Credentials.Add(new CredentialItem(source, vm.New));
-                            }
                             return true; // close the dialog
                         }
-                        else
-                        {
-                            MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
-                            return false; // do not close the dialog
-                        }
+
+                        MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
+                        return false; // do not close the dialog
                     };
                     MaskLayerController.ShowWindowWithMask(vm);
                 });
@@ -135,22 +155,14 @@ namespace _1RM.View.Settings.CredentialVault
                             RequirePassword = true,
                             RequirePrivateKey = true,
                         };
-                        vm.OnSave += () =>
+                        vm.OnSave += async () =>
                         {
-                            var ret = source.Database_UpdateCredential(vm.New, name);
+                            var ret = await PersistCredentialAsync(() => source.Database_UpdateCredential(vm.New, name));
                             if (ret.IsSuccess)
-                            {
-                                if (ret.NeedReloadUI)
-                                {
-                                    IoC.Get<GlobalData>().ReloadAll();
-                                }
                                 return true;
-                            }
-                            else
-                            {
-                                MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
-                                return false; // do not close the dialog
-                            }
+
+                            MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
+                            return false; // do not close the dialog
                         };
                         MaskLayerController.ShowWindowWithMask(vm);
                     }
@@ -164,23 +176,17 @@ namespace _1RM.View.Settings.CredentialVault
         {
             get
             {
-                return _cmdDelete ??= new RelayCommand((o) =>
+                return _cmdDelete ??= new RelayCommand(async (o) =>
                 {
                     if (o is not CredentialItem item
                         || true != MessageBoxHelper.Confirm(IoC.Translate("confirm_to_delete_selected") + " -> " + item.Credential.Name))
                         return;
 
-                    var ret = item.DataSource.Database_DeleteCredential(new[] { item.Credential.Name });
+                    var ret = await PersistCredentialAsync(() => item.DataSource.Database_DeleteCredential(new[] { item.Credential.Name }));
                     if (ret.IsSuccess)
                     {
-                        if (ret.NeedReloadUI)
-                        {
-                            IoC.Get<GlobalData>().ReloadAll();
-                        }
-                        else
-                        {
+                        if (!ret.NeedReloadUI)
                             Credentials.Remove(item);
-                        }
                     }
                     else
                     {

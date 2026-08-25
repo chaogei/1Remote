@@ -19,7 +19,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result InitTables()
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.InitTables();
@@ -31,7 +31,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override ResultSelects<ProtocolBase> GetServers()
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.GetServers();
@@ -43,7 +43,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result AddServer(ref ProtocolBase protocolBase)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.AddServer(ref protocolBase);
@@ -55,7 +55,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result AddServer(IEnumerable<ProtocolBase> protocolBases)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.AddServer(protocolBases);
@@ -67,7 +67,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result UpdateServer(ProtocolBase server)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.UpdateServer(server);
@@ -79,7 +79,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result UpdateServer(IEnumerable<ProtocolBase> servers)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.UpdateServer(servers);
@@ -93,7 +93,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result DeleteServer(IEnumerable<string> ids)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.DeleteServer(ids);
@@ -106,7 +106,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override ResultString GetConfig(string key, bool closeInEnd = true)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.GetConfig(key);
@@ -119,7 +119,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
         /// <inheritdoc />
         public override Result SetConfig(string key, string? value, bool closeInEnd = true)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.SetConfig(key, value);
@@ -132,7 +132,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override Result SetTableUpdateTimestamp(string dataType, long time = -1, bool closeInEnd = true)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.SetTableUpdateTimestamp(dataType, time);
@@ -144,7 +144,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override ResultLong GetTableUpdateTimestamp(string tableName, bool closeInEnd = true)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.GetTableUpdateTimestamp(tableName);
@@ -158,7 +158,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override ResultSelects<Credential> GetCredentials(bool closeInEnd = true)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.GetCredentials();
@@ -170,7 +170,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override Result AddCredential(ref Credential credential)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.AddCredential(ref credential);
@@ -182,7 +182,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override Result UpdateCredential(Credential credential, List<ProtocolBaseWithAddressPortUserPwd>? relatedProtocols = null)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.UpdateCredential(credential, relatedProtocols);
@@ -193,7 +193,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         //public override Result UpdateCredential(IEnumerable<Credential> credentials)
         //{
-        //    lock (this)
+        //    lock (DatabaseLock)
         //    {
         //        OpenConnection();
         //        var ret = base.UpdateCredential(credentials);
@@ -204,7 +204,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
 
         public override Result DeleteCredential(IEnumerable<string> names, List<ProtocolBaseWithAddressPortUserPwd>? relatedProtocols = null)
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 OpenConnection();
                 var ret = base.DeleteCredential(names);

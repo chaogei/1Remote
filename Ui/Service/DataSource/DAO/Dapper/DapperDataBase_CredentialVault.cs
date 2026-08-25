@@ -14,7 +14,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
     {
         private void InitPasswordVault()
         {
-            lock (this)
+            lock (DatabaseLock)
             {
                 _dbConnection?.Execute(NormalizedSql(@$"
 CREATE TABLE IF NOT EXISTS `{TableCredential.TABLE_NAME}` (
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `{TableCredential.TABLE_NAME}` (
         {
             string info = IoC.Translate("We can not select from database:");
 
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return ResultSelects<Credential>.Fail(result.ErrorInfo);
@@ -61,7 +61,7 @@ VALUES
         public override Result AddCredential(ref Credential credential)
         {
             string info = IoC.Translate("We can not insert into database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess) return result;
@@ -93,7 +93,7 @@ WHERE `{nameof(TableCredential.Id)}`= @{nameof(TableCredential.Id)};");
         public override Result UpdateCredential(Credential credential, List<ProtocolBaseWithAddressPortUserPwd>? relatedProtocols = null)
         {
             string info = IoC.Translate("We can not update on database:");
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess || _dbConnection == null) return result;
@@ -160,7 +160,7 @@ WHERE `{nameof(TableCredential.Id)}`= @{nameof(TableCredential.Id)};");
         //public override Result UpdateCredential(IEnumerable<Credential> credentials)
         //{
         //    string info = IoC.Translate("We can not update on database:");
-        //    lock (this)
+        //    lock (DatabaseLock)
         //    {
         //        var result = OpenConnection(info);
         //        if (!result.IsSuccess) return result;
@@ -197,7 +197,7 @@ WHERE `{nameof(TableCredential.Id)}`= @{nameof(TableCredential.Id)};");
             if (!names.Any())
                 return Result.Success();
 
-            lock (this)
+            lock (DatabaseLock)
             {
                 var result = OpenConnection(info);
                 if (!result.IsSuccess || _dbConnection == null) return result;

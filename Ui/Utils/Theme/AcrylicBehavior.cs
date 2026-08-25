@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using Shawn.Utils;
 
 namespace _1RM.Utils.Theme
@@ -26,6 +27,21 @@ namespace _1RM.Utils.Theme
 
         /// <summary>Last outcome per window, so the log records transitions rather than every attempt.</summary>
         private static readonly Dictionary<Window, bool> LastApplied = new Dictionary<Window, bool>();
+
+        static AcrylicBehavior()
+        {
+            // Coming back from a remote session (or plugging in a display) can change whether frost is safe.
+            // Re-evaluate rather than leaving a washed-out main window, or leaving acrylic off after logout.
+            try
+            {
+                SystemEvents.SessionSwitch += (_, _) => TryRefreshAll();
+                SystemEvents.DisplaySettingsChanged += (_, _) => TryRefreshAll();
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Debug($"AcrylicBehavior: could not subscribe to session events, {e.Message}");
+            }
+        }
 
         public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
             "IsEnabled", typeof(bool), typeof(AcrylicBehavior),
@@ -132,6 +148,18 @@ namespace _1RM.Utils.Theme
             }
         }
 
+        private static void TryRefreshAll()
+        {
+            try
+            {
+                Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshAll));
+            }
+            catch (Exception)
+            {
+                // dispatcher gone during shutdown
+            }
+        }
+
         /// <summary>
         /// Session chrome that embeds a Win32 remote-desktop HWND. Acrylic is applied to the WPF parent,
         /// so on machines where DWM does not punch an airspace hole the frost covers the session itself.
@@ -143,11 +171,37 @@ namespace _1RM.Utils.Theme
             return name is "TabWindowView" or "FullScreenWindowView";
         }
 
+        /// <summary>
+        /// Frost on the main window washes out under nested RDP / Terminal Services: DWM samples a remote
+        /// framebuffer instead of the real desktop, and a transparent composition target then composites
+        /// that bloom over the chrome. High contrast already supplies its own background.
+        /// </summary>
+        private static bool ShouldSkipAcrylic()
+        {
+            try
+            {
+                return SystemParameters.HighContrast || SystemParameters.IsRemoteSession;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         private static void Apply(Window? window)
         {
             if (window == null || IsRemoteSessionWindow(window)) return;
             try
             {
+                if (ShouldSkipAcrylic())
+                {
+                    AcrylicHelper.Clear(window);
+                    window.Resources.Remove(BACKDROP_RESOURCE_KEY);
+                    SetCompositionTargetTransparent(window, false);
+                    RecordApplied(window, false, "skipped (remote session or high contrast)");
+                    return;
+                }
+
                 var tint = ResolveTint();
                 var applied = tint.A > 0 && AcrylicHelper.Apply(window, tint);
 
@@ -162,17 +216,22 @@ namespace _1RM.Utils.Theme
 
                 SetCompositionTargetTransparent(window, applied);
 
-                // Only when the answer changes. Apply runs on every show, every theme switch and every tick of
-                // a colour slider, and logging each one at Warning buried the rest of the log - the crash
-                // report's "recent log" section was nothing but these lines.
-                if (LastApplied.TryGetValue(window, out var previous) && previous == applied) return;
-                LastApplied[window] = applied;
-                SimpleLogHelper.Info($"AcrylicBehavior: backdrop {(applied ? "applied" : "NOT applied")} to {window.GetType().Name}, tint = {tint}");
+                RecordApplied(window, applied, $"backdrop {(applied ? "applied" : "NOT applied")}, tint = {tint}");
             }
             catch (Exception ex)
             {
                 SimpleLogHelper.Warning($"AcrylicBehavior: {ex.Message}");
             }
+        }
+
+        private static void RecordApplied(Window window, bool applied, string detail)
+        {
+            // Only when the answer changes. Apply runs on every show, every theme switch and every tick of
+            // a colour slider, and logging each one at Warning buried the rest of the log - the crash
+            // report's "recent log" section was nothing but these lines.
+            if (LastApplied.TryGetValue(window, out var previous) && previous == applied) return;
+            LastApplied[window] = applied;
+            SimpleLogHelper.Info($"AcrylicBehavior: {detail} on {window.GetType().Name}");
         }
 
         /// <summary>

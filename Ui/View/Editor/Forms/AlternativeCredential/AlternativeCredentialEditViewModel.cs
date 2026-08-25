@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using _1RM.Model.Protocol;
 using _1RM.Model.Protocol.Base;
@@ -22,7 +23,7 @@ namespace _1RM.View.Editor.Forms.AlternativeCredential
     {
         public Model.Protocol.Base.Credential New { get; } = new Model.Protocol.Base.Credential();
         private readonly List<string>? _existedNames;
-        public Func<bool>? OnSave { get; set; }
+        public Func<Task<bool>>? OnSave { get; set; }
         public bool RequireHost = false;
         public bool RequirePort = false;
         public bool RequireUserName = false;
@@ -212,7 +213,7 @@ namespace _1RM.View.Editor.Forms.AlternativeCredential
         {
             get
             {
-                return _cmdSave ??= new RelayCommand((_) =>
+                return _cmdSave ??= new RelayCommand(async (_) =>
                 {
                     if (!ShowUsername)
                         New.UserName = "";
@@ -221,7 +222,9 @@ namespace _1RM.View.Editor.Forms.AlternativeCredential
                     if (!ShowPrivateKeyInput || !_isUsePrivateKey)
                         New.PrivateKeyPath = "";
                     New.Trim();
-                    if (OnSave?.Invoke() == true)
+                    var save = OnSave;
+                    var ok = save == null || await save();
+                    if (ok)
                         RequestClose(true);
                 }, o => CanSave());
             }
