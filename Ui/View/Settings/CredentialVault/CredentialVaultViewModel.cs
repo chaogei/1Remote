@@ -159,7 +159,17 @@ namespace _1RM.View.Settings.CredentialVault
                         {
                             var ret = await PersistCredentialAsync(() => source.Database_UpdateCredential(vm.New, name));
                             if (ret.IsSuccess)
-                                return true;
+                            {
+                                // A reload rebuilds the whole collection; without one the grid would keep
+                                // showing the row as it was before the edit, so swap it in place here.
+                                if (!ret.NeedReloadUI)
+                                {
+                                    var index = Credentials.IndexOf(item);
+                                    if (index >= 0)
+                                        Credentials[index] = new CredentialItem(source, vm.New);
+                                }
+                                return true; // close the dialog
+                            }
 
                             MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
                             return false; // do not close the dialog
@@ -171,6 +181,15 @@ namespace _1RM.View.Settings.CredentialVault
         }
 
 
+        /// <summary>
+        /// The rows whose delete is still running. Deleting walks every protocol looking for inherited
+        /// names, so the round trip is slow enough for a second click to land on the same row; that click
+        /// has to be dropped instead of issuing the delete again. Only ever touched on the UI thread - the
+        /// command runs there and PersistCredentialAsync resumes there - so it needs no lock, and the
+        /// check itself does no work that would hold up the dispatcher.
+        /// </summary>
+        private readonly HashSet<CredentialItem> _deleteInFlight = new HashSet<CredentialItem>();
+
         private RelayCommand? _cmdDelete;
         public RelayCommand CmdDelete
         {
@@ -178,19 +197,30 @@ namespace _1RM.View.Settings.CredentialVault
             {
                 return _cmdDelete ??= new RelayCommand(async (o) =>
                 {
-                    if (o is not CredentialItem item
-                        || true != MessageBoxHelper.Confirm(IoC.Translate("confirm_to_delete_selected") + " -> " + item.Credential.Name))
+                    if (o is not CredentialItem item)
                         return;
+                    if (_deleteInFlight.Add(item) == false)
+                        return; // this row is already being deleted
 
-                    var ret = await PersistCredentialAsync(() => item.DataSource.Database_DeleteCredential(new[] { item.Credential.Name }));
-                    if (ret.IsSuccess)
+                    try
                     {
-                        if (!ret.NeedReloadUI)
-                            Credentials.Remove(item);
+                        if (true != MessageBoxHelper.Confirm(IoC.Translate("confirm_to_delete_selected") + " -> " + item.Credential.Name))
+                            return;
+
+                        var ret = await PersistCredentialAsync(() => item.DataSource.Database_DeleteCredential(new[] { item.Credential.Name }));
+                        if (ret.IsSuccess)
+                        {
+                            if (!ret.NeedReloadUI)
+                                Credentials.Remove(item);
+                        }
+                        else
+                        {
+                            MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
+                        }
                     }
-                    else
+                    finally
                     {
-                        MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
+                        _deleteInFlight.Remove(item);
                     }
                 });
             }

@@ -33,10 +33,10 @@ namespace _1RM.Service.DataSource.DAO
         public bool IsSuccess = false;
         public bool NeedReloadUI = false;
         public string ErrorInfo = string.Empty;
-        private static readonly Result _SUCCESS = new Result() { IsSuccess = true };
         public static Result Success()
         {
-            return _SUCCESS;
+            // Must return a fresh instance: callers mutate the result (e.g. set NeedReloadUI), so a shared singleton would leak that state into every later Success().
+            return new Result() { IsSuccess = true };
         }
 
         public static string GetErrorInfo(string message, string databaseName, string reason)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -22,6 +23,10 @@ namespace _1RM.Utils.Theme
     {
         private const string TINT_RESOURCE_KEY = "AcrylicTintColor";
         private const string BACKDROP_RESOURCE_KEY = "WindowBackdropBrush";
+        private const int SM_REMOTESESSION = 0x1000;
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
 
         private static readonly HashSet<Window> Registered = new HashSet<Window>();
 
@@ -30,12 +35,21 @@ namespace _1RM.Utils.Theme
 
         static AcrylicBehavior()
         {
-            // Coming back from a remote session (or plugging in a display) can change whether frost is safe.
+            // Coming back from a remote session (or plugging in a display, or toggling high contrast) can change whether frost is safe.
             // Re-evaluate rather than leaving a washed-out main window, or leaving acrylic off after logout.
             try
             {
                 SystemEvents.SessionSwitch += (_, _) => TryRefreshAll();
                 SystemEvents.DisplaySettingsChanged += (_, _) => TryRefreshAll();
+                // UserPreferenceChanged fires for many unrelated SPI changes; only contrast / colour /
+                // visual-style switches can make acrylic unsafe or restore it.
+                SystemEvents.UserPreferenceChanged += (_, e) =>
+                {
+                    if (e.Category is UserPreferenceCategory.Color
+                        or UserPreferenceCategory.Accessibility
+                        or UserPreferenceCategory.VisualStyle)
+                        TryRefreshAll();
+                };
             }
             catch (Exception e)
             {
@@ -175,12 +189,19 @@ namespace _1RM.Utils.Theme
         /// Frost on the main window washes out under nested RDP / Terminal Services: DWM samples a remote
         /// framebuffer instead of the real desktop, and a transparent composition target then composites
         /// that bloom over the chrome. High contrast already supplies its own background.
+        ///
+        /// WPF's SystemParameters.IsRemoteSession caches CacheSlot.IsRemoteSession indefinitely because
+        /// SystemParameters does not invalidate that slot (no InvalidateProperty in SystemParameters.cs).
+        /// Therefore, we P/Invoke GetSystemMetrics(SM_REMOTESESSION) directly on each call instead of
+        /// using SystemParameters.IsRemoteSession. HighContrast is preserved from SystemParameters since
+        /// its cache slot is properly invalidated upon UserPreferenceChanged.
         /// </summary>
         private static bool ShouldSkipAcrylic()
         {
             try
             {
-                return SystemParameters.HighContrast || SystemParameters.IsRemoteSession;
+                var isRemoteSession = GetSystemMetrics(SM_REMOTESESSION) != 0;
+                return SystemParameters.HighContrast || isRemoteSession;
             }
             catch (Exception)
             {

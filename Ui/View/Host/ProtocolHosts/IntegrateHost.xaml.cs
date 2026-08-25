@@ -181,8 +181,9 @@ namespace _1RM.View.Host.ProtocolHosts
         private Timer? _timer;
         private Process? _process;
         private readonly System.Windows.Forms.Panel _panel;
-        private readonly HashSet<IntPtr> _exeHandles = new();
+        private readonly List<IntPtr> _exeHandles = new();
         private readonly object _exeHandlesLock = new();
+        private IntPtr _lastExeHandle = IntPtr.Zero;
         public readonly string ExeFullName;
         public string ExeArguments { get; init; }
         private readonly Dictionary<string, string> _environmentVariables;
@@ -304,6 +305,8 @@ namespace _1RM.View.Host.ProtocolHosts
                     {
                         SimpleLogHelper.Debug($"_exeHandles remove {handle}");
                         _exeHandles.Remove(handle);
+                        if (handle == _lastExeHandle)
+                            _lastExeHandle = _exeHandles.Count > 0 ? _exeHandles[_exeHandles.Count - 1] : IntPtr.Zero;
                     }
                 }
             }
@@ -505,6 +508,7 @@ namespace _1RM.View.Host.ProtocolHosts
             _timer = new Timer { Interval = 100, AutoReset = false };
             _timer.Elapsed += (sender, args) =>
             {
+                if (_disposed) return;
                 if (_process == null)
                 {
                     return;
@@ -518,7 +522,14 @@ namespace _1RM.View.Host.ProtocolHosts
                     if (handle != IntPtr.Zero)
                     {
                         lock (_exeHandlesLock)
-                            added = _exeHandles.Add(handle);
+                        {
+                            if (!_exeHandles.Contains(handle))
+                            {
+                                _exeHandles.Add(handle);
+                                _lastExeHandle = handle;
+                                added = true;
+                            }
+                        }
                     }
                     if (added)
                     {
@@ -536,7 +547,14 @@ namespace _1RM.View.Host.ProtocolHosts
                 // session on each call.
                 if (DateTime.Now > endTime)
                     return;
-                _timer?.Start();
+                try
+                {
+                    _timer?.Start();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Disposed after the callback's initial check; teardown is already in progress.
+                }
             };
             _timer.Start();
         }
@@ -570,7 +588,7 @@ namespace _1RM.View.Host.ProtocolHosts
             lock (_exeHandlesLock)
             {
                 if (_exeHandles.Count > 0)
-                    return _exeHandles.Last();
+                    return _lastExeHandle;
             }
 
             try

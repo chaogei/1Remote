@@ -403,7 +403,13 @@ namespace _1RM.Service.DataSource.Model
                 var ret = GetDataBase().DeleteServer(enumerable);
                 if (ret.IsSuccess)
                 {
-                    CachedProtocols.RemoveAll(x => enumerable.Contains(x.Id));
+                    // Same publish-by-swap rule as Database_DeleteCredential: GetServers returns this list
+                    // by reference, so it must be replaced rather than mutated under readers.
+                    lock (_readLock)
+                    {
+                        CachedProtocols = CachedProtocols.Where(x => !enumerable.Contains(x.Id)).ToList();
+                        ++_readGeneration;
+                    }
                     SetStatus(true);
                 }
                 return ret;
@@ -515,7 +521,17 @@ namespace _1RM.Service.DataSource.Model
                 var ret = GetDataBase().DeleteCredential(enumerable, relatedProtocols);
                 if (ret.IsSuccess)
                 {
-                    CachedCredentials.RemoveAll(x => enumerable.Contains(x.Name));
+                    // Publish by swap, never RemoveAll in place: GetCredentials hands the very same list
+                    // instance out by reference, so a UI-thread enumeration of it would throw
+                    // InvalidOperationException the moment this thread mutated it. Readers that already
+                    // hold the old list keep a consistent, if momentarily stale, snapshot.
+                    lock (_readLock)
+                    {
+                        CachedCredentials = CachedCredentials.Where(x => !enumerable.Contains(x.Name)).ToList();
+                        // Void any credential read already in flight: it fetched its rows before the delete
+                        // reached the database, so publishing them would resurrect what we just removed.
+                        ++_credentialReadGeneration;
+                    }
                     if (relatedProtocols.Count > 0)
                     {
                         ClearReadTimestamp(); // reload database

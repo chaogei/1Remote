@@ -228,9 +228,12 @@ jobs:
         id: notes
         shell: bash
         run: |
+          NOTES="$(mktemp)"
+          trap 'rm -f "$NOTES"' EXIT
+          bash .github/scripts/release-notes.sh > "$NOTES"
           {
             echo 'body<<NOTES_EOF'
-            bash .github/scripts/release-notes.sh
+            cat "$NOTES"
             echo 'NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 
@@ -358,9 +361,12 @@ jobs:
         id: notes
         shell: bash
         run: |
+          NOTES="$(mktemp)"
+          trap 'rm -f "$NOTES"' EXIT
+          bash .github/scripts/release-notes.sh > "$NOTES"
           {
             echo 'body<<NOTES_EOF'
-            bash .github/scripts/release-notes.sh
+            cat "$NOTES"
             echo 'NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 

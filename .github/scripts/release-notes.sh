@@ -14,16 +14,18 @@ fi
 
 PREV="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
 if [ -z "$PREV" ]; then
-  PREV="$(git tag --sort=-creatordate | grep -vxF "$TAG" | head -n 1 || true)"
+  PREV="$(git tag --merged "$TAG" --sort=-creatordate |
+    awk -v tag="$TAG" '$0 != tag && !found { previous=$0; found=1 }
+      END { if (found) print previous }' || true)"
 fi
 
 echo "## What's Changed"
 echo
 
 if [ -n "$PREV" ]; then
-  LOG="$(git log "${PREV}..${TAG}" --pretty=format:'- %s (%h)' --no-merges)"
+  LOG="$(git log -n 100 "${PREV}..${TAG}" --pretty=format:'- %s (%h)' --no-merges)"
 else
-  LOG="$(git log -n 50 --pretty=format:'- %s (%h)' --no-merges)"
+  LOG="$(git log -n 100 "$TAG" --pretty=format:'- %s (%h)' --no-merges)"
 fi
 
 if [ -z "$LOG" ]; then

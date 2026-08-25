@@ -207,7 +207,7 @@ namespace _1RM.Service.DataSource.DAO.Dapper
             lock (DatabaseLock)
             {
                 OpenConnection();
-                var ret = base.DeleteCredential(names);
+                var ret = base.DeleteCredential(names, relatedProtocols);
                 CloseConnection();
                 return ret;
             }
