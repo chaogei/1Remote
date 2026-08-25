@@ -213,17 +213,26 @@
                                 </DataTrigger>
                                 <Trigger Property="IsSelected" Value="False">
                                     <Setter Property="Background" Value="Transparent" TargetName="DragablzHeaderItemBorder" />
-                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" TargetName="DragablzHeaderItemBorder" />
-                                    <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}" TargetName="DragablzHeaderItemBorder" />
-                                    <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
-                                    <Setter Property="BorderBrush" TargetName="DragablzHeaderItemBorder" Value="{Binding ColorHex, Converter={StaticResource ConverterColorHexString2Brush}, Mode=OneWay}"/>
+                                    <!-- A tab with no colour of its own used to underline itself in the
+                                         transparent brush the converter returns, so the only thing marking
+                                         the selected tab was a faint fill. -->
+                                    <Setter Property="BorderBrush" TargetName="DragablzHeaderItemBorder" Value="{DynamicResource AccentMidBrush}"/>
                                 </Trigger>
+                                <!-- Declared after the selection trigger so a tab that does carry a colour
+                                     keeps showing it rather than the accent. -->
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                        <Condition Binding="{Binding ColorHex, Converter={StaticResource ConverterColorIsTransparent}}" Value="False" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="BorderBrush" TargetName="DragablzHeaderItemBorder" Value="{Binding ColorHex, Converter={StaticResource ConverterColorHexString2Brush}, Mode=OneWay}"/>
+                                </MultiDataTrigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -435,8 +444,16 @@
     </Window.Resources>
 
     <Grid Background="Transparent">
-        <!-- Title bar acrylic background strip -->
-        <Border Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="{DynamicResource GlassPanelBrush}" />
+        <!--
+            A Layer* overlay, not GlassPanelBrush. This window is on the acrylic denylist, so nothing is
+            ever composited behind it: GlassPanelBrush is PrimaryMid at an alpha, and the window body it
+            would be tinting is PrimaryMid too, so the two resolve to exactly the same colour and the strip
+            read as one flat slab with the rest of the frame. The overlay is the foreground colour at a low
+            alpha instead, which lightens the strip on a dark theme and darkens it on a light one, so the
+            chrome separates from the session area on every palette. The hairline under it comes from the
+            TabablzControl template.
+        -->
+        <Border Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="{DynamicResource LayerFillBrush}" />
 
         <dragablz:TabablzControl x:Name="TabablzControl"
                                  BorderThickness="0"
