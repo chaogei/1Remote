@@ -1,6 +1,7 @@
 ﻿using _1RM.Model.Protocol;
 using _1RM.Model.Protocol.Base;
 using _1RM.Utils;
+using _1RM.Utils.ExternalSecret;
 
 namespace _1RM.Service
 {
@@ -45,11 +46,26 @@ namespace _1RM.Service
             }
         }
 
+        /// <summary>
+        /// Turns what is stored into what can be used: deciphered, and — when the stored value is a
+        /// <see cref="ExternalSecretResolver.PREFIX"/> reference rather than a secret — fetched from
+        /// whichever password manager the reference names.
+        ///
+        /// Doing it here rather than at each call site is deliberate: this is the one place a stored
+        /// password becomes a usable one, so every protocol gains external secrets at once and none of them
+        /// can forget to.
+        /// </summary>
+        private static string ToUsableSecret(string stored)
+        {
+            var plain = UnSafeStringEncipher.DecryptOrReturnOriginalString(stored);
+            return ExternalSecretResolver.IsReference(plain) ? ExternalSecretResolver.Resolve(plain) : plain;
+        }
+
         public static void DecryptToConnectLevel(this ProtocolBase server)
         {
             if (server is ProtocolBaseWithAddressPortUserPwd s)
             {
-                s.Password = UnSafeStringEncipher.DecryptOrReturnOriginalString(s.Password);
+                s.Password = ToUsableSecret(s.Password);
                 foreach (var credential in s.AlternateCredentials)
                 {
                     credential.DecryptToConnectLevel();
@@ -58,11 +74,12 @@ namespace _1RM.Service
             switch (server)
             {
                 case SSH ssh when !string.IsNullOrWhiteSpace(ssh.PrivateKey):
+                    // A key path, not a secret: deciphered but never handed to a resolver.
                     ssh.PrivateKey = UnSafeStringEncipher.DecryptOrReturnOriginalString(ssh.PrivateKey);
                     break;
 
                 case RDP rdp when !string.IsNullOrWhiteSpace(rdp.GatewayPassword):
-                    rdp.GatewayPassword = UnSafeStringEncipher.DecryptOrReturnOriginalString(rdp.GatewayPassword);
+                    rdp.GatewayPassword = ToUsableSecret(rdp.GatewayPassword);
                     break;
 
                 case LocalApp app:
@@ -70,7 +87,7 @@ namespace _1RM.Service
                     {
                         if (arg.Type == AppArgumentType.Secret)
                         {
-                            arg.Value = UnSafeStringEncipher.DecryptOrReturnOriginalString(arg.Value);
+                            arg.Value = ToUsableSecret(arg.Value);
                         }
                     }
                     break;
@@ -89,7 +106,7 @@ namespace _1RM.Service
         public static void DecryptToConnectLevel(this Credential credential)
         {
             if (!string.IsNullOrEmpty(credential.Password))
-                credential.Password = UnSafeStringEncipher.DecryptOrReturnOriginalString(credential.Password);
+                credential.Password = ToUsableSecret(credential.Password);
             if (!string.IsNullOrEmpty(credential.PrivateKeyPath))
                 credential.PrivateKeyPath = UnSafeStringEncipher.DecryptOrReturnOriginalString(credential.PrivateKeyPath);
         }

@@ -5,6 +5,7 @@ using System.Windows;
 using _1RM.Model.Protocol.Base;
 using _1RM.Service;
 using _1RM.Utils;
+using _1RM.Utils.ExternalSecret;
 using _1RM.View.Editor.Forms.AlternativeCredential;
 using _1RM.View.Utils;
 using Shawn.Utils.Wpf;
@@ -24,6 +25,14 @@ public class CredentialViewModel : NotifyPropertyChangedBaseScreen
     public CredentialViewModel(ProtocolBaseWithAddressPortUserPwd protocol)
     {
         New = protocol;
+        // The password is edited on the protocol, not here, so whether it has become an external reference
+        // has to be watched for rather than set.
+        New.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(ProtocolBaseWithAddressPortUserPwd.Password)) return;
+            RaisePropertyChanged(nameof(IsPasswordExternal));
+            ExternalSecretResult = "";
+        };
         var credentials = protocol.DataSource?.GetCredentials(true)?.ToList() ?? new List<Credential>();
         if (credentials.Any())
         {
@@ -163,6 +172,40 @@ public class CredentialViewModel : NotifyPropertyChangedBaseScreen
         }
     }
 
+
+    #region External secret
+
+    /// <summary>
+    /// Whether the password field holds a command to fetch the secret rather than the secret. Drives the
+    /// test button, which only makes sense once the field is a reference.
+    /// </summary>
+    public bool IsPasswordExternal => ExternalSecretResolver.IsReference(New.Password);
+
+    private string _externalSecretResult = "";
+    public string ExternalSecretResult
+    {
+        get => _externalSecretResult;
+        private set
+        {
+            if (SetAndNotifyIfChanged(ref _externalSecretResult, value))
+                RaisePropertyChanged(nameof(HasExternalSecretResult));
+        }
+    }
+
+    public bool HasExternalSecretResult => ExternalSecretResult.Length > 0;
+
+    private RelayCommand? _cmdTestExternalSecret;
+    public RelayCommand CmdTestExternalSecret => _cmdTestExternalSecret ??= new RelayCommand(_ =>
+    {
+        // Reports the length rather than the secret: the point is to confirm the command works, and echoing
+        // a password into the editor would defeat the reason for keeping it in a vault.
+        var (ok, message, length) = ExternalSecretResolver.Test(New.Password);
+        ExternalSecretResult = ok
+            ? IoC.Translate("external_secret_test_ok", length.ToString())
+            : IoC.Translate("external_secret_test_failed", message);
+    });
+
+    #endregion
 
     public void ButtonSelectPrivateKey_OnClick(object sender, RoutedEventArgs e)
     {
