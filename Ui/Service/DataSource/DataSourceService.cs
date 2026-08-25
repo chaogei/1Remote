@@ -41,80 +41,84 @@ namespace _1RM.Service.DataSource
             }
         }
 
+        // The three readers below deliberately take no lock of their own.
+        //
+        // Each data source already serialises its own read and publishes its own cache atomically, so an
+        // outer lock would add nothing but a second monitor held across the per-source read — and that read
+        // hops to the UI thread to build the view models. The reload timer would then be holding this lock
+        // while it waits for the dispatcher, against a UI thread waiting to enter it from the credential
+        // vault, which hangs every window in the app including the hosted remote sessions.
+
         public List<ProtocolBaseViewModel> GetServers(bool force)
         {
-            lock (this)
+            var ret = new List<ProtocolBaseViewModel>(100);
+            // read once: the property can be swapped from under us now that no lock spans the loop
+            var local = LocalDataSource;
+            if (local != null)
+                ret.AddRange(local.GetServers(force));
+            foreach (var dataSource in AdditionalSources)
             {
-                var ret = new List<ProtocolBaseViewModel>(100);
-                if (LocalDataSource != null)
-                    ret.AddRange(LocalDataSource.GetServers(force));
-                foreach (var dataSource in AdditionalSources)
+                try
                 {
-                    try
+                    var pbs = dataSource.Value.GetServers(force);
+                    foreach (var pb in pbs)
                     {
-                        var pbs = dataSource.Value.GetServers(force);
-                        foreach (var pb in pbs)
-                        {
-                            pb.DataSourceNameForLauncher = AdditionalSources.Any() ? pb.DataSourceName : "";
-                        }
-                        ret.AddRange(pbs);
+                        pb.DataSourceNameForLauncher = AdditionalSources.Any() ? pb.DataSourceName : "";
                     }
-                    catch (Exception e)
-                    {
-                        SimpleLogHelper.DebugWarning(e);
-                    }
+                    ret.AddRange(pbs);
                 }
-                return ret;
+                catch (Exception e)
+                {
+                    SimpleLogHelper.DebugWarning(e);
+                }
             }
+            return ret;
         }
 
         public List<Credential> GetCredentials(bool force)
         {
-            lock (this)
+            var ret = new List<Credential>(100);
+            var local = LocalDataSource;
+            if (local != null)
+                ret.AddRange(local.GetCredentials(force));
+            foreach (var dataSource in AdditionalSources)
             {
-                var ret = new List<Credential>(100);
-                if (LocalDataSource != null)
-                    ret.AddRange(LocalDataSource.GetCredentials(force));
-                foreach (var dataSource in AdditionalSources)
+                try
                 {
-                    try
-                    {
-                        var cs = dataSource.Value.GetCredentials(force);
-                        ret.AddRange(cs);
-                    }
-                    catch (Exception e)
-                    {
-                        SimpleLogHelper.DebugWarning(e);
-                    }
+                    var cs = dataSource.Value.GetCredentials(force);
+                    ret.AddRange(cs);
                 }
-                return ret;
+                catch (Exception e)
+                {
+                    SimpleLogHelper.DebugWarning(e);
+                }
             }
+            return ret;
         }
 
 
         public List<(DataSourceBase, Credential)> GetSourceCredentials(bool force)
         {
-            lock (this)
+            var ret = new List<(DataSourceBase, Credential)>(100);
+            var local = LocalDataSource;
+            if (local != null)
             {
-                var ret = new List<(DataSourceBase, Credential)>(100);
-                if (LocalDataSource != null)
-                {
-                    ret.AddRange(LocalDataSource.GetCredentials().Select(credential => (LocalDataSource, credential)).Select(dummy => ((DataSourceBase, Credential)) dummy));
-                }
-                foreach (var dataSource in AdditionalSources)
-                {
-                    try
-                    {
-                        var cs = dataSource.Value.GetCredentials(force);
-                        ret.AddRange(cs.Select(credential => (dataSource.Value, credential)).Select(dummy => ((DataSourceBase, Credential))dummy));
-                    }
-                    catch (Exception e)
-                    {
-                        SimpleLogHelper.DebugWarning(e);
-                    }
-                }
-                return ret;
+                DataSourceBase source = local;
+                ret.AddRange(source.GetCredentials().Select(credential => (source, credential)));
             }
+            foreach (var dataSource in AdditionalSources)
+            {
+                try
+                {
+                    var cs = dataSource.Value.GetCredentials(force);
+                    ret.AddRange(cs.Select(credential => (dataSource.Value, credential)).Select(dummy => ((DataSourceBase, Credential))dummy));
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.DebugWarning(e);
+                }
+            }
+            return ret;
         }
 
 

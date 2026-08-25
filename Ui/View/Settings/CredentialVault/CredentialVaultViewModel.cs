@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using _1RM.Model;
 using _1RM.Model.Protocol.Base;
 using _1RM.Service;
@@ -49,10 +51,24 @@ namespace _1RM.View.Settings.CredentialVault
 
         private void InitCredentials()
         {
-            Execute.OnUIThreadSync(() =>
+            // Reading credentials is a round trip to the data source, which may be a remote database or a
+            // file on a network share. This stays subscribed to OnReloadAll for the lifetime of the app, so
+            // doing the read on the dispatcher froze every window mid-session — the 1Remote chrome and the
+            // hosted remote sessions with it — until the query answered or timed out. Only the collection
+            // swap needs the UI thread.
+            Task.Run(() =>
             {
-                var tuples = _sourceService.GetSourceCredentials(false);
-                Credentials = new ObservableCollection<CredentialItem>(tuples.Select(tuple => new CredentialItem(tuple.Item1, tuple.Item2)));
+                try
+                {
+                    var items = _sourceService.GetSourceCredentials(false)
+                        .Select(tuple => new CredentialItem(tuple.Item1, tuple.Item2))
+                        .ToList();
+                    Execute.OnUIThread(() => Credentials = new ObservableCollection<CredentialItem>(items));
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.Warning($"CredentialVaultViewModel: could not read the credentials, {e.Message}");
+                }
             });
         }
 

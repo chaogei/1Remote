@@ -35,6 +35,27 @@ namespace _1RM.Service.DataSource.Model
         private EnumDatabaseStatus? _lastReadDataSourceStatus = null;
 
         /// <summary>
+        /// Serialises reads against this data source.
+        ///
+        /// INVARIANT: never block on the UI thread while holding it — no Execute.OnUIThreadSync, no
+        /// Dispatcher.Invoke. The reload timer enters this lock from a pool thread, and the UI thread
+        /// enters it too (the credential editor and the export command both read through here). A holder
+        /// that waits for the dispatcher therefore deadlocks against a UI thread waiting for the lock,
+        /// which freezes every window in the app, hosted remote sessions included.
+        ///
+        /// It is also a private object rather than `this`: a data source is handed out all over the app,
+        /// so anything could have locked on it.
+        /// </summary>
+        [JsonIgnore] private readonly object _readLock = new object();
+
+        /// <summary>
+        /// Bumped under <see cref="_readLock"/> for every read that got its rows. Building the view models
+        /// happens with the lock released, so two overlapping reads can finish out of order; the older one
+        /// compares its ticket against this and drops its result rather than publishing stale rows.
+        /// </summary>
+        [JsonIgnore] private long _readGeneration;
+
+        /// <summary>
         /// Last time read servers from data source, in milliseconds since epoch.
         /// </summary>
         [JsonIgnore] private readonly Dictionary<string, long> _lastReadTimestamp = new Dictionary<string, long>();
@@ -128,37 +149,50 @@ namespace _1RM.Service.DataSource.Model
                 return CachedProtocols;
             }
 
-            lock (this)
+            ResultSelects<ProtocolBase> result;
+            long generation;
+            lock (_readLock)
             {
-                var result = Database_GetServers();
-                if (result.IsSuccess)
+                result = Database_GetServers();
+                if (!result.IsSuccess)
+                    return CachedProtocols;
+                SetReadTimestamp(TableServer.TABLE_NAME);
+                generation = ++_readGeneration;
+            }
+
+            // Deliberately outside the lock: this waits for the dispatcher, and the UI thread reads through
+            // here too, so holding the lock across the wait is the deadlock described on _readLock.
+            // Still one hop for the whole batch — marshalling per server queued a separate dispatcher
+            // operation each time, chopping the UI thread into as many slices as there are servers right
+            // while the main window is trying to draw its first frame.
+            var loaded = new List<ProtocolBaseViewModel>(result.Items.Count);
+            try
+            {
+                Execute.OnUIThreadSync(() =>
                 {
-                    SetReadTimestamp(TableServer.TABLE_NAME);
-                    // One hop to the UI thread for the whole batch. Marshalling per server queued a separate
-                    // dispatcher operation each time, chopping the UI thread into as many slices as there
-                    // are servers right while the main window is trying to draw its first frame.
-                    var loaded = new List<ProtocolBaseViewModel>(result.Items.Count);
-                    try
+                    foreach (var protocol in result.Items)
                     {
-                        Execute.OnUIThreadSync(() =>
+                        try
                         {
-                            foreach (var protocol in result.Items)
-                            {
-                                try
-                                {
-                                    loaded.Add(new ProtocolBaseViewModel(protocol));
-                                }
-                                catch (Exception e)
-                                {
-                                    SimpleLogHelper.DebugInfo(e);
-                                }
-                            }
-                        });
+                            loaded.Add(new ProtocolBaseViewModel(protocol));
+                        }
+                        catch (Exception e)
+                        {
+                            SimpleLogHelper.DebugInfo(e);
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        SimpleLogHelper.DebugInfo(e);
-                    }
+                });
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.DebugInfo(e);
+                return CachedProtocols;
+            }
+
+            lock (_readLock)
+            {
+                if (generation == _readGeneration)
+                {
                     CachedProtocols = loaded;
                     SetStatus(true);
                 }
@@ -504,7 +538,7 @@ namespace _1RM.Service.DataSource.Model
             {
                 return CachedCredentials;
             }
-            lock (this)
+            lock (_readLock)
             {
                 var result = GetDataBase().GetCredentials();
                 if (result.IsSuccess)
@@ -514,7 +548,6 @@ namespace _1RM.Service.DataSource.Model
                     {
                         credential.DataSource = this;
                     }
-                    SetStatus(true);
                     CachedCredentials = result.Items;
                     SetStatus(true);
                 }
