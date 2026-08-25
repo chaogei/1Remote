@@ -1,7 +1,8 @@
-﻿using _1RM.Model;
+using _1RM.Model;
 using _1RM.Service.DataSource;
 using _1RM.Service.DataSource.Model;
 using _1RM.Utils;
+using _1RM.Utils.PortForward;
 using _1RM.Utils.Proxy;
 using _1RM.Utils.Tracing;
 using _1RM.View;
@@ -216,6 +217,10 @@ namespace _1RM.Service
         /// The proxies a server can pick from by name. See <c>ProtocolBase.ProxyName</c>.
         /// </summary>
         public List<ProxyConfig> Proxies { get; set; } = new List<ProxyConfig>();
+        /// <summary>
+        /// Standing port forwards, each pointing at one of <see cref="Proxies"/> by name.
+        /// </summary>
+        public List<PortForwardConfig> PortForwards { get; set; } = new List<PortForwardConfig>();
         public static Configuration? Load(string path)
         {
             var tmp = JsonConvert.DeserializeObject<Configuration>(File.ReadAllText(path));
@@ -262,6 +267,7 @@ namespace _1RM.Service
         public ThemeConfig Theme => _cfg.Theme;
         public EngagementSettings Engagement => _cfg.Engagement;
         public List<ProxyConfig> Proxies => _cfg.Proxies;
+        public List<PortForwardConfig> PortForwards => _cfg.PortForwards;
         /// <summary>
         /// Tags that show on the tab bar of the main window
         /// </summary>

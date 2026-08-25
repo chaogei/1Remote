@@ -17,7 +17,7 @@ namespace _1RM.Utils.Proxy
     /// every protocol a plain TCP endpoint on 127.0.0.1 instead means one implementation covers all of them,
     /// including any protocol added later.
     /// </summary>
-    public sealed class ProxyTunnel : IDisposable
+    public sealed class ProxyTunnel : ITunnel
     {
         public const string LOCAL_HOST = "127.0.0.1";
         private const int PROXY_CONNECT_TIMEOUT_MS = 15 * 1000;

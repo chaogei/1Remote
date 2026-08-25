@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Threading;
 using Shawn.Utils;
 
 namespace _1RM.Utils.Proxy
@@ -20,31 +21,87 @@ namespace _1RM.Utils.Proxy
         private const int LAST_DYNAMIC_PORT = 65535;
 
         private readonly object _lock = new object();
-        private readonly Dictionary<string, ProxyTunnel> _tunnels = new Dictionary<string, ProxyTunnel>();
 
-        public ProxyTunnel GetOrCreate(ProxyConfig proxy, string targetHost, int targetPort)
+        /// <summary>
+        /// Entries are lazy so that building a tunnel — which for a jump host means authenticating over the
+        /// network — happens outside <see cref="_lock"/>. Threads racing for the same key still serialise on
+        /// the <see cref="Lazy{T}"/> and end up sharing one tunnel; threads on other keys do not wait.
+        /// </summary>
+        private readonly Dictionary<string, Lazy<ITunnel>> _tunnels = new Dictionary<string, Lazy<ITunnel>>();
+
+        public ITunnel GetOrCreate(ProxyConfig proxy, string targetHost, int targetPort)
         {
             if (proxy == null) throw new ArgumentNullException(nameof(proxy));
             if (!proxy.IsUsable) throw new ArgumentException($"proxy '{proxy.Name}' is not configured completely", nameof(proxy));
 
             var key = $"{proxy.GetEndPointKey()}=>{targetHost}:{targetPort}";
+
+            // At most two passes: the first may turn up a tunnel that has since died or whose credentials
+            // just changed, and the replacement registered on the second is what gets returned.
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                var entry = GetOrAddEntry(key, proxy, targetHost, targetPort);
+
+                ITunnel tunnel;
+                try
+                {
+                    tunnel = entry.Value;
+                }
+                catch
+                {
+                    // A Lazy remembers the failure, so the entry has to go or this route stays broken for
+                    // the rest of the session.
+                    Forget(key, entry);
+                    throw;
+                }
+
+                if (tunnel.IsAlive)
+                {
+                    // The key covers the route but not the secret, so hand the current one over. A jump
+                    // tunnel cannot swap credentials on a live session and retires itself instead, hence
+                    // the second look.
+                    tunnel.RefreshCredentials(proxy);
+                    if (tunnel.IsAlive)
+                        return tunnel;
+                }
+
+                Forget(key, entry);
+                tunnel.Dispose();
+            }
+
+            throw new InvalidOperationException($"could not keep a tunnel to {targetHost}:{targetPort} alive");
+        }
+
+        private Lazy<ITunnel> GetOrAddEntry(string key, ProxyConfig proxy, string targetHost, int targetPort)
+        {
             lock (_lock)
             {
                 if (_tunnels.TryGetValue(key, out var existed))
-                {
-                    if (existed.IsAlive)
-                    {
-                        // the key covers the route but not the password, so hand the current one over
-                        existed.RefreshCredentials(proxy);
-                        return existed;
-                    }
-                    _tunnels.Remove(key);
-                }
+                    return existed;
 
-                var tunnel = ProxyTunnel.Start(proxy, targetHost, targetPort, PreferredLocalPort(key));
-                _tunnels[key] = tunnel;
-                return tunnel;
+                var created = new Lazy<ITunnel>(
+                    () => Create(proxy, targetHost, targetPort, PreferredLocalPort(key)),
+                    LazyThreadSafetyMode.ExecutionAndPublication);
+                _tunnels[key] = created;
+                return created;
             }
+        }
+
+        private void Forget(string key, Lazy<ITunnel> entry)
+        {
+            lock (_lock)
+            {
+                // Only when it is still the same entry: another thread may already have put a fresh one in.
+                if (_tunnels.TryGetValue(key, out var current) && ReferenceEquals(current, entry))
+                    _tunnels.Remove(key);
+            }
+        }
+
+        private static ITunnel Create(ProxyConfig proxy, string targetHost, int targetPort, int preferredLocalPort)
+        {
+            return proxy.Type == EProxyType.SshJump
+                ? SshJumpTunnel.Start(proxy, targetHost, targetPort, preferredLocalPort)
+                : ProxyTunnel.Start(proxy, targetHost, targetPort, preferredLocalPort);
         }
 
         /// <summary>
@@ -115,17 +172,20 @@ namespace _1RM.Utils.Proxy
 
         public void Dispose()
         {
-            ProxyTunnel[] tunnels;
+            Lazy<ITunnel>[] entries;
             lock (_lock)
             {
-                tunnels = _tunnels.Values.ToArray();
+                entries = _tunnels.Values.ToArray();
                 _tunnels.Clear();
             }
-            foreach (var tunnel in tunnels)
+            foreach (var entry in entries)
             {
+                // An entry still being built has nothing to close, and asking for its value here would
+                // block the shutdown on a network round trip.
+                if (!entry.IsValueCreated) continue;
                 try
                 {
-                    tunnel.Dispose();
+                    entry.Value.Dispose();
                 }
                 catch (Exception e)
                 {

@@ -8,6 +8,7 @@ using _1RM.Utils;
 using _1RM.Utils.Proxy;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
+using Shawn.Utils.Wpf.FileSystem;
 
 namespace _1RM.View.Settings.Proxy
 {
@@ -26,13 +27,21 @@ namespace _1RM.View.Settings.Proxy
 
         public ObservableCollection<ProxyConfig> Proxies { get; }
 
+        /// <summary>One entry of the type dropdown: the value to store, and how it is spelled in the list.</summary>
+        public sealed class ProxyTypeOption
+        {
+            public EProxyType Value { get; init; }
+            public string Display { get; init; } = "";
+        }
+
         /// <summary>
         /// <see cref="EProxyType.None"/> is excluded: a server opts out of proxying by selecting no proxy at
         /// all, not by keeping a proxy entry that does nothing.
         /// </summary>
-        public List<EProxyType> ProxyTypes { get; } = Enum.GetValues(typeof(EProxyType))
+        public List<ProxyTypeOption> ProxyTypes { get; } = Enum.GetValues(typeof(EProxyType))
             .Cast<EProxyType>()
             .Where(x => x != EProxyType.None)
+            .Select(x => new ProxyTypeOption { Value = x, Display = ProxyTypeName.Of(x) })
             .ToList();
 
         private ProxyConfig? _selectedProxy;
@@ -161,6 +170,20 @@ namespace _1RM.View.Settings.Proxy
 
         private RelayCommand? _cmdSave;
         public RelayCommand CmdSave => _cmdSave ??= new RelayCommand(_ => Persist());
+
+        private RelayCommand? _cmdSelectPrivateKey;
+        public RelayCommand CmdSelectPrivateKey => _cmdSelectPrivateKey ??= new RelayCommand(_ =>
+        {
+            var proxy = SelectedProxy;
+            if (proxy == null) return;
+            var path = SelectFileHelper.OpenFile(
+                title: IoC.Translate("proxy_ssh_private_key"),
+                filter: "private key|*.pem;*.key;*.rsa;*.ed25519|all files|*.*",
+                selectedFileName: proxy.PrivateKeyPath,
+                currentDirectoryForShowingRelativePath: Environment.CurrentDirectory);
+            if (path == null) return;
+            proxy.PrivateKeyPath = path;
+        });
 
         private RelayCommand? _cmdTest;
         public RelayCommand CmdTest => _cmdTest ??= new RelayCommand(async _ =>

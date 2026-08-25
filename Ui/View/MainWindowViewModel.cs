@@ -1,4 +1,4 @@
-﻿using _1RM.Model;
+using _1RM.Model;
 using _1RM.Service;
 using _1RM.Service.DataSource;
 using _1RM.Service.DataSource.DAO;
@@ -42,6 +42,7 @@ namespace _1RM.View
         SettingsTheme,
         SettingsRunners,
         SettingsProxy,
+        SettingsPortForward,
         SettingsBackup,
     }
     public class MainWindowViewModel : MaskLayerContainerScreenBase

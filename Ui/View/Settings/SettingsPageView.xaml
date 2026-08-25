@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="_1RM.View.Settings.SettingsPageView"
+<UserControl x:Class="_1RM.View.Settings.SettingsPageView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -123,6 +123,10 @@
                             Tag="{StaticResource GeometryNetwork}"
                             CommandParameter="{x:Static view:EnumMainWindowPage.SettingsProxy}"
                             Content="{DynamicResource proxy_title}" />
+                    <Button Style="{StaticResource SettingsRailButtonStyle}"
+                            Tag="{StaticResource GeometryLightning}"
+                            CommandParameter="{x:Static view:EnumMainWindowPage.SettingsPortForward}"
+                            Content="{DynamicResource port_forward_title}" />
                     <Button Style="{StaticResource SettingsRailButtonStyle}"
                             Tag="{StaticResource GeometryContrast}"
                             CommandParameter="{x:Static view:EnumMainWindowPage.SettingsTheme}"

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +19,7 @@ using _1RM.View.Settings.DataSource;
 using _1RM.View.Settings.General;
 using _1RM.View.Settings.Launcher;
 using _1RM.View.Settings.ProtocolConfig;
+using _1RM.View.Settings.PortForward;
 using _1RM.View.Settings.Proxy;
 using _1RM.View.Settings.Theme;
 using _1RM.View.Utils;
@@ -60,6 +61,7 @@ namespace _1RM
             builder.Bind<DataSourceService>().ToSelf().InSingletonScope();
             builder.Bind<LauncherService>().ToSelf().InSingletonScope();
             builder.Bind<ProxyService>().ToSelf().InSingletonScope();
+            builder.Bind<PortForwardService>().ToSelf().InSingletonScope();
             builder.Bind<HostTrustService>().ToSelf().InSingletonScope();
 
             builder.Bind<MainWindowView>().ToSelf().InSingletonScope();
@@ -77,6 +79,7 @@ namespace _1RM
             builder.Bind<ThemeSettingViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ProtocolRunnerSettingsPageViewModel>().ToSelf().InSingletonScope();
             builder.Bind<ProxySettingViewModel>().ToSelf().InSingletonScope();
+            builder.Bind<PortForwardSettingViewModel>().ToSelf().InSingletonScope();
             builder.Bind<BackupSettingViewModel>().ToSelf().InSingletonScope();
 
             builder.Bind<ServerListPageViewModel>().ToSelf().InSingletonScope();
@@ -115,6 +118,9 @@ namespace _1RM
             // init Database here after ui init, to show alert if db connection goes wrong.
             AppInitHelper.InitOnLaunch();
             IoC.Get<TaskTrayService>().TaskTrayInit();
+            // Each forward authenticates, so this runs on its own thread; a bastion that is slow or down
+            // must not hold up a window the user is already looking at.
+            _ = IoC.Get<PortForwardService>().StartAutoStartsAsync();
         }
 
 
@@ -128,6 +134,7 @@ namespace _1RM
             });
             IoC.Get<TaskTrayService>().TaskTrayDispose();
             IoC.Get<SessionControlService>()?.Release();
+            IoC.Get<PortForwardService>()?.Dispose();
             IoC.Get<ProxyService>()?.Dispose();
             if (IoC.Get<LauncherWindowViewModel>()?.View != null)
                 IoC.Get<LauncherWindowViewModel>()?.RequestClose();

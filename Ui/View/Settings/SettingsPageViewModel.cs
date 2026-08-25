@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using _1RM.Model;
@@ -10,6 +10,7 @@ using _1RM.View.Settings.DataSource;
 using _1RM.View.Settings.General;
 using _1RM.View.Settings.Launcher;
 using _1RM.View.Settings.ProtocolConfig;
+using _1RM.View.Settings.PortForward;
 using _1RM.View.Settings.Proxy;
 using _1RM.View.Settings.Theme;
 using _1RM.Service.DataSource.DAO;
@@ -74,6 +75,9 @@ namespace _1RM.View.Settings
                     break;
                 case EnumMainWindowPage.SettingsProxy:
                     SelectedViewModel = IoC.Get<ProxySettingViewModel>();
+                    break;
+                case EnumMainWindowPage.SettingsPortForward:
+                    SelectedViewModel = IoC.Get<PortForwardSettingViewModel>();
                     break;
                 case EnumMainWindowPage.SettingsBackup:
                     SelectedViewModel = IoC.Get<BackupSettingViewModel>();

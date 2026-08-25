@@ -34,12 +34,25 @@ namespace _1RM.Utils.Proxy
             get => _type;
             set
             {
+                var previous = _type;
                 if (SetAndNotifyIfChanged(ref _type, value))
                 {
+                    // A jump host listens on 22 and a SOCKS/HTTP proxy on 1080, so the sensible default
+                    // moves with the type — but only over a port the user has not chosen themselves.
+                    if (_port == ProxyTypeName.DefaultPortOf(previous))
+                        Port = ProxyTypeName.DefaultPortOf(value);
                     RaisePropertyChanged(nameof(Summary));
+                    RaisePropertyChanged(nameof(IsSshJump));
                 }
             }
         }
+
+        /// <summary>
+        /// Whether this entry is an SSH jump host rather than a SOCKS or HTTP proxy. Drives both the extra
+        /// fields in the editor and which tunnel implementation the pool builds.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsSshJump => Type == EProxyType.SshJump;
 
         private string _address = "";
         /// <summary>
@@ -72,12 +85,12 @@ namespace _1RM.Utils.Proxy
         }
 
         /// <summary>
-        /// A short formatted summary for UI lists (e.g. "Socks5 · 127.0.0.1:1080").
+        /// A short formatted summary for UI lists (e.g. "SOCKS5 · 127.0.0.1:1080").
         /// </summary>
         [JsonIgnore]
         public string Summary => string.IsNullOrWhiteSpace(Address)
-            ? Type.ToString()
-            : $"{Type} · {Address}:{Port}";
+            ? ProxyTypeName.Of(Type)
+            : $"{ProxyTypeName.Of(Type)} · {Address}:{Port}";
 
         private string _userName = "";
         public string UserName
@@ -109,6 +122,38 @@ namespace _1RM.Utils.Proxy
             }
         }
 
+        private string _privateKeyPath = "";
+        /// <summary>
+        /// Optional OpenSSH/PuTTY private key for an <see cref="EProxyType.SshJump"/> entry. When set it is
+        /// tried before the password, which is the order OpenSSH itself uses.
+        /// </summary>
+        public string PrivateKeyPath
+        {
+            get => _privateKeyPath;
+            set => SetAndNotifyIfChanged(ref _privateKeyPath, value?.Trim() ?? "");
+        }
+
+        [JsonProperty(nameof(PrivateKeyPassphrase))]
+        private string EncryptedPrivateKeyPassphrase { get; set; } = "";
+
+        /// <summary>
+        /// Passphrase for <see cref="PrivateKeyPath"/>, stored the same way as <see cref="Password"/>.
+        /// </summary>
+        [JsonIgnore]
+        public string PrivateKeyPassphrase
+        {
+            get => string.IsNullOrEmpty(EncryptedPrivateKeyPassphrase)
+                ? ""
+                : UnSafeStringEncipher.DecryptOrReturnOriginalString(EncryptedPrivateKeyPassphrase);
+            set
+            {
+                var plain = value ?? "";
+                if (plain == PrivateKeyPassphrase) return;
+                EncryptedPrivateKeyPassphrase = plain.Length == 0 ? "" : UnSafeStringEncipher.SimpleEncrypt(plain);
+                RaisePropertyChanged();
+            }
+        }
+
         /// <summary>
         /// Targets that are this machine itself skip the proxy entirely. Private ranges do not count as
         /// local here, see <see cref="ProxyTunnelPool.IsLocalAddress"/>.
@@ -124,14 +169,29 @@ namespace _1RM.Utils.Proxy
         public bool IsUsable => Type != EProxyType.None
                                 && !string.IsNullOrWhiteSpace(Address)
                                 && Port > 0
-                                && Port <= 65535;
+                                && Port <= 65535
+                                // A jump host is an account on a machine: with no user name there is nothing
+                                // to authenticate as, and SSH.NET would reject the connection info outright.
+                                && (Type != EProxyType.SshJump || !string.IsNullOrWhiteSpace(UserName));
 
         public ProxyConfig CloneMe() => (ProxyConfig)MemberwiseClone();
 
         /// <summary>
         /// Identifies the proxy endpoint for tunnel reuse. Deliberately excludes <see cref="Name"/>: two
         /// entries pointing at the same proxy should share one tunnel.
+        ///
+        /// The key path is part of it for a jump host, because two entries reaching the same account with
+        /// different keys are different logins and must not be collapsed onto one SSH session.
         /// </summary>
-        public string GetEndPointKey() => $"{Type}://{UserName}@{Address}:{Port}";
+        public string GetEndPointKey() => Type == EProxyType.SshJump
+            ? $"{Type}://{UserName}@{Address}:{Port}#{PrivateKeyPath}"
+            : $"{Type}://{UserName}@{Address}:{Port}";
+
+        /// <summary>
+        /// Everything a live tunnel authenticated with. A tunnel compares this against the current
+        /// configuration to notice that a corrected password or a swapped key means it has to be rebuilt —
+        /// unlike the endpoint key, these are not part of the pool key.
+        /// </summary>
+        public string GetCredentialKey() => $"{Password}\n{PrivateKeyPath}\n{PrivateKeyPassphrase}";
     }
 }
