@@ -11,6 +11,7 @@ using _1RM.Utils;
 using _1RM.Utils.mRemoteNG;
 using _1RM.Utils.PRemoteM;
 using _1RM.Utils.RdpFile;
+using _1RM.Utils.SshConfig;
 using _1RM.Utils.Tracing;
 using _1RM.View.Editor;
 using _1RM.View.Settings.Launcher;
@@ -349,7 +350,10 @@ namespace _1RM.View.ServerView
         }
 
 
-        private Tuple<DataSourceBase?, string?> GetImportParams(string filter)
+        /// <param name="initialFile">
+        /// Where to open the dialog when the file has a well known location. Ignored if it is not there.
+        /// </param>
+        private Tuple<DataSourceBase?, string?> GetImportParams(string filter, string? initialFile = null)
         {
             // select save to which source
             var source = DataSourceSelectorViewModel.SelectDataSource();
@@ -365,7 +369,12 @@ namespace _1RM.View.ServerView
             // select file with filter
             if (this.View is ServerListPageView view)
                 view.CbPopForInExport.IsChecked = false;
-            var path = SelectFileHelper.OpenFile(title: IoC.Translate("import_server_dialog_title"), filter: filter);
+
+            var startIn = "";
+            if (!string.IsNullOrEmpty(initialFile) && File.Exists(initialFile))
+                startIn = new FileInfo(initialFile).DirectoryName ?? "";
+
+            var path = SelectFileHelper.OpenFile(title: IoC.Translate("import_server_dialog_title"), filter: filter, initialDirectory: startIn);
             return path == null ? new Tuple<DataSourceBase?, string?>(null, null) : new Tuple<DataSourceBase?, string?>(source, path);
         }
 
@@ -561,6 +570,60 @@ namespace _1RM.View.ServerView
                                 {
                                     MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
                                 }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            SimpleLogHelper.Debug(e);
+                            MessageBoxHelper.Info(IoC.Translate("import_failure_with_data_format_error"));
+                        }
+                        finally
+                        {
+                            MaskLayerController.HideMask(IoC.Get<MainWindowViewModel>());
+                        }
+                    });
+                });
+            }
+        }
+
+
+        private RelayCommand? _cmdImportFromSshConfig;
+        public RelayCommand CmdImportFromSshConfig
+        {
+            get
+            {
+                return _cmdImportFromSshConfig ??= new RelayCommand((o) =>
+                {
+                    var (source, path) = GetImportParams("ssh config|config;*.config|*.*|*.*",
+                        // The file has no extension and lives in a hidden folder, so opening the dialog
+                        // anywhere else means every user has to navigate there by hand.
+                        initialFile: SshConfigParser.DefaultConfigPath);
+                    if (source == null || path == null) return;
+
+                    MaskLayerController.ShowProcessingRing(IoC.Translate("system_options_data_security_info_data_processing"), IoC.Get<MainWindowViewModel>());
+                    Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            var imported = SshConfigImporter.ImportFile(path, ServerIcons.Instance.IconsBase64);
+                            if (imported.Servers.Count == 0)
+                            {
+                                MessageBoxHelper.Info(IoC.Translate("import_ssh_config_nothing"));
+                                return;
+                            }
+
+                            var ret = source.Database_InsertServer(imported.Servers);
+                            if (ret.IsSuccess)
+                            {
+                                AppData.ReloadAll(true);
+                                var message = IoC.Translate("import_done_0_items_added", imported.Servers.Count.ToString());
+                                if (imported.CreatedProxies.Count > 0)
+                                    message += Environment.NewLine + IoC.Translate("import_ssh_config_jump_hosts_added", imported.CreatedProxies.Count.ToString());
+                                MessageBoxHelper.Info(message);
+                            }
+                            else
+                            {
+                                MessageBoxHelper.ErrorAlert(ret.ErrorInfo);
                             }
                         }
                         catch (Exception e)
