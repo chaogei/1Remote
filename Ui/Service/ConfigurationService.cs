@@ -69,6 +69,18 @@ namespace _1RM.Service
         public bool ShowRecentlySessionInTray = false;
         public bool ShowNoteFieldInListView = true;
 
+        /// <summary>
+        /// Periodically open a connection to each visible server to show whether it is up. Off by default:
+        /// it is traffic to every configured host on a timer, which is not something to start unasked.
+        /// </summary>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool CheckServerReachability = false;
+
+        [DefaultValue(60)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int ServerReachabilityIntervalSeconds = 60;
+
         public int LogLevel = (int)SimpleLogHelper.EnumLogLevel.Warning;
         #endregion
 

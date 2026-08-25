@@ -157,6 +157,37 @@
                             <CheckBox Grid.Column="1" IsChecked="{Binding ConfirmBeforeClosingSession, Mode=TwoWay}" Content="{DynamicResource 'Confirm before closing'}" VerticalAlignment="Center"></CheckBox>
                         </Grid>
 
+                        <!-- Reachability probing -->
+                        <Grid Style="{StaticResource GridOneRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="GeneralCol1"></ColumnDefinition>
+                                <ColumnDefinition MinWidth="260" SharedSizeGroup="GeneralCol2"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Width="160" />
+                            <StackPanel Grid.Column="1">
+                                <CheckBox IsChecked="{Binding CheckServerReachability, Mode=TwoWay}"
+                                          Content="{DynamicResource reachability_enable}"
+                                          VerticalAlignment="Center" />
+                                <TextBlock Margin="24 4 0 0" MaxWidth="420" TextWrapping="Wrap"
+                                           Opacity="0.65" LineHeight="17"
+                                           FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                           Text="{DynamicResource reachability_enable_hint}" />
+                                <StackPanel Orientation="Horizontal" Margin="24 8 0 0"
+                                            Visibility="{Binding ServerReachabilityIntervalVisibility}">
+                                    <TextBlock Text="{DynamicResource reachability_interval}"
+                                               VerticalAlignment="Center"
+                                               Foreground="{DynamicResource BackgroundTextBrush}"
+                                               Margin="0 0 10 0" />
+                                    <TextBox Width="70" Height="26"
+                                             InputMethod.IsInputMethodEnabled="False"
+                                             InputScope="Number"
+                                             VerticalContentAlignment="Center"
+                                             Text="{Binding ServerReachabilityIntervalSeconds, UpdateSourceTrigger=LostFocus}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+
                         <!-- Session icon in window -->
                         <Grid Style="{StaticResource GridOneRow}">
                             <Grid.ColumnDefinitions>

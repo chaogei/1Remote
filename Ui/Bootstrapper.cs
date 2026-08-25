@@ -62,6 +62,7 @@ namespace _1RM
             builder.Bind<LauncherService>().ToSelf().InSingletonScope();
             builder.Bind<ProxyService>().ToSelf().InSingletonScope();
             builder.Bind<PortForwardService>().ToSelf().InSingletonScope();
+            builder.Bind<ServerReachabilityService>().ToSelf().InSingletonScope();
             builder.Bind<HostTrustService>().ToSelf().InSingletonScope();
 
             builder.Bind<MainWindowView>().ToSelf().InSingletonScope();
@@ -121,6 +122,7 @@ namespace _1RM
             // Each forward authenticates, so this runs on its own thread; a bastion that is slow or down
             // must not hold up a window the user is already looking at.
             _ = IoC.Get<PortForwardService>().StartAutoStartsAsync();
+            IoC.Get<ServerReachabilityService>().ApplyConfiguration();
         }
 
 
@@ -134,6 +136,7 @@ namespace _1RM
             });
             IoC.Get<TaskTrayService>().TaskTrayDispose();
             IoC.Get<SessionControlService>()?.Release();
+            IoC.Get<ServerReachabilityService>()?.Dispose();
             IoC.Get<PortForwardService>()?.Dispose();
             IoC.Get<ProxyService>()?.Dispose();
             if (IoC.Get<LauncherWindowViewModel>()?.View != null)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Windows;
 using _1RM.Service;
 using _1RM.Utils;
 using _1RM.Utils.Tracing;
@@ -83,6 +84,39 @@ namespace _1RM.View.Settings.General
                 if (SetAndNotifyIfChanged(ref _configurationService.General.ConfirmBeforeClosingSession, value))
                 {
                     _configurationService.Save();
+                }
+            }
+        }
+
+        public bool CheckServerReachability
+        {
+            get => _configurationService.General.CheckServerReachability;
+            set
+            {
+                if (SetAndNotifyIfChanged(ref _configurationService.General.CheckServerReachability, value))
+                {
+                    _configurationService.Save();
+                    // The sweep has to start or stop now; waiting for a restart would make the toggle look
+                    // like it did nothing.
+                    IoC.TryGet<ServerReachabilityService>()?.ApplyConfiguration();
+                    RaisePropertyChanged(nameof(ServerReachabilityIntervalVisibility));
+                }
+            }
+        }
+
+        public Visibility ServerReachabilityIntervalVisibility =>
+            CheckServerReachability ? Visibility.Visible : Visibility.Collapsed;
+
+        public int ServerReachabilityIntervalSeconds
+        {
+            get => _configurationService.General.ServerReachabilityIntervalSeconds;
+            set
+            {
+                var clamped = Math.Clamp(value, ServerReachabilityService.MIN_INTERVAL_SECONDS, ServerReachabilityService.MAX_INTERVAL_SECONDS);
+                if (SetAndNotifyIfChanged(ref _configurationService.General.ServerReachabilityIntervalSeconds, clamped))
+                {
+                    _configurationService.Save();
+                    IoC.TryGet<ServerReachabilityService>()?.ApplyConfiguration();
                 }
             }
         }

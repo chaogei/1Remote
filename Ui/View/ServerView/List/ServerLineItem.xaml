@@ -239,15 +239,36 @@
                             VerticalAlignment="Center"
                             Content="{Binding HoverNoteDisplayControl}"></ContentControl>
 
-            <!--address-->
-            <TextBlock Margin="5 0" MaxWidth="500"
-                       Style="{StaticResource TextBlockBase}"
-                       Grid.Column="5"
-                       Background="Transparent"
-                       ToolTip="{Binding Server.SubTitle}"
-                       FontSize="{DynamicResource GlobalFontSizeSubtitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                       Text="{Binding Server.SubTitle}">
-            </TextBlock>
+            <!--address, with the reachability dot in front of it: the dot is about that address, and it
+                stays collapsed unless probing is switched on, so nothing moves for anyone not using it-->
+            <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="5 0" VerticalAlignment="Center">
+                <Ellipse Width="7" Height="7" Margin="0 0 7 0" VerticalAlignment="Center"
+                         ToolTip="{Binding ReachToolTip}">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Setter Property="Fill" Value="{DynamicResource BackgroundTextBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsReachable}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Setter Property="Fill" Value="#2ECC71" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsUnreachable}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Setter Property="Fill" Value="#E74C3C" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock MaxWidth="500"
+                           Style="{StaticResource TextBlockBase}"
+                           Background="Transparent"
+                           ToolTip="{Binding Server.SubTitle}"
+                           FontSize="{DynamicResource GlobalFontSizeSubtitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           Text="{Binding Server.SubTitle}">
+                </TextBlock>
+            </StackPanel>
         </Grid>
 
 

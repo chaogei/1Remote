@@ -9,6 +9,7 @@ using _1RM.Model.Protocol.Base;
 using _1RM.Service.DataSource;
 using _1RM.Service.DataSource.Model;
 using _1RM.Service.Locality;
+using _1RM.Utils.Reachability;
 using _1RM.View.Launcher;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
@@ -220,6 +221,61 @@ namespace _1RM.View
             get => _lastConnectTime;
             set => SetAndNotifyIfChanged(ref _lastConnectTime, value);
         }
+
+        #region Reachability
+
+        private EReachState _reachState = EReachState.Unknown;
+        /// <summary>
+        /// Result of the last probe, when <see cref="ServerReachabilityService"/> is switched on. Written
+        /// from the sweep's worker threads; WPF marshals the notification for a scalar binding itself.
+        /// </summary>
+        public EReachState ReachState
+        {
+            get => _reachState;
+            private set
+            {
+                if (SetAndNotifyIfChanged(ref _reachState, value))
+                {
+                    RaisePropertyChanged(nameof(IsReachable));
+                    RaisePropertyChanged(nameof(IsUnreachable));
+                    RaisePropertyChanged(nameof(ReachToolTip));
+                }
+            }
+        }
+
+        private int _reachLatencyMs;
+        public int ReachLatencyMs
+        {
+            get => _reachLatencyMs;
+            private set
+            {
+                if (SetAndNotifyIfChanged(ref _reachLatencyMs, value))
+                    RaisePropertyChanged(nameof(ReachToolTip));
+            }
+        }
+
+        private string _reachSkipReason = "";
+
+        public bool IsReachable => ReachState == EReachState.Online;
+
+        public bool IsUnreachable => ReachState == EReachState.Offline;
+
+        public string ReachToolTip => ReachState switch
+        {
+            EReachState.Online => IoC.Translate("reachability_online", ReachLatencyMs),
+            EReachState.Offline => IoC.Translate("reachability_offline"),
+            EReachState.Skipped => _reachSkipReason,
+            _ => IoC.Translate("reachability_unknown"),
+        };
+
+        public void SetReachability(EReachState state, int latencyMs, string skipReason)
+        {
+            _reachSkipReason = skipReason ?? "";
+            ReachLatencyMs = latencyMs;
+            ReachState = state;
+        }
+
+        #endregion
 
         private List<ProtocolAction>? _actions;
 
