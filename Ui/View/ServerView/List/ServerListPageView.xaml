@@ -99,7 +99,7 @@
                 </Grid>
                 <DataTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" TargetName="GridContainer" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                        <Setter Property="Background" TargetName="GridContainer" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                         <Setter Property="Opacity" Value="0.2" TargetName="GridContainer" />
                     </Trigger>
                 </DataTemplate.Triggers>
@@ -518,7 +518,7 @@
                                                                                 </Style.Triggers>
                                                                             </Style>
                                                                         </Grid.Style>
-                                                                        <Path Fill="{DynamicResource PrimaryTextBrush}"
+                                                                        <Path Fill="{DynamicResource BackgroundTextBrush}"
                                                                               Width="15" Height="15"
                                                                               Stretch="Uniform"
                                                                               Data="M108.208681 670.888449c20.874205-16.374376 50.998058-12.87451 67.372434 7.999695l124.495258 158.368968V48.03717c0-26.498991 21.499181-47.998172 47.998172-47.998171S396.072717 21.53818 396.072717 48.03717v927.964658c0 20.499219-12.999505 38.623529-32.373767 45.373272-4.99981 1.749933-10.374605 2.6249-15.624405 2.6249-14.499448 0-28.498915-6.499752-37.748562-18.3743L100.08399 738.260883C83.709614 717.511673 87.334476 687.262825 108.208681 670.888449zM634.063653 2.663899c19.249267-6.749743 40.748448-0.374986 53.372967 15.7494l210.241993 267.364817c16.374376 20.74921 12.749514 50.998058-8.12469 67.372434-20.74921 16.374376-50.998058 12.87451-67.372434-7.999695l-124.495259-158.368969v789.219942c0 26.498991-21.499181 47.998172-47.998172 47.998172s-47.998172-21.499181-47.998172-47.998172V48.03717c0.124995-20.374224 13.1245-38.623529 32.373767-45.373271z m0 0"></Path>
@@ -589,7 +589,7 @@
                                                                                                         <Path.Style>
                                                                                                             <Style TargetType="Path">
                                                                                                                 <Setter Property="Data" Value="{StaticResource GeometryRefresh}"></Setter>
-                                                                                                                <Setter Property="Fill" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                                                                                                                <Setter Property="Fill" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                                                                                             </Style>
                                                                                                         </Path.Style>
                                                                                                     </Path>
@@ -616,7 +616,7 @@
                                                                             <Path Data="{StaticResource GeometryCross}" 
                                                                                   Stretch="Uniform" Name="Path"
                                                                                   Height="12" Width="12" 
-                                                                                  Fill="{DynamicResource PrimaryTextBrush}">
+                                                                                  Fill="{DynamicResource BackgroundTextBrush}">
                                                                                 <Path.Style>
                                                                                     <Style TargetType="Path">
                                                                                         <Setter Property="Opacity" Value="0.5"></Setter>
@@ -634,7 +634,7 @@
 
                                                                     <!--Show reconnect info if lost connect-->
                                                                     <TextBlock FontSize="{DynamicResource GlobalFontSizeBody}" Margin="5 0 0 0" 
-                                                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                                                               Foreground="{DynamicResource BackgroundTextBrush}"
                                                                                Opacity="0.5"
                                                                                VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Name.ReconnectInfo}">
                                                                         <TextBlock.Style>
@@ -910,8 +910,8 @@
                                   Margin="10 0 0 0"
                                   Height="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=Grid}, Path=Height}"
                                   controls1:ScrollViewerExtensions.IsHorizontalScrollOnWheelEnabled="true"
-                                  attachProperty:VisionElement.ForegroundAccent="{DynamicResource PrimaryTextBrush}"
-                                  attachProperty:VisionElement.BackgroundAccent="{DynamicResource PrimaryTextBrush}"
+                                  attachProperty:VisionElement.ForegroundAccent="{DynamicResource BackgroundTextBrush}"
+                                  attachProperty:VisionElement.BackgroundAccent="{DynamicResource BackgroundTextBrush}"
                                   Style="{StaticResource ScrollViewMiniStyle}">
                         <StackPanel Orientation="Horizontal">
                             <ItemsControl Name="ListBoxTags"

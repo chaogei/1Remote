@@ -191,17 +191,20 @@
                           Width="100">
                     <MenuItem.Style>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource MenuItemBaseStyle}">
+                            <!-- The Content* overlays, not the Layer* ones: this button sits on the settings
+                                 page, which is the content surface, and on the themes where the two text
+                                 colours differ a Layer* fill is the wrong polarity and disappears. -->
                             <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
-                            <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"/>
-                            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}"/>
+                            <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}"/>
                             <Setter Property="BorderThickness" Value="1"/>
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource ContentLayerHoverBrush}"/>
                                     <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsSubmenuOpen" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource ContentLayerHoverBrush}"/>
                                     <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
                                 </Trigger>
                             </Style.Triggers>

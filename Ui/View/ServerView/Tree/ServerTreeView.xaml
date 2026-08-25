@@ -605,8 +605,8 @@
                                       Margin="10 0 0 0"
                                       Height="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=Grid}, Path=Height}"
                                       controls:ScrollViewerExtensions.IsHorizontalScrollOnWheelEnabled="true"
-                                      attachProperty:VisionElement.ForegroundAccent="{DynamicResource PrimaryTextBrush}"
-                                      attachProperty:VisionElement.BackgroundAccent="{DynamicResource PrimaryTextBrush}"
+                                      attachProperty:VisionElement.ForegroundAccent="{DynamicResource BackgroundTextBrush}"
+                                      attachProperty:VisionElement.BackgroundAccent="{DynamicResource BackgroundTextBrush}"
                                       Style="{StaticResource ScrollViewMiniStyle}">
                         <StackPanel Orientation="Horizontal">
                             <ItemsControl Name="ListBoxTags"

@@ -76,7 +76,6 @@
                                 </DataTrigger.Binding>
                                 <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerSelectedBrush}" />
                                 <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource CardStrokeBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
                                 <Setter Property="Opacity" TargetName="Indicator" Value="1" />
                                 <Setter Property="Opacity" TargetName="IconGlyph" Value="1" />
                                 <Setter Property="Fill" TargetName="IconGlyph" Value="{DynamicResource AccentMidBrush}" />

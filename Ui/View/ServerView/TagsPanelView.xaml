@@ -17,8 +17,11 @@
         <local:ConverterTagNameCount x:Key="ConverterTagNameCount" />
     </UserControl.Resources>
 
-    <!-- an overlay panel, so it keeps its own tint rather than being see-through onto the list beneath -->
-    <Grid Margin="0 21 0 0" Background="{DynamicResource GlassPanelBrush}">
+    <!-- An overlay panel, so it keeps its own tint rather than being see-through onto the list beneath.
+         The content tint, not the panel one: this covers the list rather than framing it, and everything
+         in here is written in BackgroundTextBrush, which on the themes where the two text colours differ
+         is unreadable over a PrimaryMid fill. -->
+    <Grid Margin="0 21 0 0" Background="{DynamicResource GlassContentBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="20"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
