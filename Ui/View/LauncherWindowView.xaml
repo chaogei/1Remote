@@ -39,10 +39,10 @@
                 <Border CornerRadius="{x:Static view:LauncherWindowViewModel.LauncherOutlineCornerRadiusObj}"
                         BorderThickness="1"
                         BorderBrush="{DynamicResource CardStrokeBrush}"
-                        Background="{DynamicResource PrimaryMidBrush}">
+                        Background="{DynamicResource SolidSurfaceBrush}">
                     <Border.Effect>
                         <!-- soft and slightly dropped, rather than a hard halo on all four sides -->
-                        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.45" />
+                        <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Opacity="0.5" />
                     </Border.Effect>
 
                     <Grid Clip="{Binding GridMainClip}" 

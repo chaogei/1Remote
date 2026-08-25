@@ -7,163 +7,185 @@
              xmlns:service="clr-namespace:_1RM.Service"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance local:LauncherSettingViewModel}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="700" d:DesignWidth="840">
     <UserControl.Resources>
         <local:Key2KeyStringConverter x:Key="Key2KeyStringConverter"></local:Key2KeyStringConverter>
         <local:ConverterHotkeyModifierKeys x:Key="ConverterHotkeyModifierKeys"></local:ConverterHotkeyModifierKeys>
     </UserControl.Resources>
     <Grid Background="Transparent">
-        <ScrollViewer>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20 16 20 24">
 
-        <StackPanel>
+                <!-- Page Header -->
+                <TextBlock Text="{DynamicResource Launcher}" Style="{StaticResource BlockTitleColumn}" Margin="0 0 0 16" />
 
-            <TextBlock Text="{DynamicResource Launcher}" Style="{StaticResource BlockTitleColumn}" />
+                <!-- Card 1: General & Hotkey -->
+                <Border Background="{DynamicResource LayerFillBrush}"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource CardCornerRadius}"
+                        Padding="22 18"
+                        Margin="0 0 0 16">
+                    <StackPanel>
+                        <!-- Section Title -->
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 14">
+                            <Path Data="{StaticResource GeometryLightning}"
+                                  Width="15" Height="15" Stretch="Uniform"
+                                  UseLayoutRounding="True"
+                                  Fill="{DynamicResource AccentMidBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="0 0 8 0" />
+                            <TextBlock Text="{DynamicResource Launcher}"
+                                       FontWeight="SemiBold"
+                                       FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
 
-            <Grid Style="{StaticResource GridOneRow}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
-                    <ColumnDefinition MinWidth="280" SharedSizeGroup="LauncherColumn2"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <CheckBox Grid.Column="1" IsChecked="{Binding LauncherEnabled, Mode=TwoWay}" VerticalAlignment="Center" Content="{DynamicResource system_options_quick_launcher_enable}"></CheckBox>
-            </Grid>
+                        <!-- Enable CheckBox -->
+                        <Grid Style="{StaticResource GridOneRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LauncherCol1"></ColumnDefinition>
+                                <ColumnDefinition MinWidth="260" SharedSizeGroup="LauncherCol2"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource Launcher}" Width="160"></TextBlock>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding LauncherEnabled, Mode=TwoWay}" VerticalAlignment="Center" Content="{DynamicResource system_options_quick_launcher_enable}"></CheckBox>
+                        </Grid>
 
-            <StackPanel IsEnabled="{Binding LauncherEnabled, Mode=OneWay}" 
-                        Visibility="{Binding LauncherEnabled, Converter={StaticResource ConverterBool2Visible}}">
-                <Grid Style="{StaticResource GridOneRow}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
-                        <ColumnDefinition MinWidth="280" SharedSizeGroup="LauncherColumn2"></ColumnDefinition>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource system_options_quick_launcher_hotkey}"></TextBlock>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ComboBox Width="100" 
-                                  ItemsSource="{Binding HotkeyModifierKeys}"
-                                  SelectedValuePath="Key"
-                                  DisplayMemberPath="Value" 
-                                  SelectedIndex="{Binding LauncherHotKeyModifiers, Converter={StaticResource ConverterHotkeyModifierKeys}}">
-                            <!--<ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.Control}">Ctrl</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.Alt}">Alt</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.Windows}">Win</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.Shift}">Shift</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.ShiftAlt}">Shift + Alt</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.ShiftWindows}">Shift + Win</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.ShiftControl}">Shift + Ctrl</ComboBoxItem>
-                        <ComboBoxItem Tag="{x:Static service:HotkeyModifierKeys.ControlAlt}">Ctrl + Alt</ComboBoxItem>-->
-                        </ComboBox>
-                        <TextBlock Text="+" VerticalAlignment="Center" Margin="15 0"></TextBlock>
-                        <TextBox Width="100"
-                                 IsReadOnly="True"
-                                 IsReadOnlyCaretVisible="False"
-                                 IsUndoEnabled="False"
-                                 PreviewKeyDown="TextBoxKey_OnPreviewKeyDown"
-                                 Text="{Binding LauncherHotKeyKey, Mode=OneWay,Converter={StaticResource Key2KeyStringConverter}}"></TextBox>
+                        <StackPanel IsEnabled="{Binding LauncherEnabled, Mode=OneWay}" 
+                                    Visibility="{Binding LauncherEnabled, Converter={StaticResource ConverterBool2Visible}}">
+                            <!-- Hotkey Selector -->
+                            <Grid Style="{StaticResource GridOneRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LauncherCol1"></ColumnDefinition>
+                                    <ColumnDefinition MinWidth="260" SharedSizeGroup="LauncherCol2"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource system_options_quick_launcher_hotkey}" Width="160"></TextBlock>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ComboBox Width="110" 
+                                              ItemsSource="{Binding HotkeyModifierKeys}"
+                                              SelectedValuePath="Key"
+                                              DisplayMemberPath="Value" 
+                                              SelectedIndex="{Binding LauncherHotKeyModifiers, Converter={StaticResource ConverterHotkeyModifierKeys}}" />
+                                    <TextBlock Text="+" VerticalAlignment="Center" Margin="12 0" Foreground="{DynamicResource BackgroundTextBrush}"></TextBlock>
+                                    <TextBox Width="110"
+                                             IsReadOnly="True"
+                                             IsReadOnlyCaretVisible="False"
+                                             IsUndoEnabled="False"
+                                             PreviewKeyDown="TextBoxKey_OnPreviewKeyDown"
+                                             Text="{Binding LauncherHotKeyKey, Mode=OneWay, Converter={StaticResource Key2KeyStringConverter}}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Show credentials info -->
+                            <Grid Style="{StaticResource GridOneRow}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LauncherCol1"></ColumnDefinition>
+                                    <ColumnDefinition MinWidth="260" SharedSizeGroup="LauncherCol2"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource 'Credentials Vault'}" Width="160"></TextBlock>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding ShowCredentials, Mode=TwoWay}" VerticalAlignment="Center" Content="{DynamicResource 'Show credentials info'}"></CheckBox>
+                            </Grid>
+                        </StackPanel>
                     </StackPanel>
-                </Grid>
+                </Border>
 
+                <!-- Card 2: Match Providers (Search Engine) -->
+                <Border Background="{DynamicResource LayerFillBrush}"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource CardCornerRadius}"
+                        Padding="22 18"
+                        Margin="0 0 0 16"
+                        IsEnabled="{Binding LauncherEnabled, Mode=OneWay}">
+                    <StackPanel>
+                        <!-- Section Title -->
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 14">
+                            <Path Data="{StaticResource GeometryMagnifier}"
+                                  Width="15" Height="15" Stretch="Uniform"
+                                  UseLayoutRounding="True"
+                                  Fill="{DynamicResource AccentMidBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="0 0 8 0" />
+                            <TextBlock Text="{DynamicResource system_options_quick_match_providers}"
+                                       FontWeight="SemiBold"
+                                       FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
 
-                <Grid Style="{StaticResource GridOneRow}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
-                        <ColumnDefinition MinWidth="280" SharedSizeGroup="LauncherColumn2"></ColumnDefinition>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding ShowCredentials, Mode=TwoWay}" VerticalAlignment="Center" Content="{DynamicResource 'Show credentials info'}"></CheckBox>
-                </Grid>
-
-                <TextBlock Text="{DynamicResource system_options_quick_match_providers}" Style="{StaticResource BlockTitleColumn}" />
-
-                <Grid Style="{StaticResource GridOneRow}" IsEnabled="{Binding LauncherEnabled, Mode=OneWay}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
-                        <ColumnDefinition MinWidth="280" SharedSizeGroup="LauncherColumn2"></ColumnDefinition>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" >
-                        <Grid MinWidth="650">
+                        <!-- Matchers List -->
+                        <Grid Margin="12 4 0 0">
                             <Grid.Resources>
                                 <DataTemplate x:Key="DataTemplateForMatcher" DataType="service:MatchProviderInfo">
-                                    <Grid Margin=" 0 0 5 15">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"></RowDefinition>
-                                            <RowDefinition Height="Auto"></RowDefinition>
-                                            <RowDefinition Height="Auto"></RowDefinition>
-                                        </Grid.RowDefinitions>
+                                    <Border Margin="0 0 0 10" Padding="12 8"
+                                            Background="{DynamicResource ContentLayerFillBrush}"
+                                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{DynamicResource DefaultCornerRadius}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"></RowDefinition>
+                                                <RowDefinition Height="Auto"></RowDefinition>
+                                            </Grid.RowDefinitions>
 
-                                        <CheckBox Grid.Row="0" Cursor="Hand" Margin="0 0 1 0"
-                                              IsChecked="{Binding Enabled}"
-                                              IsEnabled="{Binding IsEditable}"
-                                              Content="{Binding Title1}"
-                                              ToolTip="{Binding Title1}"
-                                    ></CheckBox>
-                                        <TextBlock Grid.Row="2"
-                                               Text="{Binding Title2}"
-                                               ToolTip="{Binding Title2}"
-                                               FontSize="{DynamicResource GlobalFontSizeSmall}" Opacity="0.6"></TextBlock>
-                                    </Grid>
+                                            <CheckBox Grid.Row="0" Cursor="Hand"
+                                                      IsChecked="{Binding Enabled}"
+                                                      IsEnabled="{Binding IsEditable}"
+                                                      Content="{Binding Title1}"
+                                                      FontWeight="SemiBold"
+                                                      ToolTip="{Binding Title1}"></CheckBox>
+                                            <TextBlock Grid.Row="1" Margin="22 4 0 0"
+                                                       Text="{Binding Title2}"
+                                                       ToolTip="{Binding Title2}"
+                                                       FontSize="{DynamicResource GlobalFontSizeSmall}"
+                                                       Opacity="0.7"></TextBlock>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </Grid.Resources>
-                            <ListView Background="Transparent" BorderThickness="1"
-                                  ItemsSource="{Binding AvailableMatcherProviders}" 
-                                  ItemTemplate="{StaticResource DataTemplateForMatcher}">
-                                <ListView.Style>
-                                    <Style TargetType="ListView">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type ListView}">
-                                                    <ScrollViewer x:Name="ScrollViewer" BorderThickness="0">
-                                                        <ItemsPresenter/>
-                                                    </ScrollViewer>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ListView.Style>
-                                <ListView.Resources>
-                                    <Style TargetType="{x:Type ListViewItem}">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type ListViewItem}">
-                                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" Value="{x:Null}" />
-                                            </Trigger>
-                                            <Trigger Property="IsSelected" Value="true">
-                                                <Setter Property="Background" Value="{x:Null}" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ListView.Resources>
-                            </ListView>
+                            <ItemsControl Background="Transparent" BorderThickness="0"
+                                          ItemsSource="{Binding AvailableMatcherProviders}" 
+                                          ItemTemplate="{StaticResource DataTemplateForMatcher}" />
                         </Grid>
                     </StackPanel>
-                </Grid>
+                </Border>
 
-                <TextBlock Text="{DynamicResource 'Quick Connect'}" Style="{StaticResource BlockTitleColumn}" />
+                <!-- Card 3: Quick Connect -->
+                <Border Background="{DynamicResource LayerFillBrush}"
+                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{DynamicResource CardCornerRadius}"
+                        Padding="22 18">
+                    <StackPanel>
+                        <!-- Section Title -->
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 14">
+                            <Path Data="{StaticResource GeometryPlay}"
+                                  Width="14" Height="14" Stretch="Uniform"
+                                  UseLayoutRounding="True"
+                                  Fill="{DynamicResource AccentMidBrush}"
+                                  VerticalAlignment="Center"
+                                  Margin="0 0 8 0" />
+                            <TextBlock Text="{DynamicResource 'Quick Connect'}"
+                                       FontWeight="SemiBold"
+                                       FontSize="{DynamicResource GlobalFontSizeTitle}"
+                                       Foreground="{DynamicResource BackgroundTextBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
 
-                <Grid Style="{StaticResource GridOneRow}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column1"></ColumnDefinition>
-                        <ColumnDefinition MinWidth="280" SharedSizeGroup="LauncherColumn2"></ColumnDefinition>
-                        <ColumnDefinition Width="Auto" SharedSizeGroup="Column3"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding AllowSaveInfoInQuickConnect, Mode=TwoWay}" 
-                              VerticalAlignment="Center" 
-                              Content="{DynamicResource  'Allow Quick Connect to save entered address information'}"></CheckBox>
-                </Grid>
-
+                        <Grid Style="{StaticResource GridOneRow}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="LauncherCol1"></ColumnDefinition>
+                                <ColumnDefinition MinWidth="260" SharedSizeGroup="LauncherCol2"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource TextBlockTitleColumn}" Text="{DynamicResource 'Quick Connect'}" Width="160"></TextBlock>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding AllowSaveInfoInQuickConnect, Mode=TwoWay}" 
+                                      VerticalAlignment="Center" 
+                                      Content="{DynamicResource 'Allow Quick Connect to save entered address information'}"></CheckBox>
+                        </Grid>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-        </StackPanel>
-
         </ScrollViewer>
     </Grid>
 </UserControl>

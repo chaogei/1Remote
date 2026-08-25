@@ -25,145 +25,114 @@
 
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
         <Grid>
-
-
-            <Border Margin="1"
-                    CornerRadius="{StaticResource DefaultCornerRadius}" 
+            <!-- Card Container -->
+            <Border Margin="12"
+                    MinWidth="280" MaxWidth="520"
+                    CornerRadius="{DynamicResource CardCornerRadius}" 
                     SnapsToDevicePixels="True"
-                    Background="{DynamicResource BackgroundBrush}"></Border>
+                    Background="{DynamicResource SolidSurfaceBrush}"
+                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                    BorderThickness="1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.4" />
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="38"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="6"/>
-                    <!-- Padding -->
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="50"/>
-                </Grid.RowDefinitions>
+                    <!-- Title Header -->
+                    <Border Background="{DynamicResource LayerFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="0 0 0 1"
+                            CornerRadius="9 9 0 0">
+                        <Grid Margin="12 0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Grid Width="18" Height="18" Margin="0 0 8 0" VerticalAlignment="Center">
+                                    <Image Source="/Resources/Image/Logo/logo32.png"></Image>
+                                </Grid>
+                                <TextBlock Text="{Binding DisplayName}" 
+                                           FontWeight="SemiBold"
+                                           FontSize="{DynamicResource GlobalFontSizeBody}"
+                                           Foreground="{DynamicResource BackgroundTextBrush}"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
+                    <!-- Content Body -->
+                    <Grid Grid.Row="1" Margin="20 18 20 16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
+                        <Image Grid.Column="0"
+                               Source="{Binding ImageIcon, Converter={x:Static xaml:IconToBitmapSourceConverter.Instance}}"
+                               Visibility="{Binding ImageIcon, Converter={x:Static xaml:BoolToVisibilityConverter.Instance}}"
+                               Width="32" Height="32"
+                               Margin="0 2 16 0"
+                               VerticalAlignment="Top" />
 
-                <!--TITLE-->
-                <Border Background="{DynamicResource AccentMidBrush}" Grid.ColumnSpan="3" ClipToBounds="True">
-                    <Border.CornerRadius>
-                        <CornerRadius TopLeft="{StaticResource DefaultCornerRadiusValue}" TopRight="{StaticResource DefaultCornerRadiusValue}"></CornerRadius>
-                    </Border.CornerRadius>
-                </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Text}"
+                                   TextWrapping="Wrap"
+                                   FontSize="{DynamicResource GlobalFontSizeBody}"
+                                   LineHeight="20"
+                                   TextAlignment="{Binding TextAlignment}"
+                                   VerticalAlignment="Center" />
+                    </Grid>
 
-
-                <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" 
-                      Background="Transparent" Width="20" Height="20" 
-                      Margin="5 0 0 0" VerticalAlignment="Center" HorizontalAlignment="Left">
-                    <Image Source="/Resources/Image/Logo/logo32.png"></Image>
+                    <!-- Action Buttons -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource LayerFillBrush}"
+                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            BorderThickness="0 1 0 0"
+                            Padding="16 10"
+                            CornerRadius="0 0 9 9">
+                        <ItemsControl ItemsSource="{Binding ButtonList}"
+                                      HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Label}" 
+                                            MinWidth="80" 
+                                            Height="30" 
+                                            Margin="8 0 0 0"
+                                            Command="{xaml:Action ButtonClicked}" 
+                                            CommandParameter="{Binding Value}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GlassAccentButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.No}">
+                                                        <Setter Property="Template" Value="{Binding Template, Source={StaticResource GlassGhostButtonStyle}}" />
+                                                        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.Cancel}">
+                                                        <Setter Property="Template" Value="{Binding Template, Source={StaticResource GlassGhostButtonStyle}}" />
+                                                        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                        <Setter Property="BorderThickness" Value="1" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
                 </Grid>
-                <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" 
-                           Text="{Binding DisplayName}" 
-                           Foreground="{DynamicResource AccentTextBrush}"
-                           Margin=" 30 0 10 0" TextTrimming="CharacterEllipsis"/>
-
-
-
-                <!--CONTENT-->
-                <Image Grid.Row="1" Grid.Column="1"
-                       Source="{Binding ImageIcon, Converter={x:Static xaml:IconToBitmapSourceConverter.Instance}}"
-                       Visibility="{Binding ImageIcon, Converter={x:Static xaml:BoolToVisibilityConverter.Instance}}">
-                    <Image.Style>
-                        <Style TargetType="Image">
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Margin" Value="19,0,0,0"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding TextIsMultiline}" Value="True">
-                                    <Setter Property="VerticalAlignment" Value="Top"/>
-                                    <Setter Property="Margin" Value="19,25,0,0"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Image.Style>
-                </Image>
-
-                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Text}" Margin="8,25,15,30" TextWrapping="Wrap" TextAlignment="{Binding TextAlignment}"/>
-
-
-
-                <!--BUTTONS-->
-                <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
-                    <ItemsControl ItemsSource="{Binding ButtonList}"
-                                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="43,0,0,0">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding Label}" 
-                                        MinWidth="85" 
-                                        MinHeight="25" 
-                                        Margin="0,0,10,0"
-                                        Command="{xaml:Action ButtonClicked}" 
-                                        CommandParameter="{Binding Value}">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ButtonAccentStyle}">
-                                            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
-                                            <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource AccentTextBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource AccentTextBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource AccentTextBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentMidBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource AccentTextBrush}"/>
-                                            <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource AccentMidBrush}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.No}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.Cancel}">
-                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource PrimaryTextBrush}"/>
-                                                    <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource PrimaryMidBrush}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <!--<Button.IsDefault>
-                                    <MultiBinding Converter="{x:Static xaml:EqualityConverter.Instance}">
-                                        <Binding/>
-                                        <Binding Path="DataContext.DefaultButton" ElementName="RootObject"/>
-                                    </MultiBinding>
-                                </Button.IsDefault>
-                                <Button.IsCancel>
-                                    <MultiBinding Converter="{x:Static xaml:EqualityConverter.Instance}">
-                                        <Binding/>
-                                        <Binding Path="DataContext.CancelButton" ElementName="RootObject"/>
-                                    </MultiBinding>
-                                </Button.IsCancel>-->
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Grid>
-            </Grid>
-
-            <Border Margin="0,0,0,0"
-                    MinWidth="160" MaxWidth="485"
-                    BorderBrush="{DynamicResource AccentMidBrush}"
-                    BorderThickness="2" 
-                    CornerRadius="{StaticResource DefaultCornerRadius}" ClipToBounds="True">
             </Border>
         </Grid>
     </StackPanel>

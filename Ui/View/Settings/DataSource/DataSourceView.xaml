@@ -148,15 +148,16 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Content="{DynamicResource Edit}"
-                                        Margin="5"
+                                        Style="{StaticResource GlassGhostButtonStyle}"
+                                        Height="26" MinWidth="55" Margin="3 2"
                                         Command="{Binding Path=DataContext.CmdEdit, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" 
                                         CommandParameter="{Binding}"></Button>
                                 <Button Content="{DynamicResource Delete}" 
-                                        Margin="5"
+                                        Height="26" MinWidth="55" Margin="3 2"
                                         Command="{Binding Path=DataContext.CmdDelete, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" 
                                         CommandParameter="{Binding}">
                                     <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ButtonAccentStyle}">
+                                        <Style TargetType="Button" BasedOn="{StaticResource GlassDangerButtonStyle}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Path=DataSourceName}" Value="{x:Static dataSource:DataSourceService.LOCAL_DATA_SOURCE_NAME}">
                                                     <Setter Property="IsEnabled" Value="False"></Setter>
@@ -192,19 +193,23 @@
                     <MenuItem.Style>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource MenuItemBaseStyle}">
                             <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
-                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}"/>
+                            <Setter Property="BorderThickness" Value="1"/>
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsSubmenuOpen" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                                    <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </MenuItem.Style>
                     <MenuItem.Icon>
-                        <Path Height="12" UseLayoutRounding="True" 
+                        <Path Height="11" Width="11" UseLayoutRounding="True" 
                               Data="{StaticResource GeometryCross}" 
                               Fill="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=MenuItem}, Path=Foreground}" 
                               Stretch="Uniform"/>
