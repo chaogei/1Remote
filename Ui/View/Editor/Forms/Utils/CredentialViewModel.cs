@@ -33,7 +33,10 @@ public class CredentialViewModel : NotifyPropertyChangedBaseScreen
             RaisePropertyChanged(nameof(IsPasswordExternal));
             ExternalSecretResult = "";
         };
-        var credentials = protocol.DataSource?.GetCredentials(true)?.ToList() ?? new List<Credential>();
+        // Use the cache. GetCredentials(true) is a forced round trip and this constructor runs on the
+        // dispatcher when the server editor opens — against a remote source that froze the hosted
+        // sessions as well. The reload timer keeps CachedCredentials current.
+        var credentials = protocol.DataSource?.GetCredentials(false)?.ToList() ?? new List<Credential>();
         if (credentials.Any())
         {
             if (protocol.ShowPasswordInput() && protocol.ShowPrivateKeyInput())

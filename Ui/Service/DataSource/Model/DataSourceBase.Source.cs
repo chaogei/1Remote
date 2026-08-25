@@ -158,18 +158,18 @@ namespace _1RM.Service.DataSource.Model
 
             ResultSelects<ProtocolBase> result;
             long generation;
+            // Ticket first, then I/O: if the ticket is taken after the query, a slow older read can
+            // finish last, bump the counter, and publish stale rows over a newer one.
+            lock (_readLock)
+            {
+                generation = ++_readGeneration;
+            }
+
             // The database round-trip stays outside the cache lock so a UI-thread reader is not stuck
-            // behind a slow MySQL / network SQLite query. Two overlapping reads are fine: each takes a
-            // generation ticket before publishing.
+            // behind a slow MySQL / network SQLite query.
             result = Database_GetServers();
             if (!result.IsSuccess)
                 return CachedProtocols;
-
-            lock (_readLock)
-            {
-                SetReadTimestamp(TableServer.TABLE_NAME);
-                generation = ++_readGeneration;
-            }
 
             // ProtocolBaseViewModel no longer builds NoteIcon in the ctor, so this does not need the
             // dispatcher. OnUIThreadSync here still froze every window — chrome and hosted remote HWNDs —
@@ -191,6 +191,7 @@ namespace _1RM.Service.DataSource.Model
             {
                 if (generation == _readGeneration)
                 {
+                    SetReadTimestamp(TableServer.TABLE_NAME);
                     CachedProtocols = loaded;
                     SetStatus(true);
                 }
@@ -536,19 +537,15 @@ namespace _1RM.Service.DataSource.Model
             {
                 return CachedCredentials;
             }
-            // Same shape as GetServers: the database round-trip stays outside the cache lock so a
-            // UI-thread reader is not stuck behind a slow MySQL / network SQLite query, and each read
-            // takes a generation ticket so an overlapping older read can not publish stale rows.
-            var result = GetDataBase().GetCredentials();
-            if (!result.IsSuccess)
-                return CachedCredentials;
-
             long generation;
             lock (_readLock)
             {
-                SetReadTimestamp(TableCredential.TABLE_NAME);
                 generation = ++_credentialReadGeneration;
             }
+
+            var result = GetDataBase().GetCredentials();
+            if (!result.IsSuccess)
+                return CachedCredentials;
 
             foreach (var credential in result.Items)
             {
@@ -559,6 +556,7 @@ namespace _1RM.Service.DataSource.Model
             {
                 if (generation == _credentialReadGeneration)
                 {
+                    SetReadTimestamp(TableCredential.TABLE_NAME);
                     CachedCredentials = result.Items;
                     SetStatus(true);
                 }
