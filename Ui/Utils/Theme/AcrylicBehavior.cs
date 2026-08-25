@@ -15,6 +15,12 @@ namespace _1RM.Utils.Theme
     /// Opt a window into the frosted backdrop from XAML:
     /// <code>theme:AcrylicBehavior.IsEnabled="True"</code>
     ///
+    /// WPF implicit styles match the exact runtime type, so a setter on <c>WindowChromeBaseBaseStyle</c>
+    /// only reaches windows that reference that style by key (MainWindow, ErrorReport). Every other
+    /// <c>WindowChromeBase</c> dialog is opted in from a <c>Window.Loaded</c> class handler. Session
+    /// hosts and the crash reporter stay on the denylist — a window added there needs no change on
+    /// the view side.
+    ///
     /// The tint is read from the <c>AcrylicTintColor</c> application resource, so it follows whatever the
     /// user picked in the theme settings. Call <see cref="RefreshAll"/> after swapping the theme dictionary
     /// to restain the windows that are already open.
@@ -55,6 +61,11 @@ namespace _1RM.Utils.Theme
             {
                 SimpleLogHelper.Debug($"AcrylicBehavior: could not subscribe to session events, {e.Message}");
             }
+
+            // Derived WindowChromeBase types do not pick up the implicit style on WindowChromeBase
+            // (WPF matches TargetType exactly). Loaded is the one hook that every Window raises.
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent,
+                new RoutedEventHandler(OnAnyWindowLoaded));
         }
 
         public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.RegisterAttached(
@@ -63,6 +74,32 @@ namespace _1RM.Utils.Theme
 
         public static void SetIsEnabled(DependencyObject element, bool value) => element.SetValue(IsEnabledProperty, value);
         public static bool GetIsEnabled(DependencyObject element) => (bool)element.GetValue(IsEnabledProperty);
+
+        private static void OnAnyWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Window window) return;
+            if (!ShouldAttachAcrylic(window)) return;
+            SetIsEnabled(window, true);
+        }
+
+        /// <summary>
+        /// Chrome dialogs and the first-run guide. Session hosts stay opaque because they embed a
+        /// remote-desktop HWND; the crash reporter draws a 40px transparent halo around a custom
+        /// template, so DWM frost there becomes a square bloom (or a black slab when skip forces
+        /// a non-transparent composition target).
+        /// </summary>
+        private static bool ShouldAttachAcrylic(Window window)
+        {
+            if (IsAcrylicDeniedWindow(window)) return false;
+            var name = window.GetType().Name;
+            if (name == "GuidanceWindow") return true;
+            for (var t = window.GetType(); t != null; t = t.BaseType)
+            {
+                if (t.Name == "WindowChromeBase")
+                    return true;
+            }
+            return false;
+        }
 
         private static void OnIsEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -74,9 +111,9 @@ namespace _1RM.Utils.Theme
                 // DWM acrylic plus a transparent composition target paints a white bloom over that
                 // child HWND on some GPUs, nested RDP sessions and HDR displays — skip them here
                 // so re-enabling the XAML flag cannot bring the fog back.
-                if (IsRemoteSessionWindow(window))
+                if (IsAcrylicDeniedWindow(window))
                 {
-                    SimpleLogHelper.Info($"AcrylicBehavior: skipped {window.GetType().Name} (hosted HWND must stay opaque)");
+                    SimpleLogHelper.Info($"AcrylicBehavior: skipped {window.GetType().Name} (hosted HWND or crash reporter must stay opaque)");
                     return;
                 }
                 if (!Registered.Add(window)) return;
@@ -166,7 +203,19 @@ namespace _1RM.Utils.Theme
         {
             try
             {
-                Application.Current?.Dispatcher.BeginInvoke(new Action(RefreshAll));
+                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    // Opaque Glass* first, then restain HWNDs, so a remote/high-contrast flip cannot
+                    // leave one frame of 70% cards over an unblurred desktop.
+                    // Resolve ThemeService via IoC / AppInit (not a static event) so the extra
+                    // ThemeService constructed by first-run guidance cannot leak a subscriber.
+                    var themeService = _1RM.IoC.TryGet<_1RM.Service.ThemeService>()
+                                       ?? _1RM.AppInitHelper.ThemeServiceObj;
+                    if (themeService != null)
+                        themeService.ApplyTheme(themeService.CurrentTheme);
+                    else
+                        RefreshAll();
+                }));
             }
             catch (Exception)
             {
@@ -175,14 +224,13 @@ namespace _1RM.Utils.Theme
         }
 
         /// <summary>
-        /// Session chrome that embeds a Win32 remote-desktop HWND. Acrylic is applied to the WPF parent,
-        /// so on machines where DWM does not punch an airspace hole the frost covers the session itself.
+        /// Windows that must never receive DWM frost, even if a style setter or class handler asks.
         /// Matched by type name to keep this helper from taking a dependency on the host views.
         /// </summary>
-        private static bool IsRemoteSessionWindow(Window window)
+        private static bool IsAcrylicDeniedWindow(Window window)
         {
             var name = window.GetType().Name;
-            return name is "TabWindowView" or "FullScreenWindowView";
+            return name is "TabWindowView" or "FullScreenWindowView" or "ErrorReportWindow";
         }
 
         /// <summary>
@@ -196,7 +244,7 @@ namespace _1RM.Utils.Theme
         /// using SystemParameters.IsRemoteSession. HighContrast is preserved from SystemParameters since
         /// its cache slot is properly invalidated upon UserPreferenceChanged.
         /// </summary>
-        private static bool ShouldSkipAcrylic()
+        public static bool ShouldSkipAcrylic()
         {
             try
             {
@@ -211,7 +259,7 @@ namespace _1RM.Utils.Theme
 
         private static void Apply(Window? window)
         {
-            if (window == null || IsRemoteSessionWindow(window)) return;
+            if (window == null || IsAcrylicDeniedWindow(window)) return;
             try
             {
                 if (ShouldSkipAcrylic())
@@ -272,7 +320,16 @@ namespace _1RM.Utils.Theme
             if (handle == IntPtr.Zero) return;
             var target = HwndSource.FromHwnd(handle)?.CompositionTarget;
             if (target == null) return;
-            target.BackgroundColor = transparent ? Colors.Transparent : Colors.Black;
+            if (transparent)
+            {
+                target.BackgroundColor = Colors.Transparent;
+                return;
+            }
+
+            // Layered windows (AllowsTransparency) paint their own alpha. Forcing Black here fills the
+            // entire HWND — including the 40–50px shadow gutter around card dialogs — as a solid slab.
+            // Leave the target transparent and let the now-opaque GlassPanelBrush cards read as cards.
+            target.BackgroundColor = window.AllowsTransparency ? Colors.Transparent : Colors.Black;
         }
 
         private static Color ResolveTint()

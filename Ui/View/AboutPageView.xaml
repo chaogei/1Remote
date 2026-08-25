@@ -18,7 +18,7 @@
                          d:DataContext="{d:DesignInstance view:AboutPageViewModel}"
                          >
 
-    <Border Background="{DynamicResource SolidSurfaceBrush}"
+    <Border Background="{DynamicResource GlassPanelBrush}"
             BorderBrush="{DynamicResource CardStrokeBrush}"
             BorderThickness="1" CornerRadius="{DynamicResource CardCornerRadius}" ClipToBounds="True">
         <Grid Margin="10">

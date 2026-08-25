@@ -22,7 +22,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="styles:WindowBase">
                         <Border Padding="40" Background="Transparent">
-                            <Border CornerRadius="16" Background="{DynamicResource PrimaryMidBrush}">
+                            <Border CornerRadius="16" Background="{DynamicResource GlassPanelBrush}">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="30" />
                                 </Border.Effect>
@@ -35,7 +35,7 @@
         </Style>
     </styles:WindowBase.Style>
 
-    <Grid Margin="16" Name="WinGrid" Background="{DynamicResource PrimaryMidBrush}">
+    <Grid Margin="16" Name="WinGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />

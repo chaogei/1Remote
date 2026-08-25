@@ -13,6 +13,9 @@
                   Background="Transparent"
                   Style="{StaticResource WindowChromeBaseBaseStyle}"
                   Title="Ahh Error..." Height="600" Width="800">
+    <!-- Acrylic is denylisted for this window: the custom template's 40px transparent padding would
+         frost as a square halo, and a remote-session skip that painted the composition target black
+         would fill that halo as a slab. The card stays opaque PrimaryMidBrush on purpose. -->
     <Window.Template>
         <ControlTemplate TargetType="Window">
             <Border Padding="40" Background="Transparent">

@@ -22,7 +22,7 @@
                 BorderThickness="1"
                 SnapsToDevicePixels="True"
                 ClipToBounds="True"
-                Background="{DynamicResource PrimaryMidBrush}">
+                Background="{DynamicResource GlassPanelBrush}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>

@@ -33,7 +33,9 @@
             <Border Margin="1"
                     CornerRadius="{StaticResource DefaultCornerRadius}" 
                     SnapsToDevicePixels="True"
-                    Background="{DynamicResource BackgroundBrush}"></Border>
+                    Background="{DynamicResource GlassPanelBrush}"
+                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                    BorderThickness="1"></Border>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="6"/>

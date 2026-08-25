@@ -144,7 +144,7 @@
 
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Background="{DynamicResource PrimaryMidBrush}">
+    <Grid Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>

@@ -10,6 +10,7 @@
                          WindowStartupLocation="CenterScreen"
                          ResizeMode="NoResize"
                          WindowStyle="None"
+                         AllowsTransparency="True"
                          SizeToContent="WidthAndHeight"
                          ShowInTaskbar="False"
                          Background="Transparent"
@@ -39,7 +40,7 @@
                 <Border CornerRadius="{x:Static view:LauncherWindowViewModel.LauncherOutlineCornerRadiusObj}"
                         BorderThickness="1"
                         BorderBrush="{DynamicResource CardStrokeBrush}"
-                        Background="{DynamicResource SolidSurfaceBrush}">
+                        Background="{DynamicResource GlassPanelBrush}">
                     <Border.Effect>
                         <!-- soft and slightly dropped, rather than a hard halo on all four sides -->
                         <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Opacity="0.5" />

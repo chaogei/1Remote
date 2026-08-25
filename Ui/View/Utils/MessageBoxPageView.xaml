@@ -30,7 +30,7 @@
                     MinWidth="280" MaxWidth="520"
                     CornerRadius="{DynamicResource CardCornerRadius}" 
                     SnapsToDevicePixels="True"
-                    Background="{DynamicResource SolidSurfaceBrush}"
+                    Background="{DynamicResource GlassPanelBrush}"
                     BorderBrush="{DynamicResource CardStrokeBrush}"
                     BorderThickness="1">
                 <Border.Effect>

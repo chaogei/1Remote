@@ -267,6 +267,8 @@ namespace _1RM.Service
 
         public void ApplyTheme(ThemeConfig theme)
         {
+            if (theme == null) return;
+            CurrentTheme = theme;
             const string resourceTypeKey = "__Resource_Type_Key";
             const string resourceTypeValue = "__Resource_Type_Value=theme";
             void SetKey(IDictionary rd, string key, object value)
@@ -367,15 +369,18 @@ namespace _1RM.Service
             // With the backdrop off every surface stays fully opaque, which is also the fallback when the OS
             // refuses the acrylic call — AcrylicBehavior only overrides WindowBackdropBrush per window once
             // the composition attribute has actually been accepted, so a failure can never leave a window
-            // see-through and unreadable.
-            var alpha = theme.EnableAcrylic ? (byte)Math.Min(255, Math.Max(0, theme.AcrylicOpacity)) : (byte)0xFF;
+            // see-through and unreadable. The same opaque snap applies in a remote session or high contrast:
+            // DWM would otherwise sample the remote framebuffer and GlassPanelBrush at ~70% would wash out
+            // over that unblurred surface.
+            var frost = theme.EnableAcrylic && !AcrylicBehavior.ShouldSkipAcrylic();
+            var alpha = frost ? (byte)Math.Min(255, Math.Max(0, theme.AcrylicOpacity)) : (byte)0xFF;
             var primaryMid = theme.GetPrimaryMidColor;
             var background = theme.GetBackgroundColor;
 
             // The DWM tint is only a light veil that deepens the blur. The visible colour comes from the
             // Glass* brushes layered on top, which keeps the result matching the theme exactly instead of
             // tinting twice and ending up muddy.
-            setKey(rd, "AcrylicTintColor", Color.FromArgb(theme.EnableAcrylic ? (byte)0x40 : (byte)0x00, primaryMid.R, primaryMid.G, primaryMid.B));
+            setKey(rd, "AcrylicTintColor", Color.FromArgb(frost ? (byte)0x40 : (byte)0x00, primaryMid.R, primaryMid.G, primaryMid.B));
             setKey(rd, "WindowBackdropBrush", new SolidColorBrush(primaryMid));
             setKey(rd, "GlassPanelBrush", new SolidColorBrush(Color.FromArgb(alpha, primaryMid.R, primaryMid.G, primaryMid.B)));
             setKey(rd, "GlassContentBrush", new SolidColorBrush(Color.FromArgb(alpha, background.R, background.G, background.B)));

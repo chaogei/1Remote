@@ -30,8 +30,8 @@
         </Style>
     </Window.Resources>
 
-    <Border Background="{DynamicResource PrimaryMidBrush}"
-            BorderBrush="{DynamicResource PrimaryLightBrush}"
+    <Border Background="{DynamicResource GlassPanelBrush}"
+            BorderBrush="{DynamicResource CardStrokeBrush}"
             BorderThickness="1" CornerRadius="{StaticResource DefaultCornerRadius}" ClipToBounds="True">
         <Grid IsSharedSizeScope="True">
             <Grid >

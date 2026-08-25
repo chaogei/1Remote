@@ -2,7 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib"
                     xmlns:attachProperty="clr-namespace:Shawn.Utils.WpfResources.Theme.AttachProperty;assembly=Shawn.Utils.WpfResources"
-                    xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources">
+                    xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
+                    xmlns:theme="clr-namespace:_1RM.Utils.Theme">
 
     <!-- Merged so the ComboBoxTemplate copy at the bottom can reach ComboBoxToggleButton and ControlBase:
          a StaticResource inside a dictionary is resolved against that dictionary, not the application. -->
@@ -74,6 +75,12 @@
          The corners are deliberately left square: rounding this Border would not clip the opaque content
          inside it, and Windows 11 already rounds top level windows itself. -->
     <Style x:Key="WindowChromeBaseBaseStyle" TargetType="styles:WindowChromeBase">
+        <!-- Windows that explicitly use this style (MainWindow, ErrorReport) ask for the backdrop here.
+             Derived WindowChromeBase dialogs do not receive this setter: WPF implicit styles match the
+             exact runtime type, so AcrylicBehavior opts those in from a Window.Loaded class handler.
+             TabWindowView / FullScreenWindowView / ErrorReportWindow stay on the type-name denylist
+             because they host a Win32 HWND or draw a transparent halo. ComboBox drop-downs are Popups. -->
+        <Setter Property="theme:AcrylicBehavior.IsEnabled" Value="True" />
         <Setter Property="WindowChrome.WindowChrome">
             <Setter.Value>
                 <WindowChrome CaptionHeight="0"

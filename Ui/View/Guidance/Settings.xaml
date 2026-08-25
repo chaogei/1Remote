@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:_1RM.View.Guidance"
              xmlns:attachProperty="clr-namespace:Shawn.Utils.WpfResources.Theme.AttachProperty;assembly=Shawn.Utils.WpfResources"
-             Background="{DynamicResource PrimaryMidBrush}"
+             Background="Transparent"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance local:GuidanceWindow}"
              d:DesignHeight="450" d:DesignWidth="800">

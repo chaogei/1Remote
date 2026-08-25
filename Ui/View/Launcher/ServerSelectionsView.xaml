@@ -203,7 +203,7 @@
 
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Background="{DynamicResource PrimaryMidBrush}">
+    <Grid Background="Transparent">
 
         <!--servers list title-->
         <Grid>

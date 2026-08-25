@@ -18,7 +18,7 @@
                          Width="820">
 
     <Grid Background="Transparent" Margin="15">
-        <Border Background="{DynamicResource SolidSurfaceBrush}"
+        <Border Background="{DynamicResource GlassPanelBrush}"
                 BorderBrush="{DynamicResource CardStrokeBrush}"
                 BorderThickness="1"
                 CornerRadius="{DynamicResource CardCornerRadius}">

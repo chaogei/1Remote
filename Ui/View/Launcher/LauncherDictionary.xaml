@@ -75,13 +75,13 @@
     <Style x:Key="SearchBoxSelectionList" TargetType="{x:Type ListBox}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
-        <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBox}">
                     <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="0" SnapsToDevicePixels="true">
                         <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" 
-                                      Background="{DynamicResource PrimaryMidBrush}"
+                                      Background="Transparent"
                                       attachProperty:VisionElement.ForegroundAccent="{DynamicResource PrimaryTextBrush}"
                                       attachProperty:VisionElement.BackgroundAccent="{DynamicResource PrimaryTextBrush}"
                                       Style="{StaticResource ScrollViewAccentStyle}">

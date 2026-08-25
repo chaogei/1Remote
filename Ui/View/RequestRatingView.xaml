@@ -13,8 +13,8 @@
 
     <!--RequestRatingPopup-->
     <Grid Background="Transparent" Visibility="{Binding RequestRatingPopupVisibility}">
-        <Border Background="{DynamicResource PrimaryMidBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"
-                        VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" CornerRadius="15">
+        <Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource CardStrokeBrush}" BorderThickness="1"
+                        VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" CornerRadius="{DynamicResource CardCornerRadius}">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" Opacity="0.8" ></DropShadowEffect>
             </Border.Effect>

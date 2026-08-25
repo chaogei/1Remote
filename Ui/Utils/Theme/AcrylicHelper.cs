@@ -77,6 +77,9 @@ namespace _1RM.Utils.Theme
         /// <summary>
         /// Applies the backdrop to a window that already has a handle. Safe to call repeatedly.
         ///
+        /// Windows 11 (build 22000+) first tries <c>EnableAcrylicBlurBehind</c>; if the OS rejects it, the
+        /// call falls back to <c>EnableBlurBehind</c>. Windows 10 goes directly to <c>EnableBlurBehind</c>.
+        ///
         /// Capability is probed by calling the API rather than by comparing OS versions: under net48
         /// <c>Environment.OSVersion</c> is shimmed to 6.2 unless the manifest opts in, so a version check
         /// would silently disable the backdrop on the very machines that support it.
@@ -100,8 +103,9 @@ namespace _1RM.Utils.Theme
         ///
         /// The earlier attempt swapped acrylic for the cheap blur only for the duration of a drag, but the
         /// two look different, so the window visibly changed appearance the moment the drag started and
-        /// again when it ended. Each OS now gets the one effect it can render smoothly and keeps it, which
-        /// is both consistent and still frosted — Windows 10 simply gets the lighter Aero-style blur.
+        /// again when it ended. The normal OS-specific choice now stays in place for the window's lifetime,
+        /// which is both consistent and still frosted — Windows 10 gets the lighter Aero-style blur, while
+        /// Windows 11 uses acrylic unless that accent state is rejected and the call falls back to blur.
         ///
         /// Under net48 Environment.OSVersion is shimmed to 6.2 unless the manifest opts in, so that target
         /// falls through to blur-behind. That is the safe direction to be wrong in.
