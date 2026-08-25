@@ -23,7 +23,8 @@ namespace _1RM.View.Host
         /// <summary>
         /// Set by TimerDispose before the timer is torn down. A tick that is already running on a thread pool
         /// thread must see this and not re-arm the timer: Start() on a disposed timer throws
-        /// ObjectDisposedException, and an exception escaping a thread pool thread kills the process.
+        /// ObjectDisposedException, which System.Timers.Timer swallows on the way out of the handler, so
+        /// closing a tab window quietly burned an exception on every single teardown.
         /// </summary>
         private volatile bool _isTimerDisposing;
 
