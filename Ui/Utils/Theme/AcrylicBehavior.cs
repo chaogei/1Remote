@@ -40,6 +40,15 @@ namespace _1RM.Utils.Theme
 
             if (e.NewValue is true)
             {
+                // Remote session windows host MSTSC / VNC / IntegrateHost inside a WindowsFormsHost.
+                // DWM acrylic plus a transparent composition target paints a white bloom over that
+                // child HWND on some GPUs, nested RDP sessions and HDR displays — skip them here
+                // so re-enabling the XAML flag cannot bring the fog back.
+                if (IsRemoteSessionWindow(window))
+                {
+                    SimpleLogHelper.Info($"AcrylicBehavior: skipped {window.GetType().Name} (hosted HWND must stay opaque)");
+                    return;
+                }
                 if (!Registered.Add(window)) return;
                 Hook(window);
                 // a window that already has a handle never raises SourceInitialized again
@@ -123,9 +132,20 @@ namespace _1RM.Utils.Theme
             }
         }
 
+        /// <summary>
+        /// Session chrome that embeds a Win32 remote-desktop HWND. Acrylic is applied to the WPF parent,
+        /// so on machines where DWM does not punch an airspace hole the frost covers the session itself.
+        /// Matched by type name to keep this helper from taking a dependency on the host views.
+        /// </summary>
+        private static bool IsRemoteSessionWindow(Window window)
+        {
+            var name = window.GetType().Name;
+            return name is "TabWindowView" or "FullScreenWindowView";
+        }
+
         private static void Apply(Window? window)
         {
-            if (window == null) return;
+            if (window == null || IsRemoteSessionWindow(window)) return;
             try
             {
                 var tint = ResolveTint();

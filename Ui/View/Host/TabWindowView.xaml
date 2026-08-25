@@ -9,15 +9,16 @@
                        xmlns:host="clr-namespace:_1RM.View.Host"
                        xmlns:s="https://github.com/canton7/Stylet"
                        xmlns:styles="clr-namespace:Shawn.Utils.WpfResources.Theme.Styles;assembly=Shawn.Utils.WpfResources"
-                       xmlns:theme="clr-namespace:_1RM.Utils.Theme"
                        mc:Ignorable="d"
                        d:DataContext="{d:DesignInstance host:TabWindowViewModel}"
                        ResizeMode="{Binding WindowResizeMode}"
                        BorderThickness="0"
                        BorderBrush="Transparent"
                        Background="{DynamicResource WindowBackdropBrush}"
-                       theme:AcrylicBehavior.IsEnabled="True"
                        Title="{Binding Title}" Height="600" Width="800">
+    <!-- AcrylicBehavior is intentionally omitted. Remote content is a WindowsFormsHost HWND;
+         DWM frost on a transparent composition target shows up as a white fog over the session
+         on some GPUs, nested RDP, and HDR displays. -->
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" GlassFrameThickness="1" ResizeBorderThickness="5" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
