@@ -1013,7 +1013,7 @@ namespace _1RM.View.Host.ProtocolHosts
                 {
                     if (Trans?.IsConnected() != true)
                         return;
-                    var fl = Clipboard.GetFileDropList().Cast<string>().ToList();
+                    var fl = GetClipboardFileDropList();
                     if (fl.Count == 0)
                     {
                         return;
@@ -1025,9 +1025,40 @@ namespace _1RM.View.Host.ProtocolHosts
                     }
 
                     DoUpload(fl);
-                }, o => Trans?.IsConnected() == true
-                        && Clipboard.GetFileDropList().Count > 0
-                        && Clipboard.GetFileDropList().Cast<string>().All(f => File.Exists(f) || Directory.Exists(f)));
+                    // One cheap question here rather than two clipboard reads plus a File.Exists per entry.
+                    // Reading the clipboard is a cross process OLE call answered by whoever owns it, and in
+                    // an RDP session with clipboard redirection that owner is rdpclip talking to the remote
+                    // machine — seconds of blocked dispatcher, in a predicate. Whether the paths still
+                    // exist is settled in the command body above, where the user has already committed.
+                }, o => Trans?.IsConnected() == true && ClipboardHasFiles());
+            }
+        }
+
+        /// <summary>
+        /// Whether the clipboard is holding files at all. Throws if another process has the clipboard open,
+        /// which is normal and transient, so a failure reads as "nothing to paste" rather than an error.
+        /// </summary>
+        private static bool ClipboardHasFiles()
+        {
+            try
+            {
+                return Clipboard.ContainsFileDropList();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static List<string> GetClipboardFileDropList()
+        {
+            try
+            {
+                return Clipboard.GetFileDropList().Cast<string>().ToList();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
             }
         }
 
