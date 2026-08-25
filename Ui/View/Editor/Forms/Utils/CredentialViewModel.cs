@@ -12,7 +12,6 @@ using _1RM.View.Editor.Forms.AlternativeCredential;
 using _1RM.View.Utils;
 using Shawn.Utils.Wpf;
 using Shawn.Utils.Wpf.FileSystem;
-using static Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System;
 
 namespace _1RM.View.Editor.Forms.Utils;
 
@@ -244,7 +243,7 @@ public class CredentialViewModel : NotifyPropertyChangedBaseScreen
                     Result ret;
                     try
                     {
-                        ret = await Task.Run(() => source.Database_InsertCredential(vm.New));
+                        ret = await System.Threading.Tasks.Task.Run(() => source.Database_InsertCredential(vm.New));
                     }
                     catch (Exception e)
                     {
