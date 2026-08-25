@@ -62,20 +62,85 @@ namespace _1RM.Service.Locality
 
     public sealed class LocalityService
     {
+        /// <summary>
+        /// How long a change waits for the ones behind it. Long enough that a drag or a resize produces one
+        /// write instead of hundreds, short enough that the file is current again before the user can do
+        /// anything else with it.
+        /// </summary>
+        private const int SAVE_DEBOUNCE_MS = 500;
+
         private readonly LocalitySettings _localitySettings;
         public static string JsonPath => Path.Combine(AppPathHelper.Instance.LocalityDirPath, ".locality.json");
         public bool CanSave = true;
+
+        private readonly System.Timers.Timer _saveTimer;
+        /// <summary>Guards <see cref="_pendingJson"/> and the timer. Never held across the disk write.</summary>
+        private readonly object _pendingLock = new object();
+        /// <summary>Guards the file itself, so the debounce tick and the shutdown flush cannot interleave.</summary>
+        private readonly object _writeLock = new object();
+        private string? _pendingJson;
+
+        /// <summary>
+        /// Records the change and lets the disk write happen a moment later, off the caller's thread.
+        ///
+        /// Dragging the main window raises LocationChanged for every mouse move, and resizing raises
+        /// SizeChanged just as often; both land here. Writing the file inline meant the dispatcher doing a
+        /// full open-write-close per mouse move — unnoticeable on a local SSD, and not unnoticeable at all
+        /// on a synced folder or one an on-access scanner is watching, where RetryHelper then sleeps
+        /// between attempts on the UI thread. The document is serialised here, on the caller's thread, so
+        /// the settings are still only ever read by the thread that owns them.
+        /// </summary>
         private void Save()
         {
             if (!CanSave) return;
-            lock (this)
+
+            string json;
+            try
             {
-                if (!CanSave) return;
-                CanSave = false;
-                AppPathHelper.CreateDirIfNotExist(AppPathHelper.Instance.LocalityDirPath, false);
-                RetryHelper.Try(() => { File.WriteAllText(JsonPath, JsonConvert.SerializeObject(this._localitySettings, Formatting.Indented), Encoding.UTF8); },
-                    actionOnError: exception => UnifyTracing.Error(exception));
-                CanSave = true;
+                json = JsonConvert.SerializeObject(this._localitySettings, Formatting.Indented);
+            }
+            catch (Exception e)
+            {
+                UnifyTracing.Error(e);
+                return;
+            }
+
+            lock (_pendingLock)
+            {
+                _pendingJson = json;
+                // restart the window: the change after this one is probably microseconds away
+                _saveTimer.Stop();
+                _saveTimer.Start();
+            }
+        }
+
+        /// <summary>
+        /// Writes whatever is pending, now, on the calling thread. Runs on the debounce tick and once more
+        /// at shutdown so a change made in the last half second still reaches disk.
+        /// </summary>
+        public void Flush()
+        {
+            string? json;
+            lock (_pendingLock)
+            {
+                _saveTimer.Stop();
+                json = _pendingJson;
+                _pendingJson = null;
+            }
+            if (json == null) return;
+
+            lock (_writeLock)
+            {
+                try
+                {
+                    AppPathHelper.CreateDirIfNotExist(AppPathHelper.Instance.LocalityDirPath, false);
+                    RetryHelper.Try(() => { File.WriteAllText(JsonPath, json, Encoding.UTF8); },
+                        actionOnError: exception => UnifyTracing.Error(exception));
+                }
+                catch (Exception e)
+                {
+                    UnifyTracing.Error(e);
+                }
             }
         }
 
@@ -93,6 +158,20 @@ namespace _1RM.Service.Locality
             {
                 // ignored
             }
+
+            _saveTimer = new System.Timers.Timer(SAVE_DEBOUNCE_MS) { AutoReset = false };
+            _saveTimer.Elapsed += (_, _) =>
+            {
+                try
+                {
+                    Flush();
+                }
+                catch (Exception e)
+                {
+                    // an escaping exception on a timer thread would take the process down
+                    UnifyTracing.Error(e);
+                }
+            };
         }
 
 

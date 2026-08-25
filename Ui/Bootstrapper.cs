@@ -135,6 +135,9 @@ namespace _1RM
                 Environment.Exit(1);
             });
             IoC.Get<TaskTrayService>().TaskTrayDispose();
+            // window placement is written on a debounce now, so the last move or resize before quitting
+            // may still be sitting in memory
+            IoC.Get<LocalityService>()?.Flush();
             IoC.Get<SessionControlService>()?.Release();
             IoC.Get<ServerReachabilityService>()?.Dispose();
             IoC.Get<PortForwardService>()?.Dispose();
