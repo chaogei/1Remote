@@ -71,7 +71,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="model:TagFilter">
                             <Border Margin="3" Padding="5"
-                                    Background="{DynamicResource AccentMidBrush}" 
+                                    Background="{DynamicResource AccentGlassBrush}" 
                                     CornerRadius="5" 
                                     VerticalAlignment="Center"
                                     ToolTip="{Binding TagName}"
@@ -436,7 +436,7 @@
                 </TreeView>
 
                 <!-- footer: show detail of a server -->
-                <Grid Name="GridBottom" VerticalAlignment="Bottom" Height="30" Background="{DynamicResource GlassPanelBrush}" IsHitTestVisible="False">
+                <Grid Name="GridBottom" VerticalAlignment="Bottom" Height="30" Background="{DynamicResource ContentLayerFillBrush}" IsHitTestVisible="False">
                     <Grid.Style>
                         <Style TargetType="Grid">
                             <Setter Property="Opacity" Value="0.9"></Setter>
@@ -460,8 +460,10 @@
                     </TextBlock>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <StackPanel.Resources>
+                            <!-- BackgroundTextBrush, not PrimaryTextBrush: the strip no longer paints itself
+                                 PrimaryMid, so the text is now reading against the content surface. -->
                             <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBase}">
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                                <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                 <Setter Property="Margin" Value="0 0 5 0"></Setter>
                             </Style>
                         </StackPanel.Resources>
@@ -474,7 +476,7 @@
 
 
             <!-- Popup when any item is selected -->
-            <Grid Grid.Row="2" Background="{DynamicResource GlassPanelBrush}" Height="40">
+            <Grid Grid.Row="2" Background="{DynamicResource ContentLayerFillBrush}" Height="40">
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Visible"></Setter>
@@ -509,8 +511,8 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button Height="30" MinWidth="80" Margin="5 0" Content="{DynamicResource Cancel}" Command="{Binding CmdCancelSelected}"></Button>
-                    <TextBlock Style="{StaticResource TextBlockBase}" Text="{DynamicResource server_editor_multi_selected_count}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}"></TextBlock>
-                    <TextBlock Style="{StaticResource TextBlockBase}" Text="{Binding SelectedCount}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" Margin="5 0 0 0"></TextBlock>
+                    <TextBlock Style="{StaticResource TextBlockBase}" Text="{DynamicResource server_editor_multi_selected_count}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource BackgroundTextBrush}"></TextBlock>
+                    <TextBlock Style="{StaticResource TextBlockBase}" Text="{Binding SelectedCount}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource BackgroundTextBrush}" Margin="5 0 0 0"></TextBlock>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -537,7 +539,7 @@
         <!-- tags list. The shadow hangs off this bar itself; it used to come from a second Border filled
              with PrimaryTextBrush, which is the *text* colour - a black stripe under a light theme. -->
         <Grid VerticalAlignment="Top">
-            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}" Effect="{DynamicResource EffectShadow2}">
+            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource ContentLayerFillBrush}" Effect="{DynamicResource EffectShadow2}">
                 <Grid MinHeight="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -549,29 +551,18 @@
                                 Command="{Binding CmdShowMainTab}"
                                 Content="{DynamicResource All}">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type Button}">
-                                            <Grid>
-                                                <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true"/>
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
+                            <!-- The selected tab keeps the accent, because that is how a selected tab reads,
+                                 but at AccentGlassBrush's alpha so it sits in the frost instead of punching
+                                 an opaque brick through it. -->
+                            <Style TargetType="Button" BasedOn="{StaticResource GlassTabButtonStyle}">
                                 <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{DynamicResource AccentLightBrush}"></Setter>
-                                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-                                    </Trigger>
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding SelectedTabName}" Value=""/>
                                             <Condition Binding="{Binding TagListViewModel}" Value="{x:Null}"/>
                                         </MultiDataTrigger.Conditions>
                                         <MultiDataTrigger.Setters>
-                                            <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"></Setter>
+                                            <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}"></Setter>
                                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                                         </MultiDataTrigger.Setters>
                                     </MultiDataTrigger>
@@ -581,7 +572,7 @@
                                             <Condition Binding="{Binding TagListViewModel}" Value="{x:Null}"/>
                                         </MultiDataTrigger.Conditions>
                                         <MultiDataTrigger.Setters>
-                                            <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"></Setter>
+                                            <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}"></Setter>
                                             <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                                         </MultiDataTrigger.Setters>
                                     </MultiDataTrigger>
@@ -594,28 +585,14 @@
                                 Command="{Binding CmdShowTagTab}"
                                 BorderThickness="0" Content="{DynamicResource Tags}">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type Button}">
-                                            <Grid>
-                                                <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true"/>
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="Background" Value="{DynamicResource AccentMidBrush}" />
+                            <Style TargetType="Button" BasedOn="{StaticResource GlassTabButtonStyle}">
+                                <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" />
                                 <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding TagListViewModel}" Value="{x:Null}">
-                                        <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}" />
-                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
                                     </DataTrigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{DynamicResource AccentLightBrush}"></Setter>
-                                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-                                    </Trigger>
                                     <DataTrigger Binding="{Binding AppData.TagList.Count}" Value="0">
                                         <Setter Property="Visibility" Value="Collapsed"></Setter>
                                     </DataTrigger>
@@ -697,10 +674,10 @@
                                                     <Style TargetType="Grid">
                                                         <Setter Property="MinWidth" Value="50" />
                                                         <Setter Property="Cursor" Value="Hand" />
-                                                        <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"></Setter>
+                                                        <Setter Property="Background" Value="Transparent"></Setter>
                                                         <Style.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="{DynamicResource AccentLightBrush}"></Setter>
+                                                                <Setter Property="Background" Value="{DynamicResource ContentLayerHoverBrush}"></Setter>
                                                             </Trigger>
                                                             <DataTrigger Value="True">
                                                                 <DataTrigger.Binding>
@@ -709,7 +686,7 @@
                                                                         <Binding Path="Name" Mode="OneWay"></Binding>
                                                                     </MultiBinding>
                                                                 </DataTrigger.Binding>
-                                                                <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"></Setter>
+                                                                <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}"></Setter>
                                                                 <Setter Property="Cursor" Value="Arrow" />
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding IsPinned}" Value="False">
@@ -723,11 +700,10 @@
                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBase}">
-                                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                                                            <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Grid}, Path=IsMouseOver}" Value="True">
-                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"></Setter>
-                                                                </DataTrigger>
+                                                                <!-- hover is a neutral overlay now, so the label stays on the
+                                                                     content palette; only the selected chip is accent-filled -->
                                                                 <DataTrigger Value="True">
                                                                     <DataTrigger.Binding>
                                                                         <MultiBinding Converter="{StaticResource ConverterIsEqual}" >
@@ -759,18 +735,16 @@
                                     <Grid Margin="1" VerticalAlignment="Center">
                                         <Path Data="M 41.888 18.304 L 41.888 23.584 L 23.584 23.584 L 23.584 41.888 L 18.304 41.888 L 18.304 23.584 L 0 23.584 L 0 18.304 L 18.304 18.304 L 18.304 0 L 23.584 0 L 23.584 18.304 Z"
                                               Stretch="Uniform" Name="Path"
-                                              Margin="2" Fill="{DynamicResource PrimaryTextBrush}"></Path>
+                                              Margin="2" Fill="{DynamicResource BackgroundTextBrush}"></Path>
                                     </Grid>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="CheckBox.IsMouseOver" Value="True">
-                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource PrimaryLightBrush}"></Setter>
+                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource ContentLayerHoverBrush}"></Setter>
                                         <Setter TargetName="Path" Property="Margin" Value="1"></Setter>
-                                        <Setter TargetName="Path" Property="Fill" Value="{DynamicResource PrimaryTextBrush}"></Setter>
                                     </Trigger>
                                     <Trigger Property="CheckBox.IsChecked" Value="True">
-                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource PrimaryDarkBrush}"></Setter>
-                                        <Setter TargetName="Path" Property="Fill" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                                        <Setter TargetName="BG" Property="Background" Value="{DynamicResource ContentLayerFillBrush}"></Setter>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>

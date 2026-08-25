@@ -438,12 +438,20 @@
                         <Border x:Name="RootBorder"
                                 Background="{TemplateBinding Background}"
                                 SnapsToDevicePixels="True" />
+                        <!-- Hover is its own overlay rather than a second value for Background, so a call
+                             site is free to bind Background to the selected state without the two fighting
+                             over the same property: on an unselected tab this is the only tint there is,
+                             on the selected one it lifts the accent a step. -->
+                        <Border x:Name="HoverOverlay" Background="Transparent" SnapsToDevicePixels="True" />
                         <ContentPresenter Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           TextBlock.Foreground="{TemplateBinding Foreground}" />
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HoverOverlay" Property="Background" Value="{DynamicResource ContentLayerHoverBrush}" />
+                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
                         </Trigger>
@@ -451,11 +459,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource ContentLayerHoverBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <!-- Keeps ButtonBaseStyle's template, so the sort arrows and the label keep laying out exactly as they
