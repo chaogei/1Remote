@@ -20,6 +20,13 @@ namespace _1RM.View.Host
         private bool _isForegroundWatchHooked;
         /// <summary>Mirrors window visibility for the timer thread, which cannot read a dependency property.</summary>
         private volatile bool _isForegroundWatchWanted = true;
+        /// <summary>
+        /// Set by TimerDispose before the timer is torn down. A tick that is already running on a thread pool
+        /// thread must see this and not re-arm the timer: Start() on a disposed timer throws
+        /// ObjectDisposedException, which System.Timers.Timer swallows on the way out of the handler, so
+        /// closing a tab window quietly burned an exception on every single teardown.
+        /// </summary>
+        private volatile bool _isTimerDisposing;
 
         private void TimerInitOnLoaded()
         {
@@ -33,7 +40,25 @@ namespace _1RM.View.Host
                 IsVisibleChanged += OnVisibleChangedForForegroundWatch;
                 _isForegroundWatchHooked = true;
             }
-            _timer4CheckForegroundWindow.Start();
+            TimerStartIfAlive();
+        }
+
+        /// <summary>
+        /// The only place allowed to arm the timer. Reading the flag and calling Start() cannot be made atomic
+        /// — the window can close on the UI thread in between while a tick runs on a thread pool thread — so
+        /// the flag removes the common case and the catch covers the remaining window.
+        /// </summary>
+        private void TimerStartIfAlive()
+        {
+            if (_isTimerDisposing) return;
+            try
+            {
+                _timer4CheckForegroundWindow.Start();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Disposed between the check above and the call; the window is going away, nothing to do.
+            }
         }
 
         /// <summary>
@@ -45,28 +70,30 @@ namespace _1RM.View.Host
             if (IsClosing) return;
             _isForegroundWatchWanted = e.NewValue is true;
             if (_isForegroundWatchWanted)
-                _timer4CheckForegroundWindow.Start();
+                TimerStartIfAlive();
             else
                 _timer4CheckForegroundWindow.Stop();
         }
 
         private void TimerDispose()
         {
-            try
-            {
-                IsVisibleChanged -= OnVisibleChangedForForegroundWatch;
-                _timer4CheckForegroundWindow.Elapsed -= Timer4CheckForegroundWindowOnElapsed;
-                _timer4CheckForegroundWindow?.Dispose();
-            }
-            finally
-            {
-            }
+            // Order matters. The flag goes up first so a tick already in flight skips its re-arm, then Stop()
+            // makes sure no further tick is scheduled, and only then is the timer disposed. Stop() on an
+            // already disposed timer is harmless — only the enabling path throws.
+            _isTimerDisposing = true;
+            _isForegroundWatchWanted = false;
+            IsVisibleChanged -= OnVisibleChangedForForegroundWatch;
+            _timer4CheckForegroundWindow.Elapsed -= Timer4CheckForegroundWindowOnElapsed;
+            _timer4CheckForegroundWindow.Stop();
+            _timer4CheckForegroundWindow.Dispose();
         }
 
         private IntPtr _lastActivatedWindowHandle = IntPtr.Zero;
 
         private void Timer4CheckForegroundWindowOnElapsed(object? sender, ElapsedEventArgs e)
         {
+            // AutoReset is false, so this tick owns the re-arm; the timer stays stopped if we bail out.
+            if (_isTimerDisposing) return;
             _timer4CheckForegroundWindow.Stop();
             try
             {
@@ -79,8 +106,8 @@ namespace _1RM.View.Host
             }
             finally
             {
-                if (_isForegroundWatchWanted)
-                    _timer4CheckForegroundWindow.Start();
+                if (_isForegroundWatchWanted && !_isTimerDisposing)
+                    TimerStartIfAlive();
             }
         }
 
