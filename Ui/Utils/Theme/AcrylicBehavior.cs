@@ -31,6 +31,7 @@ namespace _1RM.Utils.Theme
         private const string BACKDROP_RESOURCE_KEY = "WindowBackdropBrush";
         private const string GLASS_PANEL_KEY = "GlassPanelBrush";
         private const string GLASS_CONTENT_KEY = "GlassContentBrush";
+        private const string ACCENT_GLASS_KEY = "AccentGlassBrush";
         private const int SM_REMOTESESSION = 0x1000;
 
         [DllImport("user32.dll")]
@@ -365,11 +366,14 @@ namespace _1RM.Utils.Theme
             {
                 window.Resources.Remove(GLASS_PANEL_KEY);
                 window.Resources.Remove(GLASS_CONTENT_KEY);
+                window.Resources.Remove(ACCENT_GLASS_KEY);
                 return;
             }
 
             window.Resources[GLASS_PANEL_KEY] = CopyBrush("SolidPanelBrush");
             window.Resources[GLASS_CONTENT_KEY] = CopyBrush("SolidSurfaceBrush");
+            // primary buttons carry the same per-window alpha problem as the cards they sit on
+            window.Resources[ACCENT_GLASS_KEY] = CopyBrush("AccentMidBrush");
         }
 
         private static Brush CopyBrush(string key)

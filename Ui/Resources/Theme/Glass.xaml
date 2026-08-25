@@ -11,6 +11,10 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/ComboBoxStyle.xaml" />
         <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/ButtonStyle.xaml" />
+        <!-- Last, so DefaultInputPadding resolves to TextBoxStyle's 8,4 the way DefaultTheme.xaml orders it,
+             and not to the 5,4 ButtonStyle.xaml declares for itself. -->
+        <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/CheckBoxStyle.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Shawn.Utils.WpfResources;component/Theme/Styles/TextBoxStyle.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!--
@@ -60,6 +64,11 @@
     <SolidColorBrush x:Key="WindowBackdropBrush" Color="#323233" />
     <SolidColorBrush x:Key="GlassPanelBrush" Color="#B4323233" />
     <SolidColorBrush x:Key="GlassContentBrush" Color="#B41E1E1E" />
+
+    <!-- The accent, kept as the accent, but let down enough that a primary action stops reading as a solid
+         brick punched through the frost. Deliberately far more opaque than the panel brushes: this one has
+         to keep AccentTextBrush legible on top of whatever the desktop happens to be showing. -->
+    <SolidColorBrush x:Key="AccentGlassBrush" Color="#D8007ACC" />
 
     <!--
         Always opaque, for surfaces that float in their own window and so have nothing behind them to
@@ -416,7 +425,7 @@
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="18 4" />
-        <Setter Property="Background" Value="{DynamicResource AccentMidBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -448,4 +457,133 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- ===== input controls =====
+         Same problem the ComboBox had, and the same shape of fix. Every control in Shawn.Utils inherits
+         ControlBase, which hands it BackgroundBrush; that brush has to stay opaque (ThemeService says why),
+         so a TextBox, a PasswordBox and a CheckBox well each painted a solid rectangle on top of the frost —
+         a white slab in a light theme, most obviously the note editor and the WebDAV fields.
+         Only the fill changes here: a low-alpha overlay derived from the foreground colour, so the well
+         still reads as a well on both light and dark palettes, and the caret, the text and the red
+         validation border are all untouched.
+
+         Each override is BasedOn a key that is *not* itself overridden below — TextBoxPrimaryStyle,
+         PasswordBoxPrimaryStyle, CheckBoxPrimaryStyle, ButtonBaseStyle. A StaticResource inside a dictionary
+         resolves against that same dictionary first, so basing an override on the key it replaces is a
+         cycle, not a fallback to the merged original. The Primary keys are the unused links in each chain,
+         which is what makes them usable as anchors.
+
+         PasswordBoxBaseStyleWithoutEye is left alone for the same reason and frosted at its one call site,
+         Controls/PasswordInput.xaml — it is a sibling template, not part of this chain. -->
+    <Style x:Key="GlassTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource TextBoxPrimaryStyle}">
+        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
+    </Style>
+
+    <Style x:Key="TextBoxBaseStyle" TargetType="TextBox" BasedOn="{StaticResource GlassTextBoxStyle}" />
+
+    <Style x:Key="TextBoxAccentStyle" TargetType="TextBox" BasedOn="{StaticResource GlassTextBoxStyle}">
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentDarkBrush}" />
+    </Style>
+
+    <Style TargetType="TextBox" BasedOn="{StaticResource GlassTextBoxStyle}">
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentDarkBrush}" />
+    </Style>
+
+
+    <Style x:Key="GlassPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource PasswordBoxPrimaryStyle}">
+        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
+    </Style>
+
+    <Style x:Key="PasswordBoxBaseStyle" TargetType="PasswordBox" BasedOn="{StaticResource GlassPasswordBoxStyle}" />
+
+    <Style x:Key="PasswordBoxAccentStyle" TargetType="PasswordBox" BasedOn="{StaticResource GlassPasswordBoxStyle}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentDarkBrush}" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="true">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentMidBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="PasswordBox" BasedOn="{StaticResource GlassPasswordBoxStyle}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentDarkBrush}" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="true">
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentMidBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+
+    <!-- Only the empty well is frosted. The checked state still fills with the accent from
+         VisionElement.BackgroundAccent, which is the whole point of the tick being visible at a glance. -->
+    <Style x:Key="GlassCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource CheckBoxPrimaryStyle}">
+        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
+    </Style>
+
+    <Style x:Key="CheckBoxBaseStyle" TargetType="CheckBox" BasedOn="{StaticResource GlassCheckBoxStyle}" />
+
+    <Style x:Key="CheckBoxAccentStyle" TargetType="CheckBox" BasedOn="{StaticResource GlassCheckBoxStyle}">
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentMidBrush}" />
+    </Style>
+
+    <Style TargetType="CheckBox" BasedOn="{StaticResource GlassCheckBoxStyle}">
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentMidBrush}" />
+    </Style>
+
+
+    <!-- ===== form buttons =====
+         ButtonPrimaryStyle fills with PrimaryMidBrush, which is the same brush the title strips and the
+         frosted panels are tinted with — so every Select / Test / Save / Cancel in the editor and the
+         settings forms was an opaque rectangle of panel colour sitting on the glass. The template is kept
+         as-is on purpose: call sites override the VisionElement fills and foregrounds per button, and those
+         overrides all keep working when only the default fills move to the Layer* overlays.
+
+         ButtonBarPrimaryStyle is untouched and stays solid. It is BasedOn the submodule's own
+         ButtonPrimaryStyle, resolved inside that dictionary, so this override cannot reach it — which is
+         what we want: the list rows and the caption cluster sit on surfaces where solid is correct, and the
+         caption buttons already have WindowCaptionButtonStyle above. -->
+    <Style x:Key="ButtonPrimaryStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+        <Setter Property="attachProperty:VisionElement.BorderOpacity" Value="1" />
+        <Setter Property="attachProperty:VisionElement.BorderOpacityAccent" Value="1" />
+        <Setter Property="attachProperty:VisionElement.BorderOpacityOnMouseDown" Value="1" />
+        <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource AccentMidBrush}" />
+        <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource AccentMidBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource LayerHoverBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource LayerSelectedBrush}" />
+        <!-- the inherited 0.8 dims the label along with the fill, and the deeper Layer brush is already the
+             press affordance -->
+        <Setter Property="attachProperty:VisionElement.OpacityOnMouseDown" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource BackgroundTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource BackgroundTextBrush}" />
+    </Style>
+
+    <!-- Accent buttons keep the accent — they are the primary action and colour is how that reads — but at
+         the alpha AccentGlassBrush carries, so the blue sits in the frost instead of on top of it. -->
+    <Style x:Key="GlassButtonAccentStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
+        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" />
+        <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource AccentLightBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource AccentTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource AccentMidBrush}" />
+    </Style>
+
+    <Style x:Key="ButtonAccentStyle" TargetType="Button" BasedOn="{StaticResource GlassButtonAccentStyle}" />
+
+    <Style TargetType="Button" BasedOn="{StaticResource GlassButtonAccentStyle}" />
 </ResourceDictionary>

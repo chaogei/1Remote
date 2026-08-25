@@ -385,12 +385,24 @@ namespace _1RM.Service
             setKey(rd, "GlassPanelBrush", new SolidColorBrush(Color.FromArgb(alpha, primaryMid.R, primaryMid.G, primaryMid.B)));
             setKey(rd, "GlassContentBrush", new SolidColorBrush(Color.FromArgb(alpha, background.R, background.G, background.B)));
 
+            // Primary action buttons keep the accent colour — that is how a primary action reads — but a
+            // fully opaque accent rectangle on a frosted panel is a brick punched through the glass. Floored
+            // well above the panel alpha, and above the user's slider, because AccentTextBrush has to stay
+            // legible over whatever the desktop happens to be showing behind the blur.
+            var accentMid = theme.GetAccentMidColor;
+            var accentAlpha = frost ? (byte)Math.Max(0xC8, alpha) : (byte)0xFF;
+            setKey(rd, "AccentGlassBrush", new SolidColorBrush(Color.FromArgb(accentAlpha, accentMid.R, accentMid.G, accentMid.B)));
+
             // BackgroundBrush deliberately stays opaque. It looks like the one lever that would turn every
             // control translucent at once — BaseStyle's ControlBase hands it to all of them — but the
             // ComboBox template also paints its drop-down popup with {TemplateBinding Background}, so the
             // closed control and the floating list share this single brush. Making it translucent turned
-            // every drop-down see-through and unreadable. Separating the two means editing the templates in
-            // the Shawn.Utils submodule; until then controls stay solid and only surfaces are glass.
+            // every drop-down see-through and unreadable.
+            //
+            // Individual controls are frosted the other way round instead, in Resources/Theme/Glass.xaml:
+            // each style is overridden to fill from the Layer* overlays rather than from this brush, which
+            // leaves anything that really does float in its own HWND — drop-downs, tooltips, completion
+            // popups — still asking for an opaque fill.
             setKey(rd, "SolidSurfaceBrush", new SolidColorBrush(background));
             setKey(rd, "SolidPanelBrush", new SolidColorBrush(primaryMid));
         }
