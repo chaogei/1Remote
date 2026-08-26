@@ -21,10 +21,13 @@
                 <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
             </Style>
 
+            <!-- The rail sits inside the paging area, so it is tinted from BackgroundColor and its labels
+                 have to be BackgroundTextBrush. PrimaryTextBrush is white on the palettes whose panels are
+                 dark and whose content is light, which left this list unreadable there. -->
             <Style x:Key="ListBoxForProtocols" TargetType="{x:Type ListBox}">
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="ItemContainerStyle">
                     <Setter.Value>
@@ -41,17 +44,16 @@
                                         </Grid>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Background" TargetName="GridContainer" Value="{DynamicResource PrimaryTextBrush}"></Setter>
-                                                <Setter Property="Opacity" Value="0.2" TargetName="GridContainer" />
+                                                <Setter Property="Background" TargetName="GridContainer" Value="{DynamicResource ContentLayerHoverBrush}"></Setter>
                                                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                                             </Trigger>
                                             <Trigger Property="IsSelected" Value="True">
                                                 <Setter Property="Opacity" Value="1" TargetName="GridContainer" />
                                                 <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentTextBrush}" TargetName="ContentPresenter" />
-                                                <Setter Property="Background" Value="{DynamicResource AccentMidBrush}" TargetName="GridContainer" />
+                                                <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" TargetName="GridContainer" />
                                                 <Setter Property="BorderThickness" Value="0" TargetName="GridContainer" />
                                                 <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
-                                                <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"/>
+                                                <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}"/>
                                                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
@@ -75,7 +77,7 @@
             <Style x:Key="ListBoxRunners" TargetType="{x:Type ListBox}">
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="ItemContainerStyle">
                     <Setter.Value>
@@ -99,20 +101,19 @@
 
             <DataTemplate DataType="{x:Type default:InternalDefaultRunner}">
                 <Grid Style="{StaticResource Block}">
-                    <Grid.OpacityMask>
-                        <VisualBrush Visual="{Binding ElementName=Border1}" />
-                    </Grid.OpacityMask>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"></RowDefinition>
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
-                    <Border Name="Border1" Grid.Row="0" Grid.RowSpan="2" 
-                            Background="{DynamicResource GlassContentBrush}"
-                            CornerRadius="10" BorderThickness="0">
+                    <Border Grid.Row="0" Grid.RowSpan="2"
+                            Background="{DynamicResource ContentLayerFillBrush}"
+                            BorderBrush="{DynamicResource ContentCardStrokeBrush}"
+                            CornerRadius="10" BorderThickness="1">
                     </Border>
-                    <Grid Grid.Row="0" Background="{DynamicResource GlassPanelBrush}">
+                    <Border Grid.Row="0" CornerRadius="10 10 0 0" Background="{DynamicResource ContentLayerHoverBrush}" />
+                    <Grid Grid.Row="0">
                         <TextBlock HorizontalAlignment="Center"  VerticalAlignment="Center"
-                                   Foreground="{DynamicResource PrimaryTextBrush}" 
+                                   Foreground="{DynamicResource BackgroundTextBrush}" 
                                    FontSize="{DynamicResource HeadFontSize}" 
                                    Text="{Binding Name}" Margin="5"></TextBlock>
                     </Grid>
@@ -159,7 +160,7 @@
         </Grid.ColumnDefinitions>
 
         <Grid MinWidth="130" Background="Transparent">
-            <Border BorderThickness="0" Background="{DynamicResource GlassContentBrush}">
+            <Border BorderThickness="0" Background="{DynamicResource ContentLayerFillBrush}">
                 <Border.Effect>
                     <DropShadowEffect Direction="0" Opacity="0.5" ShadowDepth="3"></DropShadowEffect>
                 </Border.Effect>
@@ -193,7 +194,7 @@
                     </ListBox.Background>
                 </ListBox>
 
-                <Border Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Background="{DynamicResource GlassContentBrush}">
+                <Border Grid.Row="0" Grid.RowSpan="2" BorderThickness="0" Background="{DynamicResource ContentLayerFillBrush}">
                     <Border.Effect>
                         <DropShadowEffect Direction="270" Opacity="0.5" ShadowDepth="3"></DropShadowEffect>
                     </Border.Effect>

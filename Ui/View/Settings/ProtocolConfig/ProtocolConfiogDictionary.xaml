@@ -22,8 +22,10 @@
         <Setter Property="Margin" Value="20 0 10 0"></Setter>
     </Style>
 
+    <!-- The card's fill lives on the rounded Border each template declares, not here: a second tint on the
+         Grid behind it only stacked another translucent layer on the page's own. -->
     <Style x:Key="Block" TargetType="Grid">
-        <Setter Property="Background" Value="{DynamicResource GlassContentBrush}"></Setter>
+        <Setter Property="Background" Value="Transparent"></Setter>
         <Setter Property="Width" Value="520"></Setter>
         <Setter Property="HorizontalAlignment" Value="Left"></Setter>
         <Setter Property="Margin" Value="15 10 20 10"></Setter>

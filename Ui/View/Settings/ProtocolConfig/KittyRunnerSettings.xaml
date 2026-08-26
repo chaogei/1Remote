@@ -17,19 +17,18 @@
     </UserControl.Resources>
 
     <Grid Style="{StaticResource Block}">
-        <Grid.OpacityMask>
-            <VisualBrush Visual="{Binding ElementName=Border1}" />
-        </Grid.OpacityMask>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Border Name="Border1" Grid.Row="0" Grid.RowSpan="2" 
-                Background="{DynamicResource GlassContentBrush}"
-                CornerRadius="10" BorderThickness="0">
+        <Border Grid.Row="0" Grid.RowSpan="2"
+                Background="{DynamicResource ContentLayerFillBrush}"
+                BorderBrush="{DynamicResource ContentCardStrokeBrush}"
+                CornerRadius="10" BorderThickness="1">
         </Border>
-        <Grid Grid.Row="0" Background="{DynamicResource GlassPanelBrush}">
-            <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" FontSize="{DynamicResource HeadFontSize}" 
+        <Border Grid.Row="0" CornerRadius="10 10 0 0" Background="{DynamicResource ContentLayerHoverBrush}" />
+        <Grid Grid.Row="0">
+            <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource BackgroundTextBrush}" FontSize="{DynamicResource HeadFontSize}" 
                        Text="{Binding Name}" Margin="5"></TextBlock>
         </Grid>
         <StackPanel Grid.Row="1">
