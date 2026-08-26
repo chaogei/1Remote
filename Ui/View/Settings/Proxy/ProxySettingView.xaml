@@ -41,11 +41,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerHoverBrush}" />
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource ContentLayerHoverBrush}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerSelectedBrush}" />
-                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource CardStrokeBrush}" />
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource ContentLayerSelectedBrush}" />
+                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource ContentCardStrokeBrush}" />
                                 <Setter Property="Opacity" TargetName="SelectedIndicator" Value="1" />
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -76,8 +76,8 @@
 
                     <!-- Left Column: Proxy List Card -->
                     <Border Grid.Column="0"
-                            Background="{DynamicResource LayerFillBrush}"
-                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            Background="{DynamicResource ContentLayerFillBrush}"
+                            BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                             BorderThickness="1"
                             CornerRadius="{DynamicResource CardCornerRadius}"
                             Padding="12"
@@ -127,7 +127,7 @@
                                                     Width="30" Height="30"
                                                     CornerRadius="6"
                                                     Background="{DynamicResource ContentLayerFillBrush}"
-                                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                                                    BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                                                     BorderThickness="1"
                                                     Margin="0 0 10 0"
                                                     VerticalAlignment="Center">
@@ -196,8 +196,8 @@
                     <Grid Grid.Column="1">
                         <!-- Placeholder when no proxy selected -->
                         <Border Visibility="{Binding EmptyPlaceholderVisibility}"
-                                Background="{DynamicResource LayerFillBrush}"
-                                BorderBrush="{DynamicResource CardStrokeBrush}"
+                                Background="{DynamicResource ContentLayerFillBrush}"
+                                BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{DynamicResource CardCornerRadius}"
                                 Padding="30"
@@ -219,8 +219,8 @@
                         <!-- Editor Panel -->
                         <StackPanel Visibility="{Binding EditorVisibility}">
                             <!-- Card 1: Configuration Details -->
-                            <Border Background="{DynamicResource LayerFillBrush}"
-                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                            <Border Background="{DynamicResource ContentLayerFillBrush}"
+                                    BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{DynamicResource CardCornerRadius}"
                                     Padding="22 18">
@@ -362,8 +362,8 @@
                             </Border>
 
                             <!-- Card 2: Connectivity Test Card -->
-                            <Border Background="{DynamicResource LayerFillBrush}"
-                                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                            <Border Background="{DynamicResource ContentLayerFillBrush}"
+                                    BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                                     BorderThickness="1"
                                     CornerRadius="{DynamicResource CardCornerRadius}"
                                     Padding="22 18"
@@ -416,7 +416,7 @@
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
                                                     <Setter Property="BorderThickness" Value="1" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsTestSuccess}" Value="True">

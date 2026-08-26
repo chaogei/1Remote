@@ -20,8 +20,8 @@
                 <TextBlock Text="{DynamicResource Launcher}" Style="{StaticResource BlockTitleColumn}" Margin="0 0 0 16" />
 
                 <!-- Card 1: General & Hotkey -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18"
@@ -91,8 +91,8 @@
                 </Border>
 
                 <!-- Card 2: Match Providers (Search Engine) -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18"
@@ -120,7 +120,7 @@
                                 <DataTemplate x:Key="DataTemplateForMatcher" DataType="service:MatchProviderInfo">
                                     <Border Margin="0 0 0 10" Padding="12 8"
                                             Background="{DynamicResource ContentLayerFillBrush}"
-                                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                                            BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                                             BorderThickness="1"
                                             CornerRadius="{DynamicResource DefaultCornerRadius}">
                                         <Grid>
@@ -152,8 +152,8 @@
                 </Border>
 
                 <!-- Card 3: Quick Connect -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18">

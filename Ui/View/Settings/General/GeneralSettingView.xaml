@@ -18,8 +18,8 @@
                 <TextBlock Text="{DynamicResource system_options_general_title}" Style="{StaticResource BlockTitleColumn}" Margin="0 0 0 16" />
 
                 <!-- Card 1: System & General -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18"
@@ -125,8 +125,8 @@
                 </Border>
 
                 <!-- Card 2: Session & Window Behaviors -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18"
@@ -258,8 +258,8 @@
                 </Border>
 
                 <!-- Card 3: Logging & Miscellaneous -->
-                <Border Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                <Border Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="22 18">

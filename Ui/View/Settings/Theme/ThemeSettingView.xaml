@@ -35,7 +35,7 @@
                                 <!-- Color preview badge: primary background with accent center dot -->
                                 <Border Width="18" Height="18" CornerRadius="9" Margin="0 0 10 0"
                                         Background="{Binding PrimaryColor, Converter={StaticResource ConverterColorHexString2Brush}}"
-                                        BorderBrush="{DynamicResource CardStrokeBrush}" BorderThickness="1">
+                                        BorderBrush="{DynamicResource ContentCardStrokeBrush}" BorderThickness="1">
                                     <Ellipse Width="7" Height="7" HorizontalAlignment="Center" VerticalAlignment="Center"
                                              Fill="{Binding AccentColor, Converter={StaticResource ConverterColorHexString2Brush}}" />
                                 </Border>

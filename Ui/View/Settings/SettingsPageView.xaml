@@ -22,7 +22,10 @@
             <Setter Property="Margin" Value="8 2" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <!-- The rail is inside the paging area, so it is tinted from BackgroundColor: its labels and
+                 glyphs follow BackgroundTextBrush. PrimaryTextBrush is the *panel* text colour, white on the
+                 palettes with dark chrome over a light page, which made the whole rail disappear there. -->
+            <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
             <Setter Property="Command" Value="{Binding CmdShowPage}" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,7 +67,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerHoverBrush}" />
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource ContentLayerHoverBrush}" />
                                 <Setter Property="Opacity" TargetName="IconGlyph" Value="1" />
                             </Trigger>
                             <DataTrigger Value="True">
@@ -74,8 +77,8 @@
                                         <Binding Path="CommandParameter" RelativeSource="{RelativeSource TemplatedParent}" />
                                     </MultiBinding>
                                 </DataTrigger.Binding>
-                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource LayerSelectedBrush}" />
-                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource CardStrokeBrush}" />
+                                <Setter Property="Background" TargetName="ItemBorder" Value="{DynamicResource ContentLayerSelectedBrush}" />
+                                <Setter Property="BorderBrush" TargetName="ItemBorder" Value="{DynamicResource ContentCardStrokeBrush}" />
                                 <Setter Property="Opacity" TargetName="Indicator" Value="1" />
                                 <Setter Property="Opacity" TargetName="IconGlyph" Value="1" />
                                 <Setter Property="Fill" TargetName="IconGlyph" Value="{DynamicResource AccentMidBrush}" />
@@ -94,7 +97,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- a faint overlay rather than a second tint, so the rail reads as raised without closing the glass -->
-        <Grid Grid.Column="0" Background="{DynamicResource LayerFillBrush}">
+        <Grid Grid.Column="0" Background="{DynamicResource ContentLayerFillBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />

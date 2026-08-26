@@ -39,8 +39,8 @@
 
                 <!-- Off-machine copy -->
                 <Border Margin="20 24 20 0"
-                        Background="{DynamicResource LayerFillBrush}"
-                        BorderBrush="{DynamicResource CardStrokeBrush}"
+                        Background="{DynamicResource ContentLayerFillBrush}"
+                        BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                         BorderThickness="1"
                         CornerRadius="{DynamicResource CardCornerRadius}"
                         Padding="20 16"
