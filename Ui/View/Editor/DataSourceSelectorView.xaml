@@ -154,7 +154,7 @@
                                                        Margin="0 0 5 0" 
                                                        Visibility="{Binding IsWritable, Converter={StaticResource ConverterBool2VisibleInv}}" 
                                                        Foreground="{DynamicResource AccentTextBrush}" 
-                                                       Background="{DynamicResource AccentMidBrush}" 
+                                                       Background="{DynamicResource AccentGlassBrush}" 
                                                        VerticalAlignment="Center" 
                                                        TextTrimming="CharacterEllipsis"></TextBlock>
                                             <TextBlock FontSize="{DynamicResource GlobalFontSizeSubtitle}" Text="{Binding Description}" 

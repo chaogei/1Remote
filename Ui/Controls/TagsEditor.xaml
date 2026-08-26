@@ -39,7 +39,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="system:String">
-                                    <Border VerticalAlignment="Center" Background="{DynamicResource AccentMidBrush}" CornerRadius="5" Margin="3 5">
+                                    <Border VerticalAlignment="Center" Background="{DynamicResource AccentGlassBrush}" CornerRadius="5" Margin="3 5">
                                         <Grid>
                                             <Label Content="{Binding}" Foreground="{DynamicResource AccentTextBrush}" Margin="0 0 15 0"></Label>
                                             <Button Width="10" Height="10" Click="ButtonDel_OnClick" Tag="{Binding}"
