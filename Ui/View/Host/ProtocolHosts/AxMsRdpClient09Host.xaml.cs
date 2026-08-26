@@ -88,6 +88,8 @@ namespace _1RM.View.Host.ProtocolHosts
         private DateTime _lastLoginTime = DateTime.MinValue;
 
         private readonly object _rdpClientDisposeLock = new object();
+        /// <summary>Bumps on each Conn()/Dispose so a delayed Connect() from a previous wait cannot fire into a disposed or replaced ActiveX control.</summary>
+        private int _connectEpoch;
 
 
         public static AxMsRdpClient09Host Create(RDP rdp, int width = 0, int height = 0)
@@ -174,6 +176,7 @@ namespace _1RM.View.Host.ProtocolHosts
             SimpleLogHelper.Debug($"Disposing {this.GetType().Name}({this.GetHashCode()})");
             _resizeEndTimer?.Dispose();
             _loginResizeTimer?.Dispose();
+            System.Threading.Interlocked.Increment(ref _connectEpoch);
             RdpClientDispose();
             SimpleLogHelper.Debug($"Dispose done {this.GetType().Name}({this.GetHashCode()})");
         }
@@ -786,23 +789,55 @@ namespace _1RM.View.Host.ProtocolHosts
             Debug.Assert(_rdpClient != null); if (_rdpClient == null) return;
             Dispatcher.Invoke(() =>
             {
+                if (Status == ProtocolHostStatus.Connected || Status == ProtocolHostStatus.Connecting)
+                {
+                    return;
+                }
+
+                Status = ProtocolHostStatus.Connecting;
+                GridLoading.Visibility = System.Windows.Visibility.Visible;
+                RdpHost.Visibility = System.Windows.Visibility.Collapsed;
+            });
+
+            // Connect() is asynchronous: OnConnected is the only honest "Connected". Marking it here used
+            // to make ReConn() think a still-handshaking session was already up. Wait for 3389 off the UI
+            // thread first so a machine that just rebooted is given the same grace mstsc gives it.
+            var epoch = System.Threading.Interlocked.Increment(ref _connectEpoch);
+            _ = ConnectWhenEndpointReadyAsync(epoch);
+        }
+
+        private async Task ConnectWhenEndpointReadyAsync(int epoch)
+        {
+            try
+            {
+                await WaitForEndpointReadyAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Debug($"RDP Host: wait-for-endpoint: {e.Message}");
+            }
+
+            await Dispatcher.InvokeAsync(() =>
+            {
                 try
                 {
-                    if (Status == ProtocolHostStatus.Connected || Status == ProtocolHostStatus.Connecting)
-                    {
+                    if (epoch != _connectEpoch)
                         return;
-                    }
+                    if (_rdpClient == null)
+                        return;
+                    if (Status != ProtocolHostStatus.Connecting
+                        && Status != ProtocolHostStatus.Initialized)
+                        return;
 
                     Status = ProtocolHostStatus.Connecting;
-                    GridLoading.Visibility = Visibility.Visible;
-                    RdpHost.Visibility = Visibility.Collapsed;
+                    GridLoading.Visibility = System.Windows.Visibility.Visible;
+                    RdpHost.Visibility = System.Windows.Visibility.Collapsed;
                     _rdpClient.Connect();
-                    Status = ProtocolHostStatus.Connected;
                 }
                 catch (Exception e)
                 {
-                    GridMessageBox.Visibility = Visibility.Visible;
-                    TbMessageTitle.Visibility = Visibility.Collapsed;
+                    GridMessageBox.Visibility = System.Windows.Visibility.Visible;
+                    TbMessageTitle.Visibility = System.Windows.Visibility.Collapsed;
                     TbMessage.Text = e.Message;
                     Status = ProtocolHostStatus.Disconnected;
                 }

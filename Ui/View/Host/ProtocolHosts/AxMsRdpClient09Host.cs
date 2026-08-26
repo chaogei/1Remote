@@ -8,6 +8,8 @@ using MSTSCLib;
 using _1RM.Model.Protocol;
 using _1RM.Service.Locality;
 using _1RM.Utils;
+using _1RM.Utils.Rdp;
+using _1RM.Utils.Reachability;
 using Shawn.Utils;
 using Shawn.Utils.Wpf;
 using Shawn.Utils.Wpf.Controls;
@@ -53,6 +55,13 @@ namespace _1RM.View.Host.ProtocolHosts
 
             var t = Task.Factory.StartNew(async () =>
             {
+                // After a reboot TermService is often still coming up. Waiting here, off the UI thread,
+                // is what mstsc effectively does; firing Connect() immediately is what made us fail
+                // while it succeeded a few seconds later.
+                if (_retryCount > 0)
+                    await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(_retryCount)).ConfigureAwait(false);
+                await WaitForEndpointReadyAsync().ConfigureAwait(false);
+
                 // check if it needs to auto switch address
                 var isAutoAlternateAddressSwitching = _rdpSettings.IsAutoAlternateAddressSwitching == true
                                                       // if none of the alternate credential has host or port，then disabled `AutoAlternateAddressSwitching`
@@ -83,6 +92,35 @@ namespace _1RM.View.Host.ProtocolHosts
                     Conn();
                 });
             });
+        }
+
+        /// <summary>
+        /// TermService / 3389 is often still coming up after a reboot. Opening the ActiveX against a closed
+        /// port fails immediately; waiting for a TCP accept first is the difference vs mstsc succeeding a
+        /// moment later. Skipped (no address, jump host) returns immediately so we still call Connect().
+        /// </summary>
+        private async Task WaitForEndpointReadyAsync()
+        {
+            // First connect: give a rebooting host several tries. Later retries already waited the
+            // backoff, so one probe is enough before handing off to the ActiveX control.
+            var attempts = _retryCount == 0 ? 4 : 1;
+            const int timeoutMs = 1500;
+            for (var i = 0; i < attempts; i++)
+            {
+                try
+                {
+                    var result = await ServerProbe.ProbeAsync(_rdpSettings, null, timeoutMs, System.Threading.CancellationToken.None)
+                        .ConfigureAwait(false);
+                    if (result.State == EReachState.Online || result.State == EReachState.Skipped)
+                        return;
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.Debug($"RDP Host: endpoint probe failed: {e.Message}");
+                }
+
+                await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(i + 1)).ConfigureAwait(false);
+            }
         }
 
 
@@ -183,8 +221,10 @@ namespace _1RM.View.Host.ProtocolHosts
                         // We try reconnecting.
                         RdpHost.Visibility = Visibility.Collapsed;
                         GridMessageBox.Visibility = Visibility.Visible;
-                        if (_flagHasEverConnected // a rdp session with never successful connection should not retry (in the case error code = 4 ex:exDiscReasonNoInfo)
-                            && _retryCount < MAX_RETRY_COUNT)
+                        // First connect after a remote reboot used to skip retry entirely: _flagHasEverConnected
+                        // is still false, and a single 516/264/0 from TermService-not-ready became a hard error
+                        // while mstsc was still waiting. Transient codes retry with backoff; logon failures do not.
+                        if (RdpDisconnectClassifier.ShouldAutoRetry(e.discReason, _flagHasEverConnected, _retryCount, MAX_RETRY_COUNT))
                         {
                             // Continue to retry.
                             ++_retryCount;
@@ -220,6 +260,7 @@ namespace _1RM.View.Host.ProtocolHosts
             _flagHasConnected = true;
             _flagHasEverConnected = true;
             _retryCount = 0;
+            Status = ProtocolHostStatus.Connected;
             Execute.OnUIThread(() =>
             {
                 RdpHost.Visibility = Visibility.Visible;
