@@ -361,6 +361,21 @@ namespace _1RM.Service
             setKey(rd, "LayerSelectedBrush", Overlay(onPrimary, 0x2B));
             setKey(rd, "CardStrokeBrush", Overlay(onPrimary, 0x24));
 
+            // The session hosts are the two windows DWM frost can never reach (AcrylicBehavior's denylist —
+            // a hosted RDP/VNC HWND draws with GDI, which zeroes the alpha byte, and the accent policy then
+            // reads those pixels as fully transparent and blurs the desktop over the session). Their title
+            // strip therefore has to look like glass on its own: a single flat Layer* tint over PrimaryMid
+            // reads as one more slab of the window fill. A gradient does the work instead — a bright edge at
+            // the very top falling away to almost nothing at the hairline, which is the specular highlight
+            // that makes a sheet read as glass rather than as paint.
+            setKey(rd, "TitleBarGlassBrush", new LinearGradientBrush(new GradientStopCollection
+            {
+                new GradientStop(Color.FromArgb(0x3A, onPrimary.R, onPrimary.G, onPrimary.B), 0.0),
+                new GradientStop(Color.FromArgb(0x22, onPrimary.R, onPrimary.G, onPrimary.B), 0.07),
+                new GradientStop(Color.FromArgb(0x15, onPrimary.R, onPrimary.G, onPrimary.B), 0.55),
+                new GradientStop(Color.FromArgb(0x0E, onPrimary.R, onPrimary.G, onPrimary.B), 1.0),
+            }, new Point(0, 0), new Point(0, 1)));
+
             var onBackground = theme.GetBackgroundTextColor;
             setKey(rd, "ContentLayerFillBrush", Overlay(onBackground, 0x0D));
             setKey(rd, "ContentLayerHoverBrush", Overlay(onBackground, 0x17));

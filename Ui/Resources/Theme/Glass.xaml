@@ -51,6 +51,17 @@
     <SolidColorBrush x:Key="LayerSelectedBrush" Color="#CCCCCC" Opacity="0.17" />
     <SolidColorBrush x:Key="CardStrokeBrush" Color="#CCCCCC" Opacity="0.14" />
 
+    <!-- The title strip of the two session hosts, which can never take DWM frost (see
+         ThemeService.ApplyGlassLayers and AcrylicBehavior's denylist). A flat Layer* tint over PrimaryMid
+         reads as a slab of window fill; the falling gradient gives the strip the bright top edge a sheet of
+         glass has. Design-time and pre-ApplyTheme fallback for the theme-derived brush. -->
+    <LinearGradientBrush x:Key="TitleBarGlassBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#3ACCCCCC" Offset="0" />
+        <GradientStop Color="#22CCCCCC" Offset="0.07" />
+        <GradientStop Color="#15CCCCCC" Offset="0.55" />
+        <GradientStop Color="#0ECCCCCC" Offset="1" />
+    </LinearGradientBrush>
+
     <!-- the same four, for content sitting on BackgroundBrush instead of PrimaryMidBrush -->
     <SolidColorBrush x:Key="ContentLayerFillBrush" Color="#FFFFFF" Opacity="0.05" />
     <SolidColorBrush x:Key="ContentLayerHoverBrush" Color="#FFFFFF" Opacity="0.09" />

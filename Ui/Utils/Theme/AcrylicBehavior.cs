@@ -229,6 +229,18 @@ namespace _1RM.Utils.Theme
         /// <summary>
         /// Windows that must never receive DWM frost, even if a style setter or class handler asks.
         /// Matched by type name to keep this helper from taking a dependency on the host views.
+        ///
+        /// The two session hosts are here for a reason that no amount of tuning on the view side fixes.
+        /// The accent policy honours per-pixel alpha across the entire window, and <see cref="Apply"/> has
+        /// to clear the composition target for the tint to reach the client area at all. The remote
+        /// control inside the WindowsFormsHost is a child HWND that paints with GDI, and GDI writes its
+        /// pixels with the alpha byte left at zero — DWM then reads the whole session rectangle as
+        /// transparent and blurs the desktop through it, which is the white fog. Painting an opaque WPF
+        /// rectangle underneath does not help: the child overwrites those pixels, alpha and all.
+        ///
+        /// Frosting only the title strip would mean giving the chrome its own top level HWND and punching
+        /// the strip out of this window's region, so that the acrylic samples the desktop rather than this
+        /// window's own fill. Until then the strip fakes the material with TitleBarGlassBrush.
         /// </summary>
         private static bool IsAcrylicDeniedWindow(Window window)
         {
