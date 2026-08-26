@@ -78,6 +78,7 @@
                 </Style>
             </Border.Style>
             <noteDisplay:NoteDisplayAndEditor Width="{Binding NoteWidth}" 
+                                              CardBackground="{DynamicResource GlassPanelBrush}"
                                               Height="{Binding GridNoteHeight}" 
                                               Server="{Binding ServerSelectionsViewModel.SelectedItem.Server, Mode=OneWay}"
                                               EditEnable="True"

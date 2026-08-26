@@ -7,15 +7,21 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:attachProperty="clr-namespace:Shawn.Utils.WpfResources.Theme.AttachProperty;assembly=Shawn.Utils.WpfResources"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             CardBackground="{DynamicResource SolidPanelBrush}">
     <UserControl.Resources>
         <system:Double x:Key="LauncherGridKeywordHeight">46</system:Double>
         <system:Double x:Key="LauncherOutlineCornerRadius">12</system:Double>
         <CornerRadius x:Key="LauncherOutlineCornerRadiusObj" TopLeft="{StaticResource LauncherOutlineCornerRadius}" TopRight="{StaticResource LauncherOutlineCornerRadius}" BottomLeft="{StaticResource LauncherOutlineCornerRadius}" BottomRight="{StaticResource LauncherOutlineCornerRadius}"></CornerRadius>
     </UserControl.Resources>
 
+    <!-- One fill for the whole card, taken from CardBackground, so the two hosts can each ask for what their
+         surface needs: the note popup floats in its own HWND and defaults to the opaque SolidPanelBrush,
+         while the launcher hands it the panel tint so the note sits in the same frost as the list beside it.
+         The header and body used to repeat PrimaryMidBrush, which stacked a second slab on top of this one. -->
     <Border Padding="0 " Margin="0" Background="Transparent">
-        <Border CornerRadius="{StaticResource LauncherOutlineCornerRadiusObj}" Background="{DynamicResource PrimaryMidBrush}">
+        <Border CornerRadius="{StaticResource LauncherOutlineCornerRadiusObj}"
+                Background="{Binding CardBackground, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <Grid Name="Main">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
@@ -24,7 +30,7 @@
 
                 <Grid RowSpan="2" PreviewMouseDown="Ignore_OnPreviewMouseDown" PreviewMouseMove="Ignore_OnPreviewMouseMove" Background="Transparent"></Grid>
 
-                <Border Grid.Row="0" Background="{DynamicResource PrimaryMidBrush}" Height="{StaticResource LauncherGridKeywordHeight}"
+                <Border Grid.Row="0" Background="Transparent" Height="{StaticResource LauncherGridKeywordHeight}"
                         BorderThickness="0 0 0 1">
                     <Border.BorderBrush>
                         <SolidColorBrush Color="{DynamicResource PrimaryTextColor}" Opacity="0.5"></SolidColorBrush>
@@ -78,7 +84,7 @@
                 </Border>
 
 
-                <Border Grid.Row="1" Background="{DynamicResource PrimaryMidBrush}">
+                <Border Grid.Row="1" Background="Transparent">
                     <Border.CornerRadius>
                         <CornerRadius BottomLeft="{StaticResource LauncherOutlineCornerRadius}" BottomRight="{StaticResource LauncherOutlineCornerRadius}"></CornerRadius>
                     </Border.CornerRadius>
