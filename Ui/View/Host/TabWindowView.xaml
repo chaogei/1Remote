@@ -16,9 +16,11 @@
                        BorderBrush="Transparent"
                        Background="{DynamicResource WindowBackdropBrush}"
                        Title="{Binding Title}" Height="600" Width="800">
-    <!-- AcrylicBehavior is intentionally omitted. Remote content is a WindowsFormsHost HWND;
-         DWM frost on a transparent composition target shows up as a white fog over the session
-         on some GPUs, nested RDP, and HDR displays. -->
+    <!-- AcrylicBehavior is intentionally omitted, and this type is on its denylist as well. Remote content
+         is a WindowsFormsHost child HWND that paints with GDI, which leaves the alpha byte at zero; the
+         accent policy honours per-pixel alpha across the whole window, so frosting the chrome also blurs
+         the desktop through the session as a white fog. The title strip fakes the material instead — see
+         the Border at the top of the root Grid. -->
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" GlassFrameThickness="1" ResizeBorderThickness="5" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
@@ -445,15 +447,23 @@
 
     <Grid Background="Transparent">
         <!--
-            A Layer* overlay, not GlassPanelBrush. This window is on the acrylic denylist, so nothing is
-            ever composited behind it: GlassPanelBrush is PrimaryMid at an alpha, and the window body it
-            would be tinting is PrimaryMid too, so the two resolve to exactly the same colour and the strip
-            read as one flat slab with the rest of the frame. The overlay is the foreground colour at a low
-            alpha instead, which lightens the strip on a dark theme and darkens it on a light one, so the
-            chrome separates from the session area on every palette. The hairline under it comes from the
-            TabablzControl template.
+            Simulated glass, not DWM frost, and not GlassPanelBrush either.
+
+            This window stays on AcrylicBehavior's denylist: the session below is a WindowsFormsHost child
+            HWND that paints with GDI, GDI leaves the alpha byte at zero, and the accent policy honours
+            per-pixel alpha across the whole window — so the one call that would frost this strip also
+            turns every session pixel into blurred desktop. That is the white fog, and it is a property of
+            the HWND, not of this Border, so no fill here can bring it back.
+
+            With nothing composited behind the window, GlassPanelBrush is PrimaryMid at an alpha over a
+            PrimaryMid body: the same colour, which is why the strip read as one flat slab. A single flat
+            Layer* tint had the same problem one shade lighter. The gradient carries the depth instead —
+            the foreground colour at a bright alpha along the top edge, falling to almost nothing at the
+            hairline the TabablzControl template draws — so the strip reads as a lit sheet on both light
+            and dark palettes. Still one translucent layer per pixel: the tab, hover and caption-button
+            overlays stack on this the way they already did.
         -->
-        <Border Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="{DynamicResource LayerFillBrush}" />
+        <Border Height="{x:Static host:TabWindowView.TITLE_BAR_HEIGHT}" VerticalAlignment="Top" Background="{DynamicResource TitleBarGlassBrush}" />
 
         <dragablz:TabablzControl x:Name="TabablzControl"
                                  BorderThickness="0"
