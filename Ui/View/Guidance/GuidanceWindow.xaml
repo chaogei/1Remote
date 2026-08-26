@@ -54,7 +54,7 @@
                 <Border CornerRadius="5" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"  Width="10" Height="10" Margin="5">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"></Setter>
+                            <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Step}" Value="0">
                                     <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"></Setter>
@@ -66,7 +66,7 @@
                 <Border CornerRadius="5" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"  Width="10" Height="10" Margin="5">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="Background" Value="{DynamicResource PrimaryMidBrush}"></Setter>
+                            <Setter Property="Background" Value="{DynamicResource LayerFillBrush}"></Setter>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Step}" Value="1">
                                     <Setter Property="Background" Value="{DynamicResource AccentMidBrush}"></Setter>
