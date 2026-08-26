@@ -23,6 +23,15 @@ namespace _1RM.View
         public const double LAUNCHER_OUTLINE_CORNER_RADIUS = 12;
         public static readonly CornerRadius LauncherOutlineCornerRadiusObj = new CornerRadius(LAUNCHER_OUTLINE_CORNER_RADIUS, LAUNCHER_OUTLINE_CORNER_RADIUS, LAUNCHER_OUTLINE_CORNER_RADIUS, LAUNCHER_OUTLINE_CORNER_RADIUS);
 
+        /// <summary>
+        /// Empty space around the card, sized for the drop shadow and for nothing else — the window is on
+        /// AcrylicBehavior's denylist so no backdrop is painted into it. <see cref="ShowMe"/> shifts the
+        /// window up by the same amount to keep the card, rather than the gutter, centred on the screen,
+        /// which is why this is one constant instead of a literal in the XAML and another in the code.
+        /// </summary>
+        public const double LAUNCHER_SHADOW_GUTTER = 24;
+        public static readonly Thickness LauncherShadowGutterObj = new Thickness(LAUNCHER_SHADOW_GUTTER);
+
 
         public const int MAX_SERVER_COUNT = 8;
         public const double MAX_SELECTION_HEIGHT = LauncherWindowViewModel.LAUNCHER_SERVER_LIST_ITEM_HEIGHT * MAX_SERVER_COUNT;
@@ -152,7 +161,7 @@ namespace _1RM.View
                     // show position
                     var p = ScreenInfoEx.GetMouseSystemPosition();
                     var screenEx = ScreenInfoEx.GetCurrentScreenBySystemPosition(p);
-                    window.Top = screenEx.VirtualWorkingAreaCenter.Y - GridMainHeight / 2 - 40; // 40: margin of BorderMainContent
+                    window.Top = screenEx.VirtualWorkingAreaCenter.Y - GridMainHeight / 2 - LAUNCHER_SHADOW_GUTTER;
                     window.Left = screenEx.VirtualWorkingAreaCenter.X - window.BorderMainContent.ActualWidth / 2;
 
                     var noteWidth = (screenEx.VirtualWorkingArea.Width - window.BorderMainContent.ActualWidth - 100) / 2;

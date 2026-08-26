@@ -58,7 +58,8 @@ namespace _1RM.Controls.NoteDisplay
 
         // Not Background: UserControl's own template paints that one, and it would fill the square behind
         // the rounded card. The default is opaque because the common host is the hover note popup, which is
-        // its own top level window; the launcher passes the panel tint instead so the note joins the frost.
+        // its own top level window with nothing composited behind it. So is the launcher, which is on the
+        // acrylic denylist, and it asks for the same opaque fill so its two cards read as one surface.
         public static readonly DependencyProperty CardBackgroundProperty = DependencyProperty.Register(
             "CardBackground", typeof(System.Windows.Media.Brush), typeof(NoteDisplayAndEditor), new PropertyMetadata(null));
         public System.Windows.Media.Brush? CardBackground

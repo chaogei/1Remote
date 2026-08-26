@@ -35,20 +35,41 @@
         </Grid.ColumnDefinitions>
 
 
-        <Border Name="BorderMainContent" Padding="10 40">
+        <!--
+            The gutter exists for the drop shadow and holds nothing else — no fill, no stroke, no chrome.
+            That is only true because LauncherWindowView is on AcrylicBehavior's denylist: the accent policy
+            paints the whole HWND rectangle, so with frost on this window the gutter came out as a tinted
+            frame and the card's translucent fill read as a second window nested inside it. One opaque card,
+            one shadow, and empty space around it.
+        -->
+        <Border Name="BorderMainContent" Padding="{x:Static view:LauncherWindowViewModel.LauncherShadowGutterObj}">
             <StackPanel MinHeight="{x:Static view:LauncherWindowViewModel.LAUNCHER_GRID_KEYWORD_HEIGHT}">
+                <!-- SolidPanelBrush, not GlassPanelBrush. With no backdrop behind this window the panel
+                     tint would composite straight onto the unblurred desktop; the sheen below gives the
+                     card its glass reading instead, the way the tab strip does. -->
                 <Border CornerRadius="{x:Static view:LauncherWindowViewModel.LauncherOutlineCornerRadiusObj}"
                         BorderThickness="1"
                         BorderBrush="{DynamicResource CardStrokeBrush}"
-                        Background="{DynamicResource GlassPanelBrush}">
+                        Background="{DynamicResource SolidPanelBrush}">
                     <Border.Effect>
                         <!-- soft and slightly dropped, rather than a hard halo on all four sides -->
-                        <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Opacity="0.5" />
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.45" />
                     </Border.Effect>
 
                     <Grid Clip="{Binding GridMainClip}" 
                           Width="{x:Static view:LauncherWindowViewModel.LAUNCHER_LIST_AREA_WIDTH}" 
                           Height="{Binding GridMainHeight}">
+                        <!-- The search row, drawn as part of the card rather than as a box inside it: a
+                             falling highlight along the top edge and a hairline where the list begins. It
+                             sits behind the two views, which are transparent, so the same 46px band serves
+                             the server list, quick connect and the action overlay. -->
+                        <Border VerticalAlignment="Top"
+                                IsHitTestVisible="False"
+                                Height="{x:Static view:LauncherWindowViewModel.LAUNCHER_GRID_KEYWORD_HEIGHT}"
+                                Background="{DynamicResource TitleBarGlassBrush}"
+                                BorderThickness="0 0 0 1"
+                                BorderBrush="{DynamicResource CardStrokeBrush}" />
+
                         <ContentControl Name="ServerSelectionsView" 
                                         IsTabStop="False"
                                         Visibility="{Binding ServerSelectionsViewVisibility}"
@@ -66,7 +87,7 @@
         </Border>
 
         <!--Note 显示备注-->
-        <Border Name="NoteField" Grid.Column="1" Padding="10 40" 
+        <Border Name="NoteField" Grid.Column="1" Padding="{x:Static view:LauncherWindowViewModel.LauncherShadowGutterObj}" 
                 Visibility="{Binding  ServerSelectionsViewModel.GridNoteVisibility}">
             <Border.Style>
                 <Style TargetType="Border">
@@ -77,8 +98,11 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
+            <!-- A sibling card on the same surface as the list, so it takes the same opaque fill: this
+                 window has no backdrop for a panel tint to sit in. -->
             <noteDisplay:NoteDisplayAndEditor Width="{Binding NoteWidth}" 
-                                              CardBackground="{DynamicResource GlassPanelBrush}"
+                                              CardBackground="{DynamicResource SolidPanelBrush}"
+                                              VerticalAlignment="Top"
                                               Height="{Binding GridNoteHeight}" 
                                               Server="{Binding ServerSelectionsViewModel.SelectedItem.Server, Mode=OneWay}"
                                               EditEnable="True"

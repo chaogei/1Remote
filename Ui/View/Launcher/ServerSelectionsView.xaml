@@ -282,16 +282,22 @@
 
 
         <!--actions of selected server-->
-        <!-- An overlay that covers the server list, so it needs a tint of its own rather than being
-             see-through onto the rows beneath. The panel tint, not the opaque panel colour: this sits inside
-             the frosted launcher card and was the one thing there that snapped the whole card solid. -->
-        <Grid Name="GridActionsList" Visibility="Hidden" Background="{DynamicResource GlassPanelBrush}">
+        <!-- An overlay that has to hide the server list underneath it, so it takes the card's own fill
+             rather than a tint: the launcher window carries no backdrop for a translucent layer to sit in,
+             and at the panel alpha the rows it is meant to replace showed through it. -->
+        <Grid Name="GridActionsList" Visibility="Hidden" Background="{DynamicResource SolidPanelBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
             <Grid Width="{x:Static view:LauncherWindowViewModel.LAUNCHER_LIST_AREA_WIDTH}" 
                   Height="{x:Static view:LauncherWindowViewModel.LAUNCHER_GRID_KEYWORD_HEIGHT}">
+                <!-- the same header band the search row gets, so switching into the action list does not
+                     flatten the top of the card -->
+                <Border IsHitTestVisible="False"
+                        Background="{DynamicResource TitleBarGlassBrush}"
+                        BorderThickness="0 0 0 1"
+                        BorderBrush="{DynamicResource CardStrokeBrush}" />
                 <Grid VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="40"></ColumnDefinition>

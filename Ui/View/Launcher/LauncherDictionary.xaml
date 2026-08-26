@@ -34,6 +34,12 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- Load-bearing, and it has to stay last: TextBoxBaseStyle fills from ContentLayerFillBrush and
+             strokes with ContentCardStrokeBrush, both derived from BackgroundTextColor for content sitting
+             on BackgroundBrush. The launcher card is tinted from PrimaryMid, so that pair drew the search
+             row as a well of the wrong palette family punched into the card. The row is part of the card
+             here — the header band and its hairline are drawn by LauncherWindowView, behind this box. The
+             per-view styles replace this value with the hint VisualBrush while the box is empty. -->
         <Setter Property="Background" Value="Transparent" />
     </Style>
 

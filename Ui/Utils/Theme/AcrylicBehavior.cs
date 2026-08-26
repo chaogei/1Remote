@@ -241,11 +241,18 @@ namespace _1RM.Utils.Theme
         /// Frosting only the title strip would mean giving the chrome its own top level HWND and punching
         /// the strip out of this window's region, so that the acrylic samples the desktop rather than this
         /// window's own fill. Until then the strip fakes the material with TitleBarGlassBrush.
+        ///
+        /// The crash reporter and the launcher are here for the same reason as each other: both are layered
+        /// windows that draw a rounded card inside a transparent gutter, and the accent policy paints the
+        /// whole HWND rectangle — gutter included, with DRAW_ALL_BORDERS on all four edges. It does not
+        /// stop at the card, so the gutter that exists only to give the drop shadow room comes out as a
+        /// tinted frame around the card, and the card's own translucent fill then reads as a second,
+        /// brighter window nested inside the first. Both draw a single opaque card instead.
         /// </summary>
         private static bool IsAcrylicDeniedWindow(Window window)
         {
             var name = window.GetType().Name;
-            return name is "TabWindowView" or "FullScreenWindowView" or "ErrorReportWindow";
+            return name is "TabWindowView" or "FullScreenWindowView" or "ErrorReportWindow" or "LauncherWindowView";
         }
 
         /// <summary>
