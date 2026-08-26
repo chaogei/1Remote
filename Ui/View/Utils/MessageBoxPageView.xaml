@@ -30,8 +30,8 @@
                     MinWidth="280" MaxWidth="520"
                     CornerRadius="{DynamicResource CardCornerRadius}" 
                     SnapsToDevicePixels="True"
-                    Background="{DynamicResource GlassPanelBrush}"
-                    BorderBrush="{DynamicResource CardStrokeBrush}"
+                    Background="{DynamicResource GlassContentBrush}"
+                    BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                     BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.4" />
@@ -44,8 +44,8 @@
                     </Grid.RowDefinitions>
 
                     <!-- Title Header -->
-                    <Border Background="{DynamicResource LayerFillBrush}"
-                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                    <Border Background="{DynamicResource ContentLayerFillBrush}"
+                            BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                             BorderThickness="0 0 0 1"
                             CornerRadius="9 9 0 0">
                         <Grid Margin="12 0">
@@ -87,8 +87,8 @@
 
                     <!-- Action Buttons -->
                     <Border Grid.Row="2"
-                            Background="{DynamicResource LayerFillBrush}"
-                            BorderBrush="{DynamicResource CardStrokeBrush}"
+                            Background="{DynamicResource ContentLayerFillBrush}"
+                            BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                             BorderThickness="0 1 0 0"
                             Padding="16 10"
                             CornerRadius="0 0 9 9">
@@ -112,16 +112,16 @@
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.No}">
                                                         <Setter Property="Template" Value="{Binding Template, Source={StaticResource GlassGhostButtonStyle}}" />
-                                                        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
                                                         <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
                                                         <Setter Property="BorderThickness" Value="1" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Value}" Value="{x:Static MessageBoxResult.Cancel}">
                                                         <Setter Property="Template" Value="{Binding Template, Source={StaticResource GlassGhostButtonStyle}}" />
-                                                        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+                                                        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
                                                         <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
                                                         <Setter Property="BorderThickness" Value="1" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
