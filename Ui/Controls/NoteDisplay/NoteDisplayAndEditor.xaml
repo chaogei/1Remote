@@ -7,8 +7,7 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:attachProperty="clr-namespace:Shawn.Utils.WpfResources.Theme.AttachProperty;assembly=Shawn.Utils.WpfResources"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
-             CardBackground="{DynamicResource SolidPanelBrush}">
+             d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <system:Double x:Key="LauncherGridKeywordHeight">46</system:Double>
         <system:Double x:Key="LauncherOutlineCornerRadius">12</system:Double>

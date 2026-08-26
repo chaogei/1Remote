@@ -74,6 +74,11 @@ namespace _1RM.Controls.NoteDisplay
         public NoteDisplayAndEditor()
         {
             InitializeComponent();
+            // Cannot set CardBackground on this file's UserControl root: the XAML compiler looks that
+            // attribute up in the presentation namespace and fails with MC3072. Call sites (the launcher)
+            // can still set the DP; when they don't, the hover popup stays an opaque panel.
+            if (ReadLocalValue(CardBackgroundProperty) == DependencyProperty.UnsetValue)
+                SetResourceReference(CardBackgroundProperty, "SolidPanelBrush");
             Loaded += NoteDisplayAndEditor_Loaded;
         }
 
