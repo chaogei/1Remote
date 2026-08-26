@@ -306,7 +306,7 @@
         <StackPanel Width="400" HorizontalAlignment="Right" VerticalAlignment="Top" 
                     ToolTip="{Binding Title}"
                     RenderTransformOrigin="0.5,0.5" 
-                    Margin="0,35,-130,0" Background="{DynamicResource AccentMidBrush}">
+                    Margin="0,35,-130,0" Background="{DynamicResource AccentGlassBrush}">
             <StackPanel.Style>
                 <Style TargetType="StackPanel">
                     <Setter Property="Visibility" Value="Collapsed"></Setter>
@@ -357,10 +357,10 @@
              PrimaryTextBrush sitting underneath — invisible only while the strip on top was opaque, and a
              solid stripe of the *text* colour the moment the strip went translucent. -->
         <Grid VerticalAlignment="Top">
-            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}" Effect="{DynamicResource EffectShadow2}">
+            <Border BorderThickness="0 0 0 2" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource ContentLayerFillBrush}" Effect="{DynamicResource EffectShadow2}">
                 <Grid MinHeight="{StaticResource TopHeight}">
                     <!-- buck edit title -->
-                    <TextBlock Foreground="{DynamicResource PrimaryTextBrush}" 
+                    <TextBlock Foreground="{DynamicResource BackgroundTextBrush}" 
                                Margin="50 0" TextTrimming="CharacterEllipsis"
                                Text="{Binding Title}"
                                ToolTip="{Binding Title}"
@@ -382,8 +382,8 @@
                     <ScrollViewer HorizontalScrollBarVisibility="Auto"
                                   Height="{Binding RelativeSource={RelativeSource FindAncestor,AncestorType=Grid}, Path=Height}"
                                   controls1:ScrollViewerExtensions.IsHorizontalScrollOnWheelEnabled="true"
-                                  attachProperty:VisionElement.ForegroundAccent="{DynamicResource PrimaryTextBrush}"
-                                  attachProperty:VisionElement.BackgroundAccent="{DynamicResource PrimaryTextBrush}">
+                                  attachProperty:VisionElement.ForegroundAccent="{DynamicResource BackgroundTextBrush}"
+                                  attachProperty:VisionElement.BackgroundAccent="{DynamicResource BackgroundTextBrush}">
                         <ScrollViewer.Style>
                             <Style TargetType="ScrollViewer" BasedOn="{StaticResource ScrollViewMiniStyle}">
                                 <Setter Property="Visibility" Value="Visible"></Setter>
@@ -420,7 +420,7 @@
                                 <ListBox.Resources>
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"></Setter>
+                                        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="ListBoxItem">
@@ -451,8 +451,8 @@
                                                                 <Condition Property="UIElement.IsMouseOver" Value="True"></Condition>
                                                             </MultiTrigger.Conditions>
                                                             <MultiTrigger.Setters>
-                                                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource LayerHoverBrush}"></Setter>
-                                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"></Setter>
+                                                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource ContentLayerHoverBrush}"></Setter>
+                                                                <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}"></Setter>
                                                             </MultiTrigger.Setters>
                                                         </MultiTrigger>
                                                     </ControlTemplate.Triggers>
@@ -505,7 +505,7 @@
         <Grid VerticalAlignment="Bottom">
             <!-- no shadow on this one: EffectShadow2 falls downwards, which from the bottom bar lands
                  outside the page. The accent rule along the top is the separation. -->
-            <Border BorderThickness="0 2 0 0" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource GlassPanelBrush}">
+            <Border BorderThickness="0 2 0 0" BorderBrush="{DynamicResource AccentMidBrush}" Background="{DynamicResource ContentLayerFillBrush}">
                 <Grid Height="{StaticResource BottomHeight}">
                     <Grid Width="300">
                         <Button Name="ButtonSave" MinWidth="80" MinHeight="25"
