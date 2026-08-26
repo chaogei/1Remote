@@ -51,7 +51,7 @@
     <SolidColorBrush x:Key="LayerSelectedBrush" Color="#CCCCCC" Opacity="0.17" />
     <SolidColorBrush x:Key="CardStrokeBrush" Color="#CCCCCC" Opacity="0.14" />
 
-    <!-- The title strip of the two session hosts, which can never take DWM frost (see
+    <!-- The tab strip of the session window, which can never take DWM frost (see
          ThemeService.ApplyGlassLayers and AcrylicBehavior's denylist). A flat Layer* tint over PrimaryMid
          reads as a slab of window fill; the falling gradient gives the strip the bright top edge a sheet of
          glass has. Design-time and pre-ApplyTheme fallback for the theme-derived brush. -->
