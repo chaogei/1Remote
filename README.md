@@ -194,8 +194,8 @@ local one.
      a MAC address for Wake on LAN; the proxy this server should use.
    - **Display** (RDP) — window / single-monitor / multi-monitor full screen, resolution and scaling,
      performance level.
-   - **Advanced** (RDP) — clipboard, drives, printers, smart cards, sound, key combinations, RD Gateway.
-   - **Advanced** (SSH) — private key, startup command, port-forwarding rules, agent forwarding, X11.
+   - **Advanced Settings** (RDP) — clipboard, drives, printers, smart cards, sound, key combinations, RD Gateway.
+   - **Advanced Settings** (SSH) — private key, startup command, port-forwarding rules, agent forwarding, X11.
    - **Script before connect / after disconnected** — a command line or `.bat` run around the session.
 7. **Save**. Double-click the new entry to connect.
 
@@ -385,7 +385,7 @@ both features use it, sharing a single login.
 Forwards can **start automatically when the app launches**. Binding to `0.0.0.0` instead of `127.0.0.1`
 publishes the tunnel to your whole network, and the editor says so.
 
-Per-session SSH forwards also exist, in an SSH entry's **Advanced** group: one rule per line, either
+Per-session SSH forwards also exist, in an SSH entry's **Advanced Settings** group: one rule per line, either
 `L 8080 intranet:80` / `R 9000 localhost:9000` / `D 1080`, or PuTTY's own `L8080=intranet:80` syntax.
 
 ## Where your data lives
