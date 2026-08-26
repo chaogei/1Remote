@@ -62,7 +62,7 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Opacity" Value="1" TargetName="GridHighLight" />
-                            <Setter Property="Background" Value="{DynamicResource AccentMidBrush}" TargetName="GridHighLight" />
+                            <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" TargetName="GridHighLight" />
                             <Setter TargetName="GridColorOnSelected" Property="Visibility" Value="Visible" />
                             <Setter TargetName="GridColor" Property="Visibility" Value="Collapsed" />
                         </Trigger>
@@ -157,7 +157,7 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="GridHighLight" Property="Opacity" Value="1" />
-                            <Setter TargetName="GridHighLight" Property="Background" Value="{DynamicResource AccentMidBrush}"/>
+                            <Setter TargetName="GridHighLight" Property="Background" Value="{DynamicResource AccentGlassBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -129,7 +129,7 @@
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Opacity" Value="1" TargetName="GridContainer" />
-                                    <Setter Property="Background" Value="{DynamicResource AccentMidBrush}" TargetName="GridContainer" />
+                                    <Setter Property="Background" Value="{DynamicResource AccentGlassBrush}" TargetName="GridContainer" />
                                     <Setter TargetName="GridColorOnSelected" Property="Visibility" Value="Visible" />
                                 </Trigger>
                             </ControlTemplate.Triggers>

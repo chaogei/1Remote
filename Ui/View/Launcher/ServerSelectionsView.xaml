@@ -232,7 +232,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="model:TagFilter">
-                                <Border VerticalAlignment="Center" Background="{DynamicResource AccentMidBrush}" CornerRadius="5" Margin="3 0">
+                                <Border VerticalAlignment="Center" Background="{DynamicResource AccentGlassBrush}" CornerRadius="5" Margin="3 0">
                                     <Grid ToolTip="{Binding TagName}">
                                         <TextBlock Text="{Binding TagName}" 
                                                    Foreground="{DynamicResource AccentTextBrush}" 
@@ -282,7 +282,10 @@
 
 
         <!--actions of selected server-->
-        <Grid Name="GridActionsList" Visibility="Hidden" Background="{DynamicResource PrimaryMidBrush}">
+        <!-- An overlay that covers the server list, so it needs a tint of its own rather than being
+             see-through onto the rows beneath. The panel tint, not the opaque panel colour: this sits inside
+             the frosted launcher card and was the one thing there that snapped the whole card solid. -->
+        <Grid Name="GridActionsList" Visibility="Hidden" Background="{DynamicResource GlassPanelBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
@@ -297,8 +300,8 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Row="0" Grid.Column="0" Background="{DynamicResource PrimaryMidBrush}" MouseDown="ButtonActionBack_OnMouseDown">
-                        <Path Margin="2" Fill="{DynamicResource PrimaryLightBrush}" Height="25" Data="F1 M 16.591797 2.431641 L 9.023438 10 L 16.591797 17.568359 L 14.238281 19.931641 L 4.306641 10 L 14.238281 0.068359 L 16.591797 2.431641 Z " Stretch="Uniform"></Path>
+                    <Grid Grid.Row="0" Grid.Column="0" Background="Transparent" MouseDown="ButtonActionBack_OnMouseDown">
+                        <Path Margin="2" Fill="{DynamicResource PrimaryTextBrush}" Height="25" Data="F1 M 16.591797 2.431641 L 9.023438 10 L 16.591797 17.568359 L 14.238281 19.931641 L 4.306641 10 L 14.238281 0.068359 L 16.591797 2.431641 Z " Stretch="Uniform"></Path>
                     </Grid>
 
                     <Grid Grid.Row="0" Grid.Column="1">
