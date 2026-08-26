@@ -90,8 +90,11 @@
         <FileVersion>$(AssemblyVersion)</FileVersion>
         <Version>$(AssemblyVersion)</Version>
         <Authors>chaogei, Shawn Veck</Authors>
-        <Product>1Remote</Product>
-        <Description>1Remote is a modern personal remote session manager and launcher.</Description>
+        <!-- AssemblyName stays "1Remote" on purpose: it is the exe name every shortcut, script, README zip
+             and CI artifact already points at. Only the human-readable metadata carries the product name. -->
+        <Product>1Remote Plus</Product>
+        <AssemblyTitle>1Remote Plus</AssemblyTitle>
+        <Description>1Remote Plus is a modern personal remote session manager and launcher.</Description>
         <Copyright>Copyright (C) Shawn Veck and 1Remote contributors. Fork maintained by chaogei. Licensed under GPL-3.0.</Copyright>
         <RepositoryUrl>https://github.com/chaogei/1Remote</RepositoryUrl>
     </PropertyGroup>

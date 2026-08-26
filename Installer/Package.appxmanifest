@@ -14,7 +14,7 @@
               Version="1.0.104.0" />
 
 	<Properties>
-		<DisplayName>1Remote</DisplayName>
+		<DisplayName>1Remote Plus</DisplayName>
 		<PublisherDisplayName>Shawn Veck</PublisherDisplayName>
 		<Logo>Images\PackageLogo.png</Logo>
 		<!-- https://learn.microsoft.com/en-us/windows/msix/desktop/flexible-virtualization If you don't want virtualization of file system writes to the user's AppData folder, then include the property, and set it to disabled. https://docs.microsoft.com/zh-cn/windows/msix/desktop/flexible-virtualization -->
@@ -49,11 +49,11 @@
 		  Executable="$targetnametoken$.exe"
 		  EntryPoint="$targetentrypoint$">
 			<uap:VisualElements
-			  DisplayName="1Remote"
+			  DisplayName="1Remote Plus"
 			  Description="Your remote manager." 
 			  Square150x150Logo="Images\Square150x150Logo.png" 
 			  BackgroundColor="transparent"  Square44x44Logo="Images\Square44x44Logo.png">
-				<uap:DefaultTile  Square71x71Logo="Images\SmallTile.png" ShortName="1Remote"   >
+				<uap:DefaultTile  Square71x71Logo="Images\SmallTile.png" ShortName="1Remote Plus"   >
 					<uap:ShowNameOnTiles>
 						<uap:ShowOn Tile="square150x150Logo"/>
 					</uap:ShowNameOnTiles>
@@ -67,10 +67,12 @@
 			</uap:VisualElements>
 			<Extensions>
 				<desktop:Extension Category="windows.startupTask" EntryPoint="Windows.FullTrustApplication">
+					<!-- TaskId is the identity SetSelfStartByStartupTask(Assert.APP_NAME) looks up; only the
+					     DisplayName Task Manager shows carries the product name. -->
 					<desktop:StartupTask
 						TaskId="1Remote"
 						Enabled="true"
-						DisplayName="1Remote" />
+						DisplayName="1Remote Plus" />
 				</desktop:Extension>
 				<uap3:Extension Category="windows.appExecutionAlias" EntryPoint="Windows.FullTrustApplication">
 					<uap3:AppExecutionAlias>

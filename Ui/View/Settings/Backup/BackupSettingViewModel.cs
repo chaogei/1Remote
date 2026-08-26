@@ -14,7 +14,7 @@ namespace _1RM.View.Settings.Backup
 {
     public class BackupSettingViewModel : NotifyPropertyChangedBaseScreen
     {
-        private const string FILE_FILTER = "1Remote backup|*" + BackupService.FILE_EXTENSION;
+        private const string FILE_FILTER = Assert.APP_DISPLAY_NAME + " backup|*" + BackupService.FILE_EXTENSION;
 
         private ConfigurationService Configuration => IoC.Get<ConfigurationService>();
 

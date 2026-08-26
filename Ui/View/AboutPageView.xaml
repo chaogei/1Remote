@@ -189,7 +189,7 @@
                                 </StackPanel>
                                 <TextBlock Margin="0 12 0 0" Opacity="0.7" TextWrapping="Wrap"
                                            Foreground="{DynamicResource PrimaryTextBrush}"
-                                           Text="This is a modified build of 1Remote, forked from the upstream project by Shawn Veck and maintained by chaogei since 2026. Licensed under GPL-3.0." />
+                                           Text="1Remote Plus is a modified build of 1Remote, forked from the upstream project by Shawn Veck and maintained by chaogei since 2026. Licensed under GPL-3.0." />
                             </StackPanel>
                         </StackPanel>
                         <Grid Grid.Column="1">

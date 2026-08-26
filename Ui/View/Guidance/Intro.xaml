@@ -48,7 +48,7 @@
                 <Grid HorizontalAlignment="Center">
                     <Image Source="/Resources/Image/Logo/logo64.png" Width="80" HorizontalAlignment="Left"></Image>
                 </Grid>
-                <TextBlock HorizontalAlignment="Center" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}" Text="{x:Static Rm:Assert.APP_NAME}"></TextBlock>
+                <TextBlock HorizontalAlignment="Center" FontSize="24" Foreground="{DynamicResource PrimaryTextBrush}" Text="{x:Static Rm:Assert.APP_DISPLAY_NAME}"></TextBlock>
                 <TextBlock HorizontalAlignment="Center" FontSize="12" Foreground="{DynamicResource PrimaryTextBrush}">
                     <Hyperlink controls:HyperlinkHelper.IsOpenExternal="True" NavigateUri="https://github.com/chaogei/1Remote">https://github.com/chaogei/1Remote</Hyperlink>
                 </TextBlock>

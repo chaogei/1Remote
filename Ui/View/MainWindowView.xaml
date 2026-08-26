@@ -19,7 +19,7 @@
                          KeyDown="MainWindow_OnKeyDown"
                          d:DataContext="{d:DesignInstance view:MainWindowViewModel}"
                          Style="{StaticResource WindowChromeBaseBaseStyle}"
-                         Title="{x:Static Rm:Assert.APP_NAME}" 
+                         Title="{x:Static Rm:Assert.APP_DISPLAY_NAME}" 
                          Height="560" Width="900" 
                          MinWidth="300" MinHeight="300">
     <styles:WindowChromeBase.Resources>
