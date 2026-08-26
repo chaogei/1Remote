@@ -17,5 +17,10 @@
                   FlowDirection="{Binding PageViewModel.FlowDirection}"
                   ShowInTaskbar="False"
                   MinWidth="160" MaxWidth="485">
+    <!-- The card has no window chrome and its buttons are not focusable, so Escape has to be caught on the
+         window itself. It routes to the cancel button, never to the affirmative one. -->
+    <styles:WindowChromeBase.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CmdCancel}"></KeyBinding>
+    </styles:WindowChromeBase.InputBindings>
     <ContentControl s:View.Model="{Binding PageViewModel}"></ContentControl>
 </styles:WindowChromeBase>

@@ -222,5 +222,16 @@ namespace _1RM.View.Utils
             this.ClickedButton = button;
             OnButtonClicked?.Invoke();
         }
+
+        /// <summary>
+        /// Dismiss the box the same way the cancel button would. Setup() points CancelButton at the last
+        /// button when the caller didn't name one, so this is No on a Yes/No confirmation and OK on an alert
+        /// — never the affirmative answer of a confirmation.
+        /// </summary>
+        public void CancelClicked()
+        {
+            var cancel = this.CancelButton ?? this.ButtonList?.LastOrDefault();
+            ButtonClicked(cancel?.Value ?? MessageBoxResult.None);
+        }
     }
 }

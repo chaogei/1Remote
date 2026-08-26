@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using _1RM.View.Utils.MaskAndPop;
+using Shawn.Utils.Wpf;
 
 namespace _1RM.View.Utils
 {
@@ -51,5 +52,25 @@ namespace _1RM.View.Utils
         /// Gets or sets which button the user clicked, once they've clicked a button
         /// </summary>
         public virtual MessageBoxResult ClickedButton => _pageViewModel?.ClickedButton ?? MessageBoxResult.None;
+
+        private RelayCommand? _cmdCancel;
+
+        /// <summary>
+        /// Escape closes the box through the cancel button rather than through the window, so a confirmation
+        /// dismissed with the keyboard answers No instead of falling through to the default action.
+        /// </summary>
+        public RelayCommand CmdCancel
+        {
+            get
+            {
+                return _cmdCancel ??= new RelayCommand((_) =>
+                {
+                    if (PageViewModel != null)
+                        PageViewModel.CancelClicked();
+                    else
+                        RequestClose(false);
+                });
+            }
+        }
     }
 }
