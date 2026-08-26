@@ -274,7 +274,7 @@ Runner for {ExternalRunner.OwnerProtocolName}
                         );
                     if (MessageBoxHelper.Confirm($"You runner({ExternalRunner.Name}) is copied to clipboard, do you want to share to Github?", "Share", ownerViewModel: IoC.Get<MainWindowViewModel>()))
                     {
-                        HyperlinkHelper.OpenUriBySystem("https://github.com/chaogei/1Remote/issues/new?labels=area-config&template=runner_sharing.md&title=");
+                        HyperlinkHelper.OpenUriBySystem("https://github.com/chaogei/1Remote-Plus/issues/new?labels=area-config&template=runner_sharing.md&title=");
                     }
                 }
                 catch

@@ -2,10 +2,10 @@
 
 # 1Remote Plus
 
-[![version](https://img.shields.io/github/v/release/chaogei/1Remote?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote/releases)
-[![issues](https://img.shields.io/github/issues/chaogei/1Remote)](https://github.com/chaogei/1Remote/issues)
-[![license](https://img.shields.io/github/license/chaogei/1Remote?color=blue)](https://github.com/chaogei/1Remote/blob/main/LICENSE)
-![build](https://github.com/chaogei/1Remote/actions/workflows/build-on-dev-push.yml/badge.svg)
+[![version](https://img.shields.io/github/v/release/chaogei/1Remote-Plus?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote-Plus/releases)
+[![issues](https://img.shields.io/github/issues/chaogei/1Remote-Plus)](https://github.com/chaogei/1Remote-Plus/issues)
+[![license](https://img.shields.io/github/license/chaogei/1Remote-Plus?color=blue)](https://github.com/chaogei/1Remote-Plus/blob/main/LICENSE)
+![build](https://github.com/chaogei/1Remote-Plus/actions/workflows/build-on-dev-push.yml/badge.svg)
 
 1Remote Plus is a personal remote session manager and launcher for Windows. It keeps every machine you
 connect to — RDP, SSH, VNC, Telnet, SFTP, FTP, serial, RemoteApp — in one searchable list, and opens them in
@@ -15,11 +15,10 @@ tabs of a single window or in windows of their own.
 > 1Remote Plus is forked from [1Remote/1Remote](https://github.com/1Remote/1Remote) by Shawn Veck, and
 > maintained by [chaogei](https://github.com/chaogei) since 2026. It is not affiliated with, nor endorsed by,
 > the upstream project. Please report problems with **this** build at
-> [chaogei/1Remote/issues](https://github.com/chaogei/1Remote/issues), not upstream.
+> [chaogei/1Remote-Plus/issues](https://github.com/chaogei/1Remote-Plus/issues), not upstream.
 >
-> The GitHub repository slug is still `chaogei/1Remote` until the owner renames it in GitHub Settings — which
-> would also mean updating the release URLs in `Ui/AppVersion.cs`, since the in-app update check reads that
-> page directly.
+> The GitHub repository is [`chaogei/1Remote-Plus`](https://github.com/chaogei/1Remote-Plus) (renamed from
+> `chaogei/1Remote`; the old URL still redirects).
 
 On disk the product keeps its old name: the executable is `1Remote.exe`, the settings and database files are
 `1Remote.json` and `1Remote.db`, and the `AppData` folder is `1Remote`. That is deliberate, so an existing
@@ -146,7 +145,7 @@ fork's UI rework, so the chrome looks different from a current build.
 
 There is no installer. Both downloads are a zip you unpack and run.
 
-1. Open [Releases](https://github.com/chaogei/1Remote/releases) and pick the newest build.
+1. Open [Releases](https://github.com/chaogei/1Remote-Plus/releases) and pick the newest build.
    The sidebar is not sorted by date — see [Updates](#updates) — so check the version number, not the
    position in the list.
 2. Download one of the two assets:
@@ -519,7 +518,7 @@ Español (AR), Galego, Italiano, Polski, Português (BR/PT), Русский and 
 ## Updates
 
 The app checks for a new version once an hour against **this fork's** releases page,
-`https://github.com/chaogei/1Remote/releases`. It does not look at upstream. Turn it off at
+`https://github.com/chaogei/1Remote-Plus/releases`. It does not look at upstream. Turn it off at
 `Options → General → Do not check for new version`. There is no auto-updater; the check just tells you a
 newer build exists and links to it.
 
@@ -561,7 +560,7 @@ must not be pointed at a password store created by an official release.
 
 ## Contributing
 
-Bug reports and ideas are welcome in [issues](https://github.com/chaogei/1Remote/issues). Pull requests are
+Bug reports and ideas are welcome in [issues](https://github.com/chaogei/1Remote-Plus/issues). Pull requests are
 welcome too; please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) first.
 
 Issues about **this** build belong here, not upstream. Behaviour that also exists in

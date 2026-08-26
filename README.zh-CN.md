@@ -2,10 +2,10 @@
 
 # 1Remote Plus
 
-[![version](https://img.shields.io/github/v/release/chaogei/1Remote?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote/releases)
-[![issues](https://img.shields.io/github/issues/chaogei/1Remote)](https://github.com/chaogei/1Remote/issues)
-[![license](https://img.shields.io/github/license/chaogei/1Remote?color=blue)](https://github.com/chaogei/1Remote/blob/main/LICENSE)
-![build](https://github.com/chaogei/1Remote/actions/workflows/build-on-dev-push.yml/badge.svg)
+[![version](https://img.shields.io/github/v/release/chaogei/1Remote-Plus?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote-Plus/releases)
+[![issues](https://img.shields.io/github/issues/chaogei/1Remote-Plus)](https://github.com/chaogei/1Remote-Plus/issues)
+[![license](https://img.shields.io/github/license/chaogei/1Remote-Plus?color=blue)](https://github.com/chaogei/1Remote-Plus/blob/main/LICENSE)
+![build](https://github.com/chaogei/1Remote-Plus/actions/workflows/build-on-dev-push.yml/badge.svg)
 
 1Remote Plus 是一款 Windows 上的个人远程会话管理器与启动器。它把你要连的所有机器——RDP、SSH、VNC、Telnet、
 SFTP、FTP、串口、RemoteApp——收进一份可搜索的列表，并以标签页的形式集中打开，也可以让每个会话独占一个窗口。
@@ -13,10 +13,9 @@ SFTP、FTP、串口、RemoteApp——收进一份可搜索的列表，并以标�
 > **这是一个修改版。**
 > 1Remote Plus 基于原作者 Shawn Veck 的 [1Remote/1Remote](https://github.com/1Remote/1Remote) 分支而来，
 > 自 2026 年起由 [chaogei](https://github.com/chaogei) 维护。与上游项目无隶属关系，也未获得上游背书。
-> **本版本**的问题请提交到 [chaogei/1Remote/issues](https://github.com/chaogei/1Remote/issues)，不要提到上游。
+> **本版本**的问题请提交到 [chaogei/1Remote-Plus/issues](https://github.com/chaogei/1Remote-Plus/issues)，不要提到上游。
 >
-> GitHub 仓库名目前仍然是 `chaogei/1Remote`，要等仓库所有者在 GitHub Settings 里改名才会变——改名的同时还得
-> 更新 `Ui/AppVersion.cs` 里的 releases 地址，因为程序内的更新检查直接读那个页面。
+> GitHub 仓库现为 [`chaogei/1Remote-Plus`](https://github.com/chaogei/1Remote-Plus)（由 `chaogei/1Remote` 改名而来，旧地址仍会跳转）。
 
 磁盘上的名字维持原样：可执行文件仍叫 `1Remote.exe`，配置和数据库仍叫 `1Remote.json`、`1Remote.db`，
 `AppData` 目录仍叫 `1Remote`。这是刻意为之，这样已经在用的安装升级后不会丢数据、丢开机自启，也不会丢已保存的
@@ -134,7 +133,7 @@ SFTP、FTP、串口、RemoteApp——收进一份可搜索的列表，并以标�
 
 没有安装程序。两个下载包都是解压即用的 zip。
 
-1. 打开 [Releases](https://github.com/chaogei/1Remote/releases) 挑最新的一版。
+1. 打开 [Releases](https://github.com/chaogei/1Remote-Plus/releases) 挑最新的一版。
    侧边栏**不是**按日期排序的（原因见[更新检查](#更新检查)），要看版本号，别看它排在第几个。
 2. 下载其中一个文件：
 
@@ -463,7 +462,7 @@ Galego、Italiano、Polski、Português (BR/PT)、Русский、Čeština。
 ## 更新检查
 
 程序每小时检查一次新版本，读的是**本分支**的 releases 页面
-`https://github.com/chaogei/1Remote/releases`，不会去看上游。可以在 `设置 → 常规 → 不检查新版本` 里关掉。
+`https://github.com/chaogei/1Remote-Plus/releases`，不会去看上游。可以在 `设置 → 常规 → 不检查新版本` 里关掉。
 没有自动更新器，检查到新版本只是告诉你并给出链接。
 
 **手动下载时值得知道的一个坑。** GitHub 的 releases 侧边栏是按标签名的**字符串**排序的，所以
@@ -499,7 +498,7 @@ Galego、Italiano、Polski、Português (BR/PT)、Русский、Čeština。
 
 ## 参与贡献
 
-Bug 与想法欢迎提到 [issues](https://github.com/chaogei/1Remote/issues)，也欢迎 Pull Request，
+Bug 与想法欢迎提到 [issues](https://github.com/chaogei/1Remote-Plus/issues)，也欢迎 Pull Request，
 提交前请先读一下 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
 
 **本版本**的问题请提在这里，不要提到上游。如果某个行为在

@@ -30,7 +30,7 @@ namespace Tests.View
             if (method == null)
                 throw new InvalidOperationException("CustomCheckMethod not found on AboutPageViewModel");
 
-            return (VersionHelper.CheckUpdateResult)method.Invoke(null, new object?[] { html, "https://github.com/chaogei/1Remote/releases", current, ignore })!;
+            return (VersionHelper.CheckUpdateResult)method.Invoke(null, new object?[] { html, "https://github.com/chaogei/1Remote-Plus/releases", current, ignore })!;
         }
 
         /// <summary>
@@ -42,12 +42,12 @@ namespace Tests.View
         {
             var html = "<html><body>";
             foreach (var tag in tags)
-                html += $"<a href=\"/chaogei/1remote/releases/tag/v{tag}\">release v{tag}</a>";
+                html += $"<a href=\"/chaogei/1remote-plus/releases/tag/v{tag}\">release v{tag}</a>";
             return html + "</body></html>";
         }
 
         /// <summary>
-        /// The order github.com/chaogei/1Remote/releases actually serves, verified against the live page.
+        /// The order github.com/chaogei/1Remote-Plus/releases actually serves, verified against the live page.
         /// Both the HTML index and GET /repos/:owner/:repo/releases sort by tag name as a string rather
         /// than by date, so after the shared "v1.3.0." prefix '9' beats '2' beats '1', which drops the
         /// newest build — 1.3.0.10-beta — down to second-from-last.
