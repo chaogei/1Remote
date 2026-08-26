@@ -364,6 +364,7 @@ namespace _1RM.Service
             var onBackground = theme.GetBackgroundTextColor;
             setKey(rd, "ContentLayerFillBrush", Overlay(onBackground, 0x0D));
             setKey(rd, "ContentLayerHoverBrush", Overlay(onBackground, 0x17));
+            setKey(rd, "ContentLayerSelectedBrush", Overlay(onBackground, 0x24));
             setKey(rd, "ContentCardStrokeBrush", Overlay(onBackground, 0x20));
 
             // With the backdrop off every surface stays fully opaque, which is also the fallback when the OS

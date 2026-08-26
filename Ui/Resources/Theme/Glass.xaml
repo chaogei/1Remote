@@ -51,9 +51,10 @@
     <SolidColorBrush x:Key="LayerSelectedBrush" Color="#CCCCCC" Opacity="0.17" />
     <SolidColorBrush x:Key="CardStrokeBrush" Color="#CCCCCC" Opacity="0.14" />
 
-    <!-- the same three, for content sitting on BackgroundBrush instead of PrimaryMidBrush -->
+    <!-- the same four, for content sitting on BackgroundBrush instead of PrimaryMidBrush -->
     <SolidColorBrush x:Key="ContentLayerFillBrush" Color="#FFFFFF" Opacity="0.05" />
     <SolidColorBrush x:Key="ContentLayerHoverBrush" Color="#FFFFFF" Opacity="0.09" />
+    <SolidColorBrush x:Key="ContentLayerSelectedBrush" Color="#FFFFFF" Opacity="0.14" />
     <SolidColorBrush x:Key="ContentCardStrokeBrush" Color="#FFFFFF" Opacity="0.12" />
 
     <!-- ===== backdrop set =====
@@ -482,14 +483,18 @@
         <Setter Property="attachProperty:VisionElement.OpacityOnMouseDown" Value="1" />
     </Style>
 
-    <!-- ===== Modern Acrylic / Glass Button Styles ===== -->
+    <!-- ===== Modern Acrylic / Glass Button Styles =====
+         ContentLayer* rather than Layer*, to match the BackgroundTextBrush foreground below: every call site
+         is a settings or dialog page, which is tinted from BackgroundColor. On the palettes where the panel
+         text is white and the content text is black — PRemoteM, SecretKey — the Layer* overlays washed these
+         buttons in white over a light page, leaving no visible fill or border at all. -->
     <Style x:Key="GlassGhostButtonStyle" TargetType="Button">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Height" Value="30" />
         <Setter Property="Padding" Value="14 4" />
-        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -509,10 +514,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource LayerHoverBrush}" />
+                            <Setter Property="Background" Value="{DynamicResource ContentLayerHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource LayerSelectedBrush}" />
+                            <Setter Property="Background" Value="{DynamicResource ContentLayerSelectedBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -688,15 +693,15 @@
          what we want: the list rows and the caption cluster sit on surfaces where solid is correct, and the
          caption buttons already have WindowCaptionButtonStyle above. -->
     <Style x:Key="ButtonPrimaryStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">
-        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ContentLayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContentCardStrokeBrush}" />
         <Setter Property="attachProperty:VisionElement.BorderOpacity" Value="1" />
         <Setter Property="attachProperty:VisionElement.BorderOpacityAccent" Value="1" />
         <Setter Property="attachProperty:VisionElement.BorderOpacityOnMouseDown" Value="1" />
         <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseOver" Value="{DynamicResource AccentMidBrush}" />
         <Setter Property="attachProperty:VisionElement.BorderBrushOnMouseDown" Value="{DynamicResource AccentMidBrush}" />
-        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource LayerHoverBrush}" />
-        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource LayerSelectedBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource ContentLayerHoverBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource ContentLayerSelectedBrush}" />
         <!-- the inherited 0.8 dims the label along with the fill, and the deeper Layer brush is already the
              press affordance -->
         <Setter Property="attachProperty:VisionElement.OpacityOnMouseDown" Value="1" />
