@@ -135,7 +135,7 @@
                                         Margin="15 0 0 0"
                                         HorizontalAlignment="Right"
                                         Click="ButtonCancelEdit_OnClick"
-                                        Style="{StaticResource ButtonPrimaryStyle}"
+                                        Style="{StaticResource GlassPanelButtonStyle}"
                                         Content="{DynamicResource Cancel}">
                                 </Button>
                             </StackPanel>

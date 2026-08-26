@@ -52,7 +52,7 @@
                                Visibility="{Binding Eta, Converter={StaticResource ConverterEqual2Collapsed}, ConverterParameter=0}"
                                Text="{Binding Eta, StringFormat={}0s}" />
 
-                    <Button Grid.Column="3" Style="{StaticResource ButtonBarPrimaryStyle}"
+                    <Button Grid.Column="3" Style="{StaticResource WindowCaptionButtonStyle}"
                             Command="{Binding CmdCloseContinue}"
                             Width="20" Height="20">
                         <Rectangle Width="8" Height="1" Stroke="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" StrokeThickness="0.5" />
@@ -60,7 +60,7 @@
 
                     <Button Grid.Column="4" Width="20" Height="20"
                             Command="{Binding CmdCloseEnd}"
-                            Style="{StaticResource ButtonBarPrimaryStyle}"
+                            Style="{StaticResource WindowCaptionButtonStyle}"
                             attachProperty:VisionElement.ForegroundAccent="White"
                             attachProperty:VisionElement.BackgroundAccent="Red"
                             attachProperty:VisionElement.ForegroundOnMouseDown="White"

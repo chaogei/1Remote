@@ -82,7 +82,7 @@
                                Click="ButtonPrevious_OnClick"
                                Content="{DynamicResource Previous}">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimaryStyle}">
+                    <Style TargetType="Button" BasedOn="{StaticResource GlassPanelButtonStyle}">
                         <Setter Property="HorizontalAlignment" Value="Left"></Setter>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Step}" Value="0">
@@ -99,7 +99,7 @@
                                Click="ButtonNext_OnClick"
                                Content="{DynamicResource Next}">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimaryStyle}">
+                    <Style TargetType="Button" BasedOn="{StaticResource GlassPanelButtonStyle}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Step}" Value="1">
                                 <Setter Property="Visibility" Value="Collapsed"></Setter>
@@ -115,7 +115,7 @@
                                Click="ButtonExit_OnClick"
                                Content="{DynamicResource Done}">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimaryStyle}">
+                    <Style TargetType="Button" BasedOn="{StaticResource GlassPanelButtonStyle}">
                         <Setter Property="Visibility" Value="Collapsed"></Setter>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Step}" Value="1">

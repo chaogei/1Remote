@@ -55,7 +55,7 @@
 
                     <StackPanel Margin="0 10 " VerticalAlignment="Bottom">
                         <CheckBox Margin="0 5 0 15" Name="CbDoNotShowEngagementAgain" HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" Content="{DynamicResource 'Do not show this again in current version'}"></CheckBox>
-                        <Button Command="{Binding CmdClose}" Content="{DynamicResource Dismiss}" Style="{StaticResource ButtonPrimaryStyle}"></Button>
+                        <Button Command="{Binding CmdClose}" Content="{DynamicResource Dismiss}" Style="{StaticResource GlassPanelButtonStyle}"></Button>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>

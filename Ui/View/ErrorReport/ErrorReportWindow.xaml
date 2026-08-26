@@ -30,7 +30,7 @@
 
     <Grid Margin="12" Background="{DynamicResource PrimaryMidBrush}">
         <Grid.Resources>
-            <Style TargetType="Button" BasedOn="{StaticResource ButtonPrimaryStyle}">
+            <Style TargetType="Button" BasedOn="{StaticResource GlassPanelButtonStyle}">
                 <Setter Property="Foreground">
                     <Setter.Value>
                         <SolidColorBrush Color="{DynamicResource PrimaryTextColor}" Opacity="0.7"></SolidColorBrush>

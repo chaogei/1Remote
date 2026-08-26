@@ -710,6 +710,37 @@
         <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource BackgroundTextBrush}" />
     </Style>
 
+    <!-- The same button for the handful of cards that are tinted from PrimaryMid rather than from
+         Background: the guidance window, the note card, the rating and breaking-change prompts, the error
+         report. ButtonPrimaryStyle above labels itself BackgroundTextBrush, which is right on a settings or
+         editor page and wrong here — on PRemoteM, SecretKey, Asphalt, Soil, Wine and Forest the panel text
+         is white and the content text is black, so those buttons drew black labels and black overlays on a
+         dark panel and disappeared. Layer* and PrimaryTextBrush are the same brushes the surrounding text
+         on those cards already uses. -->
+    <Style x:Key="GlassPanelButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonPrimaryStyle}">
+        <Setter Property="Background" Value="{DynamicResource LayerFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource LayerHoverBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource LayerSelectedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource PrimaryTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource PrimaryTextBrush}" />
+    </Style>
+
+    <!-- The bar-button counterpart of GlassTabButtonStyle, for the small icon buttons that sit on a
+         content-tinted card — the share and delete buttons on each runner settings card. Taking
+         ButtonBarPrimaryStyle as-is gave them a solid PrimaryMid square and a PrimaryTextBrush glyph, so on
+         the light palettes each one was a dark brick with a white glyph punched into the card. BasedOn
+         keeps the bar layout and lets the call sites keep their own opacity overrides. -->
+    <Style x:Key="GlassContentBarButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonBarPrimaryStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundAccent" Value="{DynamicResource BackgroundTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundAccent" Value="{DynamicResource ContentLayerHoverBrush}" />
+        <Setter Property="attachProperty:VisionElement.ForegroundOnMouseDown" Value="{DynamicResource BackgroundTextBrush}" />
+        <Setter Property="attachProperty:VisionElement.BackgroundOnMouseDown" Value="{DynamicResource ContentLayerSelectedBrush}" />
+    </Style>
+
     <!-- Accent buttons keep the accent — they are the primary action and colour is how that reads — but at
          the alpha AccentGlassBrush carries, so the blue sits in the frost instead of on top of it. -->
     <Style x:Key="GlassButtonAccentStyle" TargetType="Button" BasedOn="{StaticResource ButtonBaseStyle}">

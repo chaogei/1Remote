@@ -34,7 +34,7 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <!--Share-->
                 <Button Width="25" Height="25" Tag="{Binding}"
-                        Style="{StaticResource ButtonBarPrimaryStyle}"
+                        Style="{StaticResource GlassContentBarButtonStyle}"
                         attachProperty:VisionElement.Opacity="0.5"
                         attachProperty:VisionElement.OpacityAccent="0.9"
                         Command="{Binding CmdCopyJsonAndShare}"
@@ -48,7 +48,7 @@
                 </Button>
                 <!--Delete-->
                 <Button Width="25" Height="25" Tag="{Binding}"
-                        Style="{StaticResource ButtonBarPrimaryStyle}"
+                        Style="{StaticResource GlassContentBarButtonStyle}"
                         attachProperty:VisionElement.Opacity="0.5"
                         attachProperty:VisionElement.OpacityAccent="0.9"
                         Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type protocolConfig:ProtocolRunnerSettingsPageView}}, Path=DataContext.CmdDeleteRunner}" CommandParameter="{Binding ExternalRunner.Name}"
