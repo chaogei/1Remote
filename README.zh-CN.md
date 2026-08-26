@@ -1,19 +1,26 @@
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# 1Remote（chaogei 分支）
+# 1Remote Plus
 
 [![version](https://img.shields.io/github/v/release/chaogei/1Remote?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote/releases)
 [![issues](https://img.shields.io/github/issues/chaogei/1Remote)](https://github.com/chaogei/1Remote/issues)
 [![license](https://img.shields.io/github/license/chaogei/1Remote?color=blue)](https://github.com/chaogei/1Remote/blob/main/LICENSE)
 ![build](https://github.com/chaogei/1Remote/actions/workflows/build-on-dev-push.yml/badge.svg)
 
-1Remote 是一款 Windows 上的个人远程会话管理器与启动器。它把你要连的所有机器——RDP、SSH、VNC、Telnet、SFTP、
-FTP、串口、RemoteApp——收进一份可搜索的列表，并以标签页的形式集中打开，也可以让每个会话独占一个窗口。
+1Remote Plus 是一款 Windows 上的个人远程会话管理器与启动器。它把你要连的所有机器——RDP、SSH、VNC、Telnet、
+SFTP、FTP、串口、RemoteApp——收进一份可搜索的列表，并以标签页的形式集中打开，也可以让每个会话独占一个窗口。
 
 > **这是一个修改版。**
-> 本仓库基于原作者 Shawn Veck 的 [1Remote/1Remote](https://github.com/1Remote/1Remote) 分支而来，
+> 1Remote Plus 基于原作者 Shawn Veck 的 [1Remote/1Remote](https://github.com/1Remote/1Remote) 分支而来，
 > 自 2026 年起由 [chaogei](https://github.com/chaogei) 维护。与上游项目无隶属关系，也未获得上游背书。
 > **本版本**的问题请提交到 [chaogei/1Remote/issues](https://github.com/chaogei/1Remote/issues)，不要提到上游。
+>
+> GitHub 仓库名目前仍然是 `chaogei/1Remote`，要等仓库所有者在 GitHub Settings 里改名才会变——改名的同时还得
+> 更新 `Ui/AppVersion.cs` 里的 releases 地址，因为程序内的更新检查直接读那个页面。
+
+磁盘上的名字维持原样：可执行文件仍叫 `1Remote.exe`，配置和数据库仍叫 `1Remote.json`、`1Remote.db`，
+`AppData` 目录仍叫 `1Remote`。这是刻意为之，这样已经在用的安装升级后不会丢数据、丢开机自启，也不会丢已保存的
+凭据。
 
 ---
 
@@ -284,7 +291,7 @@ FTP、串口、RemoteApp——收进一份可搜索的列表，并以标签页�
 | **APP** | 任意可执行文件 | 预置了 Chrome、NoMachine、FreeRDP、PuTTY、Windows Terminal、WinSCP、UltraVNC、TightVNC |
 
 任何协议的客户端都可以在 `设置 → 协议` 里换掉：把启动器指向你自己的可执行文件，给它一套命令行模板和环境变量，
-再决定它的窗口是嵌进 1Remote 的标签页里还是独立显示。上游的
+再决定它的窗口是嵌进 1Remote Plus 的标签页里还是独立显示。上游的
 [启动器文档](https://1remote.github.io/usage/protocol/runner/)在这里依然适用。
 
 ## 凭据与密码
@@ -380,7 +387,7 @@ Windows 凭据验证。
 
 在服务器列表上方的 **+** 菜单里：
 
-- **导入 json**——1Remote 自己导出的列表。
+- **导入 json**——1Remote Plus 自己导出的列表，或上游 1Remote 导出的列表。
 - **导入 mRemoteNG csv**——参见上游的
   [mRemoteNG 导入说明](https://1remote.github.io/usage/overview/#importing-from-mremoteng)。
 - **从 `~/.ssh/config` 导入**——读取你的 OpenSSH 配置；其中的 `ProxyJump` 会自动在「代理」页上生成对应的

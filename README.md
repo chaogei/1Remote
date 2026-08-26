@@ -1,21 +1,29 @@
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# 1Remote (chaogei fork)
+# 1Remote Plus
 
 [![version](https://img.shields.io/github/v/release/chaogei/1Remote?color=Green&include_prereleases&sort=semver)](https://github.com/chaogei/1Remote/releases)
 [![issues](https://img.shields.io/github/issues/chaogei/1Remote)](https://github.com/chaogei/1Remote/issues)
 [![license](https://img.shields.io/github/license/chaogei/1Remote?color=blue)](https://github.com/chaogei/1Remote/blob/main/LICENSE)
 ![build](https://github.com/chaogei/1Remote/actions/workflows/build-on-dev-push.yml/badge.svg)
 
-1Remote is a personal remote session manager and launcher for Windows. It keeps every machine you connect
-to — RDP, SSH, VNC, Telnet, SFTP, FTP, serial, RemoteApp — in one searchable list, and opens them in tabs of
-a single window or in windows of their own.
+1Remote Plus is a personal remote session manager and launcher for Windows. It keeps every machine you
+connect to — RDP, SSH, VNC, Telnet, SFTP, FTP, serial, RemoteApp — in one searchable list, and opens them in
+tabs of a single window or in windows of their own.
 
 > **This is a modified version.**
-> Forked from [1Remote/1Remote](https://github.com/1Remote/1Remote) by Shawn Veck, and maintained by
-> [chaogei](https://github.com/chaogei) since 2026. It is not affiliated with, nor endorsed by, the upstream
-> project. Please report problems with **this** build at
+> 1Remote Plus is forked from [1Remote/1Remote](https://github.com/1Remote/1Remote) by Shawn Veck, and
+> maintained by [chaogei](https://github.com/chaogei) since 2026. It is not affiliated with, nor endorsed by,
+> the upstream project. Please report problems with **this** build at
 > [chaogei/1Remote/issues](https://github.com/chaogei/1Remote/issues), not upstream.
+>
+> The GitHub repository slug is still `chaogei/1Remote` until the owner renames it in GitHub Settings — which
+> would also mean updating the release URLs in `Ui/AppVersion.cs`, since the in-app update check reads that
+> page directly.
+
+On disk the product keeps its old name: the executable is `1Remote.exe`, the settings and database files are
+`1Remote.json` and `1Remote.db`, and the `AppData` folder is `1Remote`. That is deliberate, so an existing
+installation keeps its data, its autostart entry and its saved credentials when it is updated.
 
 ---
 
@@ -320,8 +328,8 @@ Right-click a row (or press **→** in the launcher):
 | **App** | Any executable | Presets for Chrome, NoMachine, FreeRDP, PuTTY, Windows Terminal, WinSCP, UltraVNC, TightVNC |
 
 Any protocol's client can be swapped at `Options → Protocol`: point a runner at your own executable, give it
-a command-line template and environment variables, and choose whether its window is hosted inside a 1Remote
-tab or left standalone. See the upstream [runner documentation](https://1remote.github.io/usage/protocol/runner/)
+a command-line template and environment variables, and choose whether its window is hosted inside a
+1Remote Plus tab or left standalone. See the upstream [runner documentation](https://1remote.github.io/usage/protocol/runner/)
 — it still applies here.
 
 ## Credentials and secrets
@@ -430,7 +438,7 @@ read.
 
 From the **+** menu above the server list:
 
-- **Import json** — a list exported from 1Remote.
+- **Import json** — a list exported from 1Remote Plus, or from upstream 1Remote.
 - **Import mRemoteNG csv** — see the upstream
   [notes on mRemoteNG](https://1remote.github.io/usage/overview/#importing-from-mremoteng).
 - **Import from `~/.ssh/config`** — reads your OpenSSH config; any `ProxyJump` directives are turned into
