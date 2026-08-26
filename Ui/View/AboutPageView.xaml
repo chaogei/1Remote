@@ -316,7 +316,7 @@
             <Grid VerticalAlignment="Bottom" Height="{StaticResource BottomHeight}">
                 <Border BorderThickness="0 1 0 0" BorderBrush="{DynamicResource CardStrokeBrush}" Background="{DynamicResource LayerFillBrush}"></Border>
                 <Button MinWidth="90" Height="30" Content="{DynamicResource Close}" 
-                        Style="{StaticResource GlassGhostButtonStyle}"
+                        Style="{StaticResource GlassPanelButtonStyle}"
                         HorizontalAlignment="Right" Margin="0 0 16 0"
                         Command="{Binding CmdClose}"></Button>
             </Grid>

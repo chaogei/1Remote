@@ -380,7 +380,7 @@
                                 </Grid>
                             </Button>
                         </Grid>
-                        <GridSplitter Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource CardStrokeBrush}"/>
+                        <GridSplitter Grid.Column="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource ContentCardStrokeBrush}"/>
 
                         <!--brief note -->
                         <Grid Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Stretch" SizeChanged="ServerNote_SizeChanged">
@@ -429,7 +429,7 @@
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <GridSplitter Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource CardStrokeBrush}"/>
+                        <GridSplitter Grid.Column="4" VerticalAlignment="Stretch" HorizontalAlignment="Right" Width="3" Background="{DynamicResource ContentCardStrokeBrush}"/>
 
                         <!--address-->
                         <Grid Grid.Column="5">
