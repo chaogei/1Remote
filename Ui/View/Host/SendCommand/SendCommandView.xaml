@@ -17,8 +17,12 @@
                          SizeToContent="Height"
                          Width="820">
 
+    <!-- The margin is the drop shadow's gutter and nothing else lives in it. This window is on
+         AcrylicBehavior's denylist, because the accent policy paints the whole HWND rectangle and turned
+         that band into a tinted frame around the card; the fill is the opaque twin of GlassContentBrush,
+         since with the backdrop off a translucent card would composite onto the desktop. -->
     <Grid Background="Transparent" Margin="15">
-        <Border Background="{DynamicResource GlassContentBrush}"
+        <Border Background="{DynamicResource SolidSurfaceBrush}"
                 BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                 BorderThickness="1"
                 CornerRadius="{DynamicResource CardCornerRadius}">

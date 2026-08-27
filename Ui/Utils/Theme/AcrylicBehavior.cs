@@ -18,8 +18,8 @@ namespace _1RM.Utils.Theme
     /// WPF implicit styles match the exact runtime type, so a setter on <c>WindowChromeBaseBaseStyle</c>
     /// only reaches windows that reference that style by key (MainWindow, ErrorReport). Every other
     /// <c>WindowChromeBase</c> dialog is opted in from a <c>Window.Loaded</c> class handler. Session
-    /// hosts and the crash reporter stay on the denylist — a window added there needs no change on
-    /// the view side.
+    /// hosts, the crash reporter and the card dialogs that keep a shadow gutter stay on the denylist —
+    /// a window added there needs no change on the view side beyond filling its card opaquely.
     ///
     /// The tint is read from the <c>AcrylicTintColor</c> application resource, so it follows whatever the
     /// user picked in the theme settings. Call <see cref="RefreshAll"/> after swapping the theme dictionary
@@ -86,16 +86,15 @@ namespace _1RM.Utils.Theme
         }
 
         /// <summary>
-        /// Chrome dialogs and the first-run guide. Session hosts stay opaque because they embed a
-        /// remote-desktop HWND; the crash reporter draws a 40px transparent halo around a custom
+        /// Chrome dialogs whose card fills their whole window. Session hosts stay opaque because they embed
+        /// a remote-desktop HWND; the crash reporter draws a 40px transparent halo around a custom
         /// template, so DWM frost there becomes a square bloom (or a black slab when skip forces
-        /// a non-transparent composition target).
+        /// a non-transparent composition target). The card dialogs that keep a shadow gutter are on the
+        /// denylist for the reason spelled out there.
         /// </summary>
         private static bool ShouldAttachAcrylic(Window window)
         {
             if (IsAcrylicDeniedWindow(window)) return false;
-            var name = window.GetType().Name;
-            if (name == "GuidanceWindow") return true;
             for (var t = window.GetType(); t != null; t = t.BaseType)
             {
                 if (t.Name == "WindowChromeBase")
@@ -242,17 +241,24 @@ namespace _1RM.Utils.Theme
         /// the strip out of this window's region, so that the acrylic samples the desktop rather than this
         /// window's own fill. Until then the strip fakes the material with TitleBarGlassBrush.
         ///
-        /// The crash reporter and the launcher are here for the same reason as each other: both are layered
-        /// windows that draw a rounded card inside a transparent gutter, and the accent policy paints the
-        /// whole HWND rectangle — gutter included, with DRAW_ALL_BORDERS on all four edges. It does not
-        /// stop at the card, so the gutter that exists only to give the drop shadow room comes out as a
-        /// tinted frame around the card, and the card's own translucent fill then reads as a second,
-        /// brighter window nested inside the first. Both draw a single opaque card instead.
+        /// The crash reporter, the launcher and the card dialogs below are here for the same reason as each
+        /// other: all of them are layered windows that draw a rounded card inside a transparent gutter, and
+        /// the accent policy paints the whole HWND rectangle — gutter included, with DRAW_ALL_BORDERS on all
+        /// four edges. It does not stop at the card, so the gutter that exists only to give the drop shadow
+        /// room comes out as a tinted frame around the card, and the card's own translucent fill then reads
+        /// as a second, brighter window nested inside the first. That is the credential prompt's two layers
+        /// of background: a small rounded card sitting on an oversized grey slab. They all draw a single
+        /// opaque card instead.
+        ///
+        /// Dialogs whose card runs to the edge of their window are deliberately absent — there is no gutter
+        /// for the accent policy to expose, so they keep the frost.
         /// </summary>
         private static bool IsAcrylicDeniedWindow(Window window)
         {
             var name = window.GetType().Name;
-            return name is "TabWindowView" or "FullScreenWindowView" or "ErrorReportWindow" or "LauncherWindowView";
+            return name is "TabWindowView" or "FullScreenWindowView" or "ErrorReportWindow" or "LauncherWindowView"
+                or "PasswordPopupDialogView" or "MessageBoxView" or "SendCommandView" or "BreakingChangeUpdateView"
+                or "GuidanceWindow";
         }
 
         /// <summary>

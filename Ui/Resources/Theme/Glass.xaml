@@ -102,7 +102,9 @@
              Derived WindowChromeBase dialogs do not receive this setter: WPF implicit styles match the
              exact runtime type, so AcrylicBehavior opts those in from a Window.Loaded class handler.
              TabWindowView / FullScreenWindowView / ErrorReportWindow stay on the type-name denylist
-             because they host a Win32 HWND or draw a transparent halo. ComboBox drop-downs are Popups. -->
+             because they host a Win32 HWND, and the launcher and the card dialogs that keep a shadow
+             gutter are there because the accent policy would paint that gutter. ComboBox drop-downs are
+             Popups. -->
         <Setter Property="theme:AcrylicBehavior.IsEnabled" Value="True" />
         <Setter Property="WindowChrome.WindowChrome">
             <Setter.Value>

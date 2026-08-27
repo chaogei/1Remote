@@ -21,10 +21,16 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="styles:WindowBase">
-                        <Border Padding="40" Background="Transparent">
-                            <Border CornerRadius="16" Background="{DynamicResource GlassPanelBrush}">
+                        <!-- The padding is the drop shadow's gutter, nothing else. It was 40px and the
+                             accent policy paints the whole HWND rectangle rather than stopping at the
+                             card, so that band came out as a tinted frame with the guide floating inside
+                             it. This window is on AcrylicBehavior's denylist now, which is what keeps the
+                             gutter empty, and the card is filled opaquely because a denied window has no
+                             backdrop for a translucent fill to composite against. -->
+                        <Border Padding="24" Background="Transparent">
+                            <Border CornerRadius="16" Background="{DynamicResource SolidPanelBrush}">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="30" />
+                                    <DropShadowEffect BlurRadius="24" ShadowDepth="6" Direction="270" Opacity="0.45" />
                                 </Border.Effect>
                                 <ContentPresenter ClipToBounds="True" />
                             </Border>

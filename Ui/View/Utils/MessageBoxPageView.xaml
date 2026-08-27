@@ -25,12 +25,16 @@
 
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
         <Grid>
-            <!-- Card Container -->
-            <Border Margin="12"
+            <!-- Card Container. The margin is the drop shadow's gutter, and MessageBoxView is on
+                 AcrylicBehavior's denylist so that it stays empty: the accent policy paints the whole HWND
+                 rectangle, which turned this band into a tinted frame with the card reading as a second
+                 window inside it. The fill is the opaque twin of GlassContentBrush for the same reason —
+                 with the backdrop off there is nothing behind this window but the desktop. -->
+            <Border Margin="16"
                     MinWidth="280" MaxWidth="520"
                     CornerRadius="{DynamicResource CardCornerRadius}" 
                     SnapsToDevicePixels="True"
-                    Background="{DynamicResource GlassContentBrush}"
+                    Background="{DynamicResource SolidSurfaceBrush}"
                     BorderBrush="{DynamicResource ContentCardStrokeBrush}"
                     BorderThickness="1">
                 <Border.Effect>

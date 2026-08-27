@@ -16,8 +16,12 @@
                   Topmost="True"
                   SizeToContent="WidthAndHeight">
     <Grid Background="Transparent">
+        <!-- The margin is the drop shadow's gutter. This window is on AcrylicBehavior's denylist so it stays
+             empty — the accent policy paints the whole HWND rectangle, gutter included, which framed the
+             card in a tinted band and made it read as a second window. Opaque panel fill to match, since a
+             denied window has no backdrop for a translucent one to sit on. -->
         <Grid Background="Transparent" Margin="15">
-            <Border Background="{DynamicResource GlassPanelBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"
+            <Border Background="{DynamicResource SolidPanelBrush}" BorderBrush="{DynamicResource DefaultBorderBrush}" BorderThickness="1"
                     VerticalAlignment="Center" HorizontalAlignment="Center" Width="600" CornerRadius="15">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="10" Opacity="0.8" ></DropShadowEffect>
