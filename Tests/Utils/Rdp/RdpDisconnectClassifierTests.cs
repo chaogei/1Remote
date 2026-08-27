@@ -67,5 +67,29 @@ namespace Tests.Utils.Rdp
             Assert.AreEqual(8000, RdpDisconnectClassifier.RetryDelayMs(4));
             Assert.AreEqual(8000, RdpDisconnectClassifier.RetryDelayMs(9));
         }
+
+        [TestMethod]
+        public void ChannelSecurityFailuresGetTheIdentityHint()
+        {
+            // What an unverifiable server certificate looks like when identity verification is on:
+            // the error panel should point at the per-server trust switch for exactly these.
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.InvalidSecurityData));
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.InvalidServerSecurityData));
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.EncryptionError));
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.DecryptionError));
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.InternalSecurityError));
+            Assert.IsTrue(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.InternalSecurityError2));
+        }
+
+        [TestMethod]
+        public void ALogonFailureIsNotMistakenForAnIdentityProblem()
+        {
+            // A wrong password must read as a wrong password; suggesting the trust switch would
+            // point users at disabling verification for an error it cannot fix.
+            Assert.IsFalse(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.SslLogonDenied));
+            Assert.IsFalse(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.SslNoSuchUser));
+            Assert.IsFalse(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.SocketConnectFailed));
+            Assert.IsFalse(RdpDisconnectClassifier.IsSecurityHandshakeFailure(RdpDisconnectClassifier.NoInfo));
+        }
     }
 }

@@ -30,6 +30,11 @@ namespace _1RM.Utils.Rdp
         public const int InternalSecurityError = 2312;
         public const int InternalSecurityError2 = 2568;
 
+        public const int InvalidSecurityData = 1030;
+        public const int InvalidServerSecurityData = 1542;
+        public const int EncryptionError = 2820;
+        public const int DecryptionError = 2822;
+
         public const int SslLogonDenied = 2055;
         public const int SslNoSuchUser = 2567;
         public const int SslAccountDisabled = 2823;
@@ -94,6 +99,28 @@ namespace _1RM.Utils.Rdp
                 case SslFreshCredRequired:
                 case LicensingFailed:
                 case LicensingTimeout:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Securing the channel itself failed — the TLS/CredSSP handshake, not the logon inside it. With
+        /// identity verification on by default this is what an unverifiable server certificate looks like
+        /// (a reimaged host mints a new self-signed one), where mstsc would offer its accept-the-risk
+        /// dialog. The error panel points at the per-server trust switch for these.
+        /// </summary>
+        public static bool IsSecurityHandshakeFailure(int discReason)
+        {
+            switch (discReason)
+            {
+                case InvalidSecurityData:
+                case InvalidServerSecurityData:
+                case EncryptionError:
+                case DecryptionError:
+                case InternalSecurityError:
+                case InternalSecurityError2:
                     return true;
                 default:
                     return false;

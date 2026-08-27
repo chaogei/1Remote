@@ -338,6 +338,7 @@
     <s:String x:Key="host_trust_field">主机身份</s:String>
     <s:String x:Key="host_trust_skip">不验证该主机的身份</s:String>
     <s:String x:Key="host_trust_skip_hint">跳过 RDP 证书告警、SFTP 的 SSH 主机密钥校验，以及 FTPS 的 TLS 证书校验。仅在你信任该服务器且网络可控时开启。</s:String>
+    <s:String x:Key="host_identity_error_hint">如果一直因无法验证主机身份而失败（例如系统重装后证书发生了变化），且你信任该服务器，可在服务器设置中开启“{0}”。</s:String>
     <s:String x:Key="host_trust_new">{0} 的身份此前未被接受过。&#10;&#10;指纹：{1}&#10;&#10;是否连接并记住？</s:String>
     <s:String x:Key="host_trust_changed">警告：{0} 的身份已发生变化。&#10;&#10;此前：{1}&#10;现在：{2}&#10;&#10;这可能是服务器重装了，也可能是有人正在中间人劫持。是否接受新身份？</s:String>
     <s:String x:Key="vnc_host_unreachable">无法连接到 {0}，主机在连接超时时间内没有响应。</s:String>

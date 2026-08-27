@@ -338,6 +338,7 @@
     <s:String x:Key="host_trust_field">Host identity</s:String>
     <s:String x:Key="host_trust_skip">Do not verify this host's identity</s:String>
     <s:String x:Key="host_trust_skip_hint">Skips the RDP certificate warning, the SSH host key check on SFTP, and TLS certificate validation on FTPS. Only enable this for a server you trust on a network you control.</s:String>
+    <s:String x:Key="host_identity_error_hint">If this keeps failing because the host's identity cannot be verified (for example its certificate changed after a reinstall), and you trust this server, enable "{0}" in the server's settings.</s:String>
     <s:String x:Key="host_trust_new">The identity of {0} has not been accepted before.&#10;&#10;Fingerprint: {1}&#10;&#10;Connect and remember it?</s:String>
     <s:String x:Key="host_trust_changed">WARNING: the identity of {0} has CHANGED.&#10;&#10;Previously: {1}&#10;Now: {2}&#10;&#10;This can mean the server was rebuilt, or that someone is intercepting the connection. Accept the new identity?</s:String>
     <s:String x:Key="vnc_host_unreachable">Cannot reach {0}. The host did not answer within the connection timeout.</s:String>
