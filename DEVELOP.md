@@ -68,6 +68,29 @@ Task `BuildInSandbox` starts [Windows Sandbox] and executes `ib Deps, Build` tas
 
 ## Releases
 
+### Every push to `main` publishes one
+
+`.github/workflows/build-on-dev-push.yml` releases on its own; nothing has to be tagged by hand. A push
+to `main` (or `master`) makes the run:
+
+1. call `scripts/Bump-Version.ps1`, which raises `AppVersion.Build` by one and empties
+   `AppVersion.PreRelease` — so `scripts/Get-Version.ps1` reports `1.3.0.N` with no `-beta` suffix, and
+   `AppVersion.UpdateCheckUrls` points the in-app update check at `/releases/latest`
+2. commit that as `chore(release): 1.3.0.N` and push it back to the branch
+3. build the net9 and net9-self-contained publish profiles from the bumped source
+4. tag the bump commit `v1.3.0.N` and push the tag, only once the build succeeded
+5. publish `v1.3.0.N` as a full release — `draft: false`, `prerelease: false` — with both zips attached
+
+The push in step 2 uses `GITHUB_TOKEN`, and a `GITHUB_TOKEN` push does not start another workflow run.
+That is what keeps the bump commit from releasing again forever; the `chore(release):` prefix is checked
+as well, in case that behaviour ever changes. A workflow-level `concurrency` group keeps two pushes that
+land seconds apart from reading the same build number, and `Bump-Version.ps1` skips a number whose tag
+already exists.
+
+A build number is therefore burned per push, not per user-visible change, and the version in a working
+copy is always one behind whatever `main` last published. Pushing a tag by hand still builds and
+publishes that tag, without bumping. `workflow_dispatch` only builds.
+
 ### GitHub lists releases by tag name, not by date
 
 The releases page and `GET /repos/:owner/:repo/releases` both order by tag name as a string, in spite of
