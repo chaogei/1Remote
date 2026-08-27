@@ -787,17 +787,23 @@ namespace _1RM.View.Host.ProtocolHosts
         public override void Conn()
         {
             Debug.Assert(_rdpClient != null); if (_rdpClient == null) return;
-            Dispatcher.Invoke(() =>
+            var alreadyUnderway = Dispatcher.Invoke(() =>
             {
                 if (Status == ProtocolHostStatus.Connected || Status == ProtocolHostStatus.Connecting)
                 {
-                    return;
+                    return true;
                 }
 
                 Status = ProtocolHostStatus.Connecting;
                 GridLoading.Visibility = System.Windows.Visibility.Visible;
                 RdpHost.Visibility = System.Windows.Visibility.Collapsed;
+                return false;
             });
+            // Not just cosmetic: proceeding here would mint a new epoch and, once the wait ended, call
+            // Connect() a second time on a control already mid-handshake, which throws E_FAIL and flips a
+            // healthy session's UI to the error panel. The pre-probe code returned in this case; keep that.
+            if (alreadyUnderway)
+                return;
 
             // Connect() is asynchronous: OnConnected is the only honest "Connected". Marking it here used
             // to make ReConn() think a still-handshaking session was already up. Wait for 3389 off the UI

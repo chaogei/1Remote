@@ -52,45 +52,75 @@ namespace _1RM.View.Host.ProtocolHosts
             });
             RdpClientDispose();
 
+            // Dispose() bumps the epoch. The waits below can run for many seconds, during which the user can
+            // hit Dismiss or close the tab; without this check the pipeline would re-create the ActiveX on a
+            // dead host and open a live, invisible session nothing can disconnect. Conn()'s own epoch only
+            // protects against a dispose that happens after it, not before.
+            var epoch = System.Threading.Volatile.Read(ref _connectEpoch);
 
-            var t = Task.Factory.StartNew(async () =>
+            _ = Task.Run(async () =>
             {
-                // After a reboot TermService is often still coming up. Waiting here, off the UI thread,
-                // is what mstsc effectively does; firing Connect() immediately is what made us fail
-                // while it succeeded a few seconds later.
-                if (_retryCount > 0)
-                    await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(_retryCount)).ConfigureAwait(false);
-                await WaitForEndpointReadyAsync().ConfigureAwait(false);
-
-                // check if it needs to auto switch address
-                var isAutoAlternateAddressSwitching = _rdpSettings.IsAutoAlternateAddressSwitching == true
-                                                      // if none of the alternate credential has host or port，then disabled `AutoAlternateAddressSwitching`
-                                                      && _rdpSettings.AlternateCredentials.Any(x => !string.IsNullOrEmpty(x.Address) || !string.IsNullOrEmpty(x.Port));
-                if (isAutoAlternateAddressSwitching)
+                try
                 {
-                    var c = await SessionControlService.GetCredential(_rdpSettings);
-                    if (c != null)
+                    // After a reboot TermService is often still coming up. Waiting here, off the UI thread,
+                    // is what mstsc effectively does; firing Connect() immediately is what made us fail
+                    // while it succeeded a few seconds later.
+                    if (_retryCount > 0)
+                        await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(_retryCount)).ConfigureAwait(false);
+                    await WaitForEndpointReadyAsync().ConfigureAwait(false);
+
+                    if (System.Threading.Volatile.Read(ref _connectEpoch) != epoch)
+                        return;
+
+                    // check if it needs to auto switch address
+                    var isAutoAlternateAddressSwitching = _rdpSettings.IsAutoAlternateAddressSwitching == true
+                                                          // if none of the alternate credential has host or port，then disabled `AutoAlternateAddressSwitching`
+                                                          && _rdpSettings.AlternateCredentials.Any(x => !string.IsNullOrEmpty(x.Address) || !string.IsNullOrEmpty(x.Port));
+                    if (isAutoAlternateAddressSwitching)
                     {
-                        _rdpSettings.SetCredential(c, true);
-                        _rdpSettings.DisplayName = c.Name;
+                        var c = await SessionControlService.GetCredential(_rdpSettings);
+                        if (c != null)
+                        {
+                            _rdpSettings.SetCredential(c, true);
+                            _rdpSettings.DisplayName = c.Name;
+                        }
                     }
+
+                    await Execute.OnUIThreadAsync(() =>
+                    {
+                        if (System.Threading.Volatile.Read(ref _connectEpoch) != epoch)
+                            return;
+
+                        Status = ProtocolHostStatus.NotInit;
+                        int w = 0;
+                        int h = 0;
+                        if (ParentWindow is TabWindowView tab)
+                        {
+                            var size = tab.GetTabContentSize(ColorAndBrushHelper.ColorIsTransparent(this._rdpSettings.ColorHex) == true);
+                            w = (int)size.Width;
+                            h = (int)size.Height;
+                        }
+                        InitRdp(w, h, true);
+                        Conn();
+                    });
                 }
-
-                Status = ProtocolHostStatus.NotInit;
-
-                await Execute.OnUIThreadAsync(() =>
+                catch (Exception ex)
                 {
-                    int w = 0;
-                    int h = 0;
-                    if (ParentWindow is TabWindowView tab)
+                    // This used to be a fire-and-forget StartNew(async ...): a throw (GetCredential probes the
+                    // network and can) was silently dropped, leaving the host on WaitingForReconnect with the
+                    // spinner forever and every later ReConn() rejected by its status guard.
+                    SimpleLogHelper.Error($"RDP Host: ReConn failed: {ex}");
+                    Status = ProtocolHostStatus.Disconnected;
+                    if (System.Threading.Volatile.Read(ref _connectEpoch) != epoch) return;
+                    await Execute.OnUIThreadAsync(() =>
                     {
-                        var size = tab.GetTabContentSize(ColorAndBrushHelper.ColorIsTransparent(this._rdpSettings.ColorHex) == true);
-                        w = (int)size.Width;
-                        h = (int)size.Height;
-                    }
-                    InitRdp(w, h, true);
-                    Conn();
-                });
+                        GridMessageBox.Visibility = Visibility.Visible;
+                        TbMessageTitle.Visibility = Visibility.Collapsed;
+                        TbMessage.Visibility = Visibility.Visible;
+                        BtnReconn.Visibility = Visibility.Visible;
+                        TbMessage.Text = ex.Message;
+                    });
+                }
             });
         }
 
@@ -101,6 +131,15 @@ namespace _1RM.View.Host.ProtocolHosts
         /// </summary>
         private async Task WaitForEndpointReadyAsync()
         {
+            // The probe dials the real endpoint directly, but a session pointed at a proxy tunnel or an RD
+            // Gateway does not reach the host that way — GetCredential skips its ping for the same reason.
+            // Probing would sit through every timeout and stall Connect() by ~13s while proving nothing;
+            // the disconnect-retry loop still covers the reboot case for these sessions.
+            if (_rdpSettings.IsTunnelled)
+                return;
+            if (_rdpSettings.GatewayMode is EGatewayMode.UseTheseGatewayServerSettings or EGatewayMode.AutomaticallyDetectGatewayServerSettings)
+                return;
+
             // First connect: give a rebooting host several tries. Later retries already waited the
             // backoff, so one probe is enough before handing off to the ActiveX control.
             var attempts = _retryCount == 0 ? 4 : 1;
@@ -119,7 +158,9 @@ namespace _1RM.View.Host.ProtocolHosts
                     SimpleLogHelper.Debug($"RDP Host: endpoint probe failed: {e.Message}");
                 }
 
-                await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(i + 1)).ConfigureAwait(false);
+                // between attempts only: sleeping after the last probe just delayed Connect() for nothing
+                if (i + 1 < attempts)
+                    await Task.Delay(RdpDisconnectClassifier.RetryDelayMs(i + 1)).ConfigureAwait(false);
             }
         }
 
@@ -205,6 +246,7 @@ namespace _1RM.View.Host.ProtocolHosts
                             RdpHost.Visibility = Visibility.Collapsed;
                             GridMessageBox.Visibility = Visibility.Visible;
                             TbMessageTitle.Visibility = Visibility.Collapsed;
+                            TbMessage.Visibility = Visibility.Visible; // the retry branch collapses it
                             BtnReconn.Visibility = Visibility.Visible;
                             TbMessage.Text = reason;
                             ParentWindowSetToWindow();
@@ -239,8 +281,22 @@ namespace _1RM.View.Host.ProtocolHosts
                             // The number of retries has reached its limit. Display an error.
                             _retryCount = 0;  // Reset for next time.
                             TbMessageTitle.Visibility = Visibility.Collapsed;
+                            // The retry branch above collapses TbMessage. Without restoring it, the final
+                            // error after exhausted retries was a black panel with two bare buttons.
+                            TbMessage.Visibility = Visibility.Visible;
                             BtnReconn.Visibility = Visibility.Visible;
                             TbMessage.Text = reason;
+                            // Since identity verification is on by default (AuthenticationLevel = 2), a host
+                            // whose certificate cannot be validated — reimaged machines mint a new self-signed
+                            // one — fails with an opaque security code where mstsc offers its warning dialog.
+                            // Point at the per-server escape hatch instead of trusting everyone globally.
+                            if (_rdpSettings.TrustUnverifiedHost == false
+                                && RdpDisconnectClassifier.IsSecurityHandshakeFailure(e.discReason))
+                            {
+                                TbMessage.Text = reason
+                                    + Environment.NewLine
+                                    + IoC.Translate("host_identity_error_hint", IoC.Translate("host_trust_skip"));
+                            }
                             ParentWindowSetToWindow();
                         }
                         this.ParentWindow?.FlashIfNotActive();
