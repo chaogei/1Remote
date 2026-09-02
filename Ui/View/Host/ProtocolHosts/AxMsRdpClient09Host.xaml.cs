@@ -1,7 +1,9 @@
 ﻿using _1RM.Model;
 using _1RM.Model.Protocol;
+using _1RM.Service;
 using _1RM.Service.Locality;
 using _1RM.Utils;
+using _1RM.Utils.Rdp;
 using _1RM.Utils.RdpFile;
 using _1RM.Utils.WindowsApi;
 using MSTSCLib;
@@ -823,6 +825,26 @@ namespace _1RM.View.Host.ProtocolHosts
                 SimpleLogHelper.Debug($"RDP Host: wait-for-endpoint: {e.Message}");
             }
 
+            var identity = await VerifyHostIdentityAsync(epoch).ConfigureAwait(false);
+            if (identity == EHostIdentityResult.Rejected)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (epoch != _connectEpoch)
+                        return;
+                    RdpHost.Visibility = System.Windows.Visibility.Collapsed;
+                    GridLoading.Visibility = System.Windows.Visibility.Collapsed;
+                    GridMessageBox.Visibility = System.Windows.Visibility.Visible;
+                    TbMessageTitle.Visibility = System.Windows.Visibility.Visible;
+                    TbMessageTitle.Text = IoC.Translate("host_trust_title");
+                    TbMessage.Visibility = System.Windows.Visibility.Visible;
+                    TbMessage.Text = IoC.Translate("host_identity_error_hint", IoC.Translate("host_trust_skip"));
+                    BtnReconn.Visibility = System.Windows.Visibility.Visible;
+                    Status = ProtocolHostStatus.Disconnected;
+                });
+                return;
+            }
+
             await Dispatcher.InvokeAsync(() =>
             {
                 try
@@ -834,6 +856,11 @@ namespace _1RM.View.Host.ProtocolHosts
                     if (Status != ProtocolHostStatus.Connecting
                         && Status != ProtocolHostStatus.Initialized)
                         return;
+
+                    // Already verified against the app's own trust store, so the control has nothing left to
+                    // warn about: 0 is "connect and do not warn me", the same value the per-server opt-out uses.
+                    if (identity == EHostIdentityResult.Verified)
+                        _rdpClient.AdvancedSettings9.AuthenticationLevel = 0u;
 
                     Status = ProtocolHostStatus.Connecting;
                     GridLoading.Visibility = System.Windows.Visibility.Visible;
@@ -848,6 +875,83 @@ namespace _1RM.View.Host.ProtocolHosts
                     Status = ProtocolHostStatus.Disconnected;
                 }
             });
+        }
+
+        /// <summary>
+        /// The whole probe — connect, negotiate, handshake. Long enough for a slow WAN round trip, short
+        /// enough that a host which swallows the attempt does not hold up the session behind it.
+        /// </summary>
+        private const int CERTIFICATE_PROBE_TIMEOUT_MS = 5000;
+
+        /// <summary>What the app made of the server's identity before the control was allowed to dial.</summary>
+        private enum EHostIdentityResult
+        {
+            /// <summary>Known to the trust store, or accepted by the user just now.</summary>
+            Verified,
+            /// <summary>Nothing was checked; the control keeps its own warning.</summary>
+            NotChecked,
+            /// <summary>The user refused the identity, so the session must not be opened.</summary>
+            Rejected,
+        }
+
+        /// <summary>
+        /// Verifies the server certificate against the app's own trust store before the ActiveX control
+        /// dials, so an identity the user has already accepted stops coming back as a warning.
+        ///
+        /// Windows keys its memory of an accepted certificate on the address alone
+        /// (HKCU\Software\Microsoft\Terminal Server Client\Servers\&lt;address&gt;\CertHash), so a hostname
+        /// that forwards a port per machine has all of those hosts sharing one entry and overwriting each
+        /// other — which is why "don't ask me again" never sticks on a NAT or frp setup. The store used here
+        /// is keyed on address *and* port, and the same one already backs SFTP and FTPS.
+        ///
+        /// Probing is a separate handshake from the session's, so a host that can only be reached through a
+        /// gateway is left to the control. A probe that reaches nothing changes nothing either: the control
+        /// still connects with its warning in place.
+        /// </summary>
+        private async Task<EHostIdentityResult> VerifyHostIdentityAsync(int epoch)
+        {
+            // This server opted out, so RdpInitStatic already set the control to connect without warning.
+            if (_rdpSettings.TrustUnverifiedHost)
+                return EHostIdentityResult.NotChecked;
+
+            // An RD Gateway session does not reach the host by dialing it.
+            if (_rdpSettings.GatewayMode is EGatewayMode.UseTheseGatewayServerSettings or EGatewayMode.AutomaticallyDetectGatewayServerSettings)
+                return EHostIdentityResult.NotChecked;
+
+            // What the control will dial: loopback for a session sent through a proxy tunnel.
+            var host = _rdpSettings.Address?.Trim() ?? "";
+            var port = _rdpSettings.GetPort();
+            if (host.Length == 0 || port <= 0)
+                return EHostIdentityResult.NotChecked;
+
+            RdpServerCertificate? certificate;
+            try
+            {
+                certificate = await RdpCertificateProbe
+                    .TryGetCertificateAsync(host, port, CERTIFICATE_PROBE_TIMEOUT_MS, CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                SimpleLogHelper.Debug($"RDP Host: certificate probe for {host}:{port} failed: {e.Message}");
+                return EHostIdentityResult.NotChecked;
+            }
+
+            // A server on the legacy security layer has no certificate to pin.
+            if (certificate == null)
+                return EHostIdentityResult.NotChecked;
+
+            // The probe and the dialog above it can take a while; the tab may be gone by now, and asking
+            // about a session nobody is waiting for would be a dialog with nothing behind it.
+            if (epoch != Volatile.Read(ref _connectEpoch))
+                return EHostIdentityResult.NotChecked;
+
+            // Filed under the endpoint the user picked rather than the one being dialed: a proxied session
+            // dials loopback, and keying on that would file every proxied host under the same entry.
+            var trustPort = int.TryParse((_rdpSettings.RealPort ?? "").Trim(), out var real) && real > 0 ? real : port;
+            var trusted = IoC.Get<HostTrustService>().VerifyOrAsk("rdp",
+                _rdpSettings.RealAddress, trustPort, HostTrustService.Fingerprint(certificate.RawData), certificate.Subject);
+            return trusted ? EHostIdentityResult.Verified : EHostIdentityResult.Rejected;
         }
 
         public override void Close()

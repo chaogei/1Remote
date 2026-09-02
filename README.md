@@ -536,6 +536,12 @@ version badge at the top of this page uses `sort=semver` for the same reason.)
 **"Unverified host" on every connect.** The fingerprint is not being remembered — usually because the app
 cannot write `.locality/known_hosts.json`. Check that the data folder is writable.
 
+**Windows' own "the identity of the remote computer cannot be verified" warning.** The app checks the RDP
+certificate itself before the session starts and remembers it per address *and* port, so Windows only gets
+to ask when that check could not run: through an RD Gateway, in mstsc mode, or against a server still on the
+legacy RDP security layer. Windows files its answer under the address alone, which is why ticking "don't ask
+me again" never sticks when one hostname forwards a port per machine.
+
 **The window has no frosted background.** Expected inside a remote desktop session, under high contrast, on
 Windows 10 before 1803, and when the theme's frosted-glass switch is off. It is also expected on the session
 window itself, which is opaque by design.
