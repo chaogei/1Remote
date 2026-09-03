@@ -346,6 +346,8 @@
     <s:String x:Key="theme_glass_title">毛玻璃</s:String>
     <s:String x:Key="theme_glass_enable">面板背后模糊桌面（需 Windows 10 1803 及以上）</s:String>
     <s:String x:Key="theme_glass_opacity">面板不透明度</s:String>
+    <s:String x:Key="theme_glass_in_remote">在远程桌面会话中也启用</s:String>
+    <s:String x:Key="theme_glass_in_remote_hint">默认关闭：在 RDP 里 Windows 模糊的是被远程化的画面而不是真实桌面，玻璃往往只是一层发白的平涂。无论开关如何，会话窗口都保持不透明。</s:String>
     <s:String x:Key="proxy_title">代理</s:String>
     <s:String x:Key="proxy_page_hint">在此定义代理，然后在服务器编辑页为每台服务器选择。所有协议均通过本地中转转发，因此 RDP 与 VNC 同样支持。SSH 服务器也可以按同样的方式当作跳板机使用。</s:String>
     <s:String x:Key="proxy_type">类型</s:String>

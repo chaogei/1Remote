@@ -204,6 +204,19 @@ namespace _1RM.Service
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int AcrylicOpacity = 180;
 
+        /// <summary>
+        /// Whether the backdrop is attempted inside a remote desktop session as well.
+        ///
+        /// Off by default because DWM there samples a remoted framebuffer rather than the real desktop, so
+        /// the glass tends to read as a milky wash instead of blur. That is a judgement about how it looks,
+        /// not a correctness rule, and it is the wrong default for someone whose only desktop is an RDP
+        /// session — hence the switch. The session and full-screen hosts stay opaque either way; a frosted
+        /// window over their hosted GDI child HWND is the white fog, which no setting should bring back.
+        /// </summary>
+        [DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool EnableAcrylicInRemoteSession = false;
+
         #region GetColor
         public System.Windows.Media.Color GetPrimaryMidColor => ColorAndBrushHelper.HexColorToMediaColor(PrimaryMidColor);
         public System.Windows.Media.Color GetPrimaryLightColor => ColorAndBrushHelper.HexColorToMediaColor(PrimaryLightColor);

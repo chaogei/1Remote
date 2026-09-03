@@ -346,6 +346,8 @@
     <s:String x:Key="theme_glass_title">Frosted glass</s:String>
     <s:String x:Key="theme_glass_enable">Blur the desktop behind panels (Windows 10 1803 and later)</s:String>
     <s:String x:Key="theme_glass_opacity">Panel opacity</s:String>
+    <s:String x:Key="theme_glass_in_remote">Use it in a remote desktop session too</s:String>
+    <s:String x:Key="theme_glass_in_remote_hint">Off by default: over RDP, Windows blurs the remoted picture rather than the real desktop, so the glass often reads as a flat wash. Session windows stay opaque either way.</s:String>
     <s:String x:Key="proxy_title">Proxy</s:String>
     <s:String x:Key="proxy_page_hint">Define proxies here, then pick one per server in the server editor. Every protocol is routed through a local relay, so RDP and VNC are supported as well. An SSH server can be used as a jump host the same way.</s:String>
     <s:String x:Key="proxy_type">Type</s:String>

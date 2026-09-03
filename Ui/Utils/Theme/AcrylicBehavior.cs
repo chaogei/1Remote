@@ -262,9 +262,18 @@ namespace _1RM.Utils.Theme
         }
 
         /// <summary>
+        /// Whether the user has asked for frost inside a remote session anyway. Pushed in by
+        /// <see cref="_1RM.Service.ThemeService.ApplyTheme"/> rather than read from the configuration
+        /// service, so this helper keeps no dependency on it and every window's Apply stays a field read.
+        /// </summary>
+        public static bool AllowInRemoteSession { get; set; }
+
+        /// <summary>
         /// Frost on the main window washes out under nested RDP / Terminal Services: DWM samples a remote
         /// framebuffer instead of the real desktop, and a transparent composition target then composites
-        /// that bloom over the chrome. High contrast already supplies its own background.
+        /// that bloom over the chrome. How bad that looks depends on the connection, so
+        /// <see cref="AllowInRemoteSession"/> lets someone who works entirely over RDP judge it themselves.
+        /// High contrast has no such switch: it already supplies its own background.
         ///
         /// WPF's SystemParameters.IsRemoteSession caches CacheSlot.IsRemoteSession indefinitely because
         /// SystemParameters does not invalidate that slot (no InvalidateProperty in SystemParameters.cs).
@@ -276,7 +285,7 @@ namespace _1RM.Utils.Theme
         {
             try
             {
-                var isRemoteSession = GetSystemMetrics(SM_REMOTESESSION) != 0;
+                var isRemoteSession = !AllowInRemoteSession && GetSystemMetrics(SM_REMOTESESSION) != 0;
                 return SystemParameters.HighContrast || isRemoteSession;
             }
             catch (Exception)

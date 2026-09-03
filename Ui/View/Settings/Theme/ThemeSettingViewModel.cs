@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -225,6 +225,17 @@ namespace _1RM.View.Settings.Theme
             set
             {
                 if (!SetAndNotifyIfChanged(ref _configurationService.Theme.EnableAcrylic, value)) return;
+                _themeService.ApplyTheme(_configurationService.Theme);
+                _configurationService.Save();
+            }
+        }
+
+        public bool EnableAcrylicInRemoteSession
+        {
+            get => _configurationService.Theme.EnableAcrylicInRemoteSession;
+            set
+            {
+                if (!SetAndNotifyIfChanged(ref _configurationService.Theme.EnableAcrylicInRemoteSession, value)) return;
                 _themeService.ApplyTheme(_configurationService.Theme);
                 _configurationService.Save();
             }

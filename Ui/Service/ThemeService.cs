@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -269,6 +269,8 @@ namespace _1RM.Service
         {
             if (theme == null) return;
             CurrentTheme = theme;
+            // Before anything reads ShouldSkipAcrylic below, and before RefreshAll restains the open windows.
+            AcrylicBehavior.AllowInRemoteSession = theme.EnableAcrylicInRemoteSession;
             const string resourceTypeKey = "__Resource_Type_Key";
             const string resourceTypeValue = "__Resource_Type_Value=theme";
             void SetKey(IDictionary rd, string key, object value)
