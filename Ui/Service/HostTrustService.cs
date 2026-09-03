@@ -45,9 +45,22 @@ namespace _1RM.Service
         /// Verifies the identity, prompting once when it is unknown. Returns false when the user declines or
         /// when a previously accepted identity has changed.
         /// </summary>
-        /// <param name="kind">"ssh" or "tls".</param>
+        /// <param name="kind">"ssh", "tls" or "rdp".</param>
         /// <param name="detail">Extra context shown to the user, e.g. the TLS policy errors.</param>
-        public bool VerifyOrAsk(string kind, string host, int port, string fingerprint, string detail = "")
+        /// <param name="confirm">
+        /// Replaces the shared dialog for this call. The default one is modal to the main window, which is
+        /// hidden behind the tray icon as often as not; a caller that has a window of its own in front of
+        /// the user should ask there instead.
+        /// </param>
+        /// <param name="trustOnFirstUse">
+        /// Remember an identity that has never been seen instead of asking about it. For RDP, where the
+        /// alternative is the Windows warning the user has been clicking through for years, silently
+        /// pinning the first sighting is no weaker — and it keeps a fleet of servers from producing a
+        /// dialog per server the first time the app runs. A fingerprint that later *changes* is still
+        /// escalated to the user, which is the case that carries the signal.
+        /// </param>
+        public bool VerifyOrAsk(string kind, string host, int port, string fingerprint, string detail = "",
+            ConfirmDelegate? confirm = null, bool trustOnFirstUse = false)
         {
             Load();
             var key = BuildKey(kind, host, port);
@@ -62,24 +75,36 @@ namespace _1RM.Service
                 return true;
 
             var isChanged = known != null;
+            if (!isChanged && trustOnFirstUse)
+            {
+                SimpleLogHelper.Info($"HostTrustService: remembered {key} on first sight ({fingerprint})");
+                Remember(key, fingerprint);
+                return true;
+            }
+
             var message = isChanged
                 ? IoC.Translate("host_trust_changed", $"{host}:{port}", known!, fingerprint)
                 : IoC.Translate("host_trust_new", $"{host}:{port}", fingerprint);
             if (!string.IsNullOrEmpty(detail))
                 message += Environment.NewLine + detail;
 
-            if (!Confirm(IoC.Translate("host_trust_title"), message))
+            if (!(confirm ?? Confirm)(IoC.Translate("host_trust_title"), message))
             {
                 SimpleLogHelper.Warning($"HostTrustService: user rejected {key} ({fingerprint})");
                 return false;
             }
 
+            Remember(key, fingerprint);
+            return true;
+        }
+
+        private void Remember(string key, string fingerprint)
+        {
             lock (_lock)
             {
                 _trusted[key] = fingerprint;
             }
             Save();
-            return true;
         }
 
         private void Load()

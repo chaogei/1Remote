@@ -540,7 +540,8 @@ cannot write `.locality/known_hosts.json`. Check that the data folder is writabl
 certificate itself before the session starts and remembers it per address *and* port, so Windows only gets
 to ask when that check could not run: through an RD Gateway, in mstsc mode, or against a server still on the
 legacy RDP security layer. Windows files its answer under the address alone, which is why ticking "don't ask
-me again" never sticks when one hostname forwards a port per machine.
+me again" never sticks when one hostname forwards a port per machine. The first sighting of an RDP
+certificate is recorded without asking; a fingerprint that later *changes* is what you are asked about.
 
 **The window has no frosted background.** Expected inside a remote desktop session, under high contrast, on
 Windows 10 before 1803, and when the theme's frosted-glass switch is off. It is also expected on the session

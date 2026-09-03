@@ -1,4 +1,4 @@
-﻿using _1RM.Model;
+using _1RM.Model;
 using _1RM.Model.Protocol;
 using _1RM.Service;
 using _1RM.Service.Locality;
@@ -818,15 +818,67 @@ namespace _1RM.View.Host.ProtocolHosts
         {
             try
             {
-                await WaitForEndpointReadyAsync().ConfigureAwait(false);
+                try
+                {
+                    await WaitForEndpointReadyAsync().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    SimpleLogHelper.Debug($"RDP Host: wait-for-endpoint: {e.Message}");
+                }
+
+                var identity = await VerifyHostIdentityAsync(epoch).ConfigureAwait(false);
+                if (identity == EHostIdentityResult.Rejected)
+                {
+                    await ShowMessagePanelAsync(epoch, IoC.Translate("host_trust_title"),
+                        IoC.Translate("host_identity_error_hint", IoC.Translate("host_trust_skip")));
+                    return;
+                }
+
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        if (epoch != _connectEpoch)
+                            return;
+                        if (_rdpClient == null)
+                            return;
+                        if (Status != ProtocolHostStatus.Connecting
+                            && Status != ProtocolHostStatus.Initialized)
+                            return;
+
+                        // Already verified against the app's own trust store, so the control has nothing left to
+                        // warn about: 0 is "connect and do not warn me", the same value the per-server opt-out uses.
+                        if (identity == EHostIdentityResult.Verified)
+                            _rdpClient.AdvancedSettings9.AuthenticationLevel = 0u;
+
+                        Status = ProtocolHostStatus.Connecting;
+                        GridLoading.Visibility = System.Windows.Visibility.Visible;
+                        RdpHost.Visibility = System.Windows.Visibility.Collapsed;
+                        _rdpClient.Connect();
+                    }
+                    catch (Exception e)
+                    {
+                        GridMessageBox.Visibility = System.Windows.Visibility.Visible;
+                        TbMessageTitle.Visibility = System.Windows.Visibility.Collapsed;
+                        TbMessage.Text = e.Message;
+                        Status = ProtocolHostStatus.Disconnected;
+                    }
+                });
             }
             catch (Exception e)
             {
-                SimpleLogHelper.Debug($"RDP Host: wait-for-endpoint: {e.Message}");
+                // Nothing awaits this task. An escape here used to be swallowed whole: Connect() was never
+                // reached, no error was drawn, and the session kept its spinner over a black tab forever.
+                SimpleLogHelper.Error($"RDP Host: connect pipeline failed: {e}");
+                await ShowMessagePanelAsync(epoch, "", e.Message);
             }
+        }
 
-            var identity = await VerifyHostIdentityAsync(epoch).ConfigureAwait(false);
-            if (identity == EHostIdentityResult.Rejected)
+        /// <summary>Replaces the spinner with the error panel. Safe to call from any thread.</summary>
+        private async Task ShowMessagePanelAsync(int epoch, string title, string message)
+        {
+            try
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
@@ -835,46 +887,20 @@ namespace _1RM.View.Host.ProtocolHosts
                     RdpHost.Visibility = System.Windows.Visibility.Collapsed;
                     GridLoading.Visibility = System.Windows.Visibility.Collapsed;
                     GridMessageBox.Visibility = System.Windows.Visibility.Visible;
-                    TbMessageTitle.Visibility = System.Windows.Visibility.Visible;
-                    TbMessageTitle.Text = IoC.Translate("host_trust_title");
+                    TbMessageTitle.Visibility = string.IsNullOrEmpty(title)
+                        ? System.Windows.Visibility.Collapsed
+                        : System.Windows.Visibility.Visible;
+                    TbMessageTitle.Text = title;
                     TbMessage.Visibility = System.Windows.Visibility.Visible;
-                    TbMessage.Text = IoC.Translate("host_identity_error_hint", IoC.Translate("host_trust_skip"));
+                    TbMessage.Text = message;
                     BtnReconn.Visibility = System.Windows.Visibility.Visible;
                     Status = ProtocolHostStatus.Disconnected;
                 });
-                return;
             }
-
-            await Dispatcher.InvokeAsync(() =>
+            catch (Exception e)
             {
-                try
-                {
-                    if (epoch != _connectEpoch)
-                        return;
-                    if (_rdpClient == null)
-                        return;
-                    if (Status != ProtocolHostStatus.Connecting
-                        && Status != ProtocolHostStatus.Initialized)
-                        return;
-
-                    // Already verified against the app's own trust store, so the control has nothing left to
-                    // warn about: 0 is "connect and do not warn me", the same value the per-server opt-out uses.
-                    if (identity == EHostIdentityResult.Verified)
-                        _rdpClient.AdvancedSettings9.AuthenticationLevel = 0u;
-
-                    Status = ProtocolHostStatus.Connecting;
-                    GridLoading.Visibility = System.Windows.Visibility.Visible;
-                    RdpHost.Visibility = System.Windows.Visibility.Collapsed;
-                    _rdpClient.Connect();
-                }
-                catch (Exception e)
-                {
-                    GridMessageBox.Visibility = System.Windows.Visibility.Visible;
-                    TbMessageTitle.Visibility = System.Windows.Visibility.Collapsed;
-                    TbMessage.Text = e.Message;
-                    Status = ProtocolHostStatus.Disconnected;
-                }
-            });
+                SimpleLogHelper.Warning($"RDP Host: could not show the error panel: {e.Message}");
+            }
         }
 
         /// <summary>
@@ -941,17 +967,58 @@ namespace _1RM.View.Host.ProtocolHosts
             if (certificate == null)
                 return EHostIdentityResult.NotChecked;
 
-            // The probe and the dialog above it can take a while; the tab may be gone by now, and asking
-            // about a session nobody is waiting for would be a dialog with nothing behind it.
+            // The probe can take a few seconds; the tab may be gone by now, and asking about a session
+            // nobody is waiting for would be a dialog with nothing behind it.
             if (epoch != Volatile.Read(ref _connectEpoch))
                 return EHostIdentityResult.NotChecked;
 
-            // Filed under the endpoint the user picked rather than the one being dialed: a proxied session
-            // dials loopback, and keying on that would file every proxied host under the same entry.
-            var trustPort = int.TryParse((_rdpSettings.RealPort ?? "").Trim(), out var real) && real > 0 ? real : port;
-            var trusted = IoC.Get<HostTrustService>().VerifyOrAsk("rdp",
-                _rdpSettings.RealAddress, trustPort, HostTrustService.Fingerprint(certificate.RawData), certificate.Subject);
-            return trusted ? EHostIdentityResult.Verified : EHostIdentityResult.Rejected;
+            try
+            {
+                // Filed under the endpoint the user picked rather than the one being dialed: a proxied
+                // session dials loopback, and keying on that would file every proxied host under the same
+                // entry.
+                var trustPort = int.TryParse((_rdpSettings.RealPort ?? "").Trim(), out var real) && real > 0 ? real : port;
+                var trusted = IoC.Get<HostTrustService>().VerifyOrAsk("rdp",
+                    _rdpSettings.RealAddress, trustPort, HostTrustService.Fingerprint(certificate.RawData),
+                    certificate.Subject, AskOnSessionWindow, trustOnFirstUse: true);
+                return trusted ? EHostIdentityResult.Verified : EHostIdentityResult.Rejected;
+            }
+            catch (Exception e)
+            {
+                // Never let a fault in the trust store or its dialog decide whether a session opens: the
+                // control still has its own warning, which is where this started.
+                SimpleLogHelper.Error($"RDP Host: host trust check failed for {host}:{port}: {e}");
+                return EHostIdentityResult.NotChecked;
+            }
+        }
+
+        /// <summary>
+        /// Asks on the window the user is looking at.
+        ///
+        /// The shared prompt is modal to the main window, which spends most of its life hidden behind the
+        /// tray icon — and a dialog owned by a hidden window is one nobody sees, while the session behind it
+        /// sits on its spinner waiting for an answer that cannot be given. This one is owned by the session's
+        /// own window and brings it forward first.
+        /// </summary>
+        private bool AskOnSessionWindow(string title, string message)
+        {
+            var accepted = false;
+            Execute.OnUIThreadSync(() =>
+            {
+                var owner = ParentWindow;
+                if (owner is { IsLoaded: true })
+                {
+                    owner.Activate();
+                    accepted = System.Windows.MessageBox.Show(owner, message, title,
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                }
+                else
+                {
+                    accepted = System.Windows.MessageBox.Show(message, title,
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                }
+            });
+            return accepted;
         }
 
         public override void Close()
